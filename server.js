@@ -1,5 +1,5 @@
 // server.js - Uniformes Escolares Bonaparte
-// Servidor con JSON como "base de datos" + respaldos automáticos
+// Servidor con JSON como "base de datos" + respaldos automáticos + imágenes
 
 const express = require("express");
 const cors = require("cors");
@@ -96,7 +96,6 @@ function crearRespaldoLocal() {
     const payload = {
       fecha: ahora.toISOString(),
       pedidos,
-      // No guardamos password en el respaldo para más seguridad
       usuarios: usuarios.map((u) => ({
         id: u.id,
         nombre: u.nombre,
@@ -265,6 +264,7 @@ app.post("/api/pedidos", authMiddleware, (req, res) => {
     comprasNotas: body.comprasNotas || "",
     corteNotas: body.corteNotas || "",
     confeccionNotas: body.confeccionNotas || "",
+    condicionesCliente: body.condicionesCliente || "",
     precioTotal: Number(body.precioTotal || 0),
     anticipo: Number(body.anticipo || 0),
     saldo: Number(body.saldo || 0),
@@ -302,6 +302,7 @@ app.put("/api/pedidos/:id", authMiddleware, (req, res) => {
     comprasNotas: body.comprasNotas ?? actual.comprasNotas,
     corteNotas: body.corteNotas ?? actual.corteNotas,
     confeccionNotas: body.confeccionNotas ?? actual.confeccionNotas,
+    condicionesCliente: body.condicionesCliente ?? actual.condicionesCliente,
     precioTotal:
       body.precioTotal !== undefined
         ? Number(body.precioTotal || 0)
