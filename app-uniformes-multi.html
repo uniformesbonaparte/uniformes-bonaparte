@@ -6,13 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      /* Paleta basada en tu logo: azul marino + rojo */
-      --color-bg: #051229;             /* fondo azulado oscuro */
-      --color-bg-soft: #f3f4f6;        /* gris claro */
-      --color-card: #ffffff;           /* blanco tarjetas */
-      --color-primary: #0b3a73;        /* azul marino medio */
-      --color-primary-dark: #05244a;   /* azul marino más oscuro */
-      --color-accent: #e4272b;         /* rojo uniforme */
+      --color-bg: #051229;
+      --color-bg-soft: #f3f4f6;
+      --color-card: #ffffff;
+      --color-primary: #0b3a73;
+      --color-primary-dark: #05244a;
+      --color-accent: #e4272b;
       --color-text-main: #111827;
       --color-text-soft: #6b7280;
       --radius-card: 14px;
@@ -31,7 +30,6 @@
       color: var(--color-text-main);
     }
 
-    /* ===== HEADER ===== */
     header {
       background: rgba(3, 16, 38, 0.96);
       backdrop-filter: blur(10px);
@@ -307,7 +305,6 @@
       max-width: 1280px;
     }
 
-    /* Galería de imágenes */
     #imagenesLista {
       display: flex;
       flex-wrap: wrap;
@@ -339,7 +336,7 @@
   </style>
 </head>
 <body>
-  <!-- VISTA LOGIN -->
+  <!-- LOGIN -->
   <div id="loginView">
     <section class="card">
       <div class="card-inner">
@@ -360,12 +357,11 @@
     </section>
   </div>
 
-  <!-- VISTA APP -->
+  <!-- APP -->
   <div id="appView">
     <header>
       <div class="brand">
         <div class="brand-logo">
-          <!-- Asegúrate que el archivo exista con ese nombre en la carpeta -->
           <img src="logo-bonaparte.jpg" alt="Logo Uniformes Escolares Bonaparte" />
         </div>
         <div>
@@ -381,7 +377,6 @@
     </header>
 
     <main>
-      <!-- LISTA DE PEDIDOS -->
       <section class="card">
         <div class="card-inner">
           <h2>Pedidos</h2>
@@ -423,7 +418,6 @@
         </div>
       </section>
 
-      <!-- FORMULARIO DETALLE -->
       <section class="card">
         <div class="card-inner">
           <h2 id="tituloFormulario">Nuevo pedido</h2>
@@ -547,7 +541,7 @@
       </section>
     </main>
 
-    <!-- GESTIÓN DE USUARIOS (solo admin) -->
+    <!-- USUARIOS -->
     <section class="card" id="usuariosCard" style="display:none;">
       <div class="card-inner">
         <h2>Usuarios por área</h2>
@@ -600,11 +594,18 @@
       </div>
     </section>
 
-    <!-- RESUMEN GENERAL (solo admin) -->
+    <!-- RESUMEN + RESPALDO -->
     <section class="card" id="resumenCard" style="display:none;">
       <div class="card-inner">
         <h2>Resumen de ventas y gastos</h2>
         <div id="resumenContenido" class="small-text"></div>
+
+        <button class="btn secondary" style="margin-top:8px;" onclick="descargarRespaldo()">
+          Descargar respaldo (.json)
+        </button>
+        <div class="small-text">
+          Guarda este archivo en tu computadora o en Google Drive como respaldo de seguridad.
+        </div>
       </div>
     </section>
   </div>
@@ -762,6 +763,7 @@
         await cargarPedidos();
         if (esAdmin()) {
           await cargarUsuarios();
+          actualizarResumen();
         }
       } catch (e) {
         errDiv.textContent = "No se pudo conectar al servidor.";
@@ -1310,6 +1312,48 @@
         `Utilidad aproximada: <b>$${utilidad.toFixed(2)}</b>`;
     }
 
+    async function descargarRespaldo() {
+      if (!authToken || !esAdmin()) {
+        alert("Solo el administrador puede descargar respaldos.");
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + "/respaldo", {
+          headers: { "Authorization": "Bearer " + authToken }
+        });
+
+        if (!res.ok) {
+          alert("No se pudo generar el respaldo.");
+          return;
+        }
+
+        const data = await res.json();
+        const contenido = JSON.stringify(data, null, 2);
+        const blob = new Blob([contenido], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const ahora = new Date();
+        const yyyy = ahora.getFullYear();
+        const mm = String(ahora.getMonth() + 1).padStart(2, "0");
+        const dd = String(ahora.getDate()).padStart(2, "0");
+        const nombreArchivo = `respaldo-bonaparte-${yyyy}-${mm}-${dd}.json`;
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nombreArchivo;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        alert("Respaldo descargado. Guárdalo en un lugar seguro.");
+      } catch (e) {
+        console.error(e);
+        alert("Error al conectarse al servidor para generar el respaldo.");
+      }
+    }
+
     (function init() {
       const tokenGuardado = localStorage.getItem("uniformes_token");
       const usuarioGuardado = localStorage.getItem("uniformes_usuario");
@@ -1326,6 +1370,7 @@
           cargarPedidos();
           if (esAdmin()) {
             cargarUsuarios();
+            actualizarResumen();
           }
         }
       }

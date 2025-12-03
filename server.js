@@ -1,5 +1,5 @@
 // server.js - Uniformes Escolares Bonaparte
-// Servidor sencillo con JSON como "base de datos"
+// Servidor con JSON como "base de datos" + respaldos automáticos
 
 const express = require("express");
 const cors = require("cors");
@@ -10,24 +10,22 @@ const multer = require("multer");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ===== CONFIG BÁSICA =====
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Carpeta estática (html, logo, etc.)
+// ===== STATIC & HTML =====
 const STATIC_DIR = __dirname;
 app.use(express.static(STATIC_DIR));
-// Servir la app principal en / y en /app-uniformes-multi.html
-const INDEX_HTML = path.join(__dirname, "app-uniformes-multi.html");
 
+const INDEX_HTML = path.join(__dirname, "app-uniformes-multi.html");
 app.get("/", (req, res) => {
   res.sendFile(INDEX_HTML);
 });
-
 app.get("/app-uniformes-multi.html", (req, res) => {
   res.sendFile(INDEX_HTML);
 });
+
+// ===== MIDDLEWARE BÁSICO =====
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Carpeta para imágenes subidas
 const UPLOAD_DIR = path.join(__dirname, "uploads");
@@ -35,6 +33,12 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 app.use("/uploads", express.static(UPLOAD_DIR));
+
+// Carpeta para respaldos
+const BACKUP_DIR = path.join(__dirname, "backups");
+if (!fs.existsSync(BACKUP_DIR)) {
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+}
 
 // ===== "BASE DE DATOS" EN ARCHIVOS JSON =====
 const DB_PEDIDOS = path.join(__dirname, "pedidos.json");
@@ -75,7 +79,57 @@ if (!usuarios || usuarios.length === 0) {
   escribirJSON(DB_USERS, usuarios);
 }
 
-// ===== AUTENTICACIÓN SUPER SIMPLE (solo para ti) =====
+// ===== RESPALDOS AUTOMÁTICOS =====
+function crearRespaldoLocal() {
+  try {
+    const ahora = new Date();
+    const yyyy = ahora.getFullYear();
+    const mm = String(ahora.getMonth() + 1).padStart(2, "0");
+    const dd = String(ahora.getDate()).padStart(2, "0");
+    const hh = String(ahora.getHours()).padStart(2, "0");
+    const mi = String(ahora.getMinutes()).padStart(2, "0");
+    const ss = String(ahora.getSeconds()).padStart(2, "0");
+
+    const stamp = `${yyyy}${mm}${dd}-${hh}${mi}${ss}`;
+    const archivo = path.join(BACKUP_DIR, `respaldo-${stamp}.json`);
+
+    const payload = {
+      fecha: ahora.toISOString(),
+      pedidos,
+      // No guardamos password en el respaldo para más seguridad
+      usuarios: usuarios.map((u) => ({
+        id: u.id,
+        nombre: u.nombre,
+        email: u.email,
+        rol: u.rol,
+      })),
+      imagenes,
+    };
+
+    fs.writeFileSync(archivo, JSON.stringify(payload, null, 2), "utf8");
+    console.log("Respaldo creado:", archivo);
+  } catch (err) {
+    console.error("Error creando respaldo:", err);
+  }
+}
+
+// Endpoint para que el admin descargue respaldo
+app.get("/api/respaldo", authMiddleware, requireAdmin, (req, res) => {
+  const ahora = new Date();
+  res.json({
+    fecha: ahora.toISOString(),
+    pedidos,
+    usuarios: usuarios.map((u) => ({
+      id: u.id,
+      nombre: u.nombre,
+      email: u.email,
+      rol: u.rol,
+    })),
+    imagenes,
+  });
+});
+
+// ===== AUTENTICACIÓN SUPER SIMPLE =====
 
 const tokensActivos = new Map(); // token -> {id, nombre, rol}
 
@@ -105,6 +159,13 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Solo admin" });
+  }
+  next();
+}
+
 // ===== LOGIN =====
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body || {};
@@ -122,13 +183,6 @@ app.post("/api/login", (req, res) => {
 });
 
 // ===== CRUD USUARIOS (solo admin) =====
-
-function requireAdmin(req, res, next) {
-  if (!req.user || req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Solo admin" });
-  }
-  next();
-}
 
 app.get("/api/users", authMiddleware, requireAdmin, (req, res) => {
   res.json(
@@ -149,10 +203,12 @@ app.post("/api/users", authMiddleware, requireAdmin, (req, res) => {
   if (usuarios.some((u) => u.email === email)) {
     return res.status(400).json({ error: "Ese correo ya existe" });
   }
-  const nuevoId = usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
+  const nuevoId =
+    usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
   const nuevoUser = { id: nuevoId, nombre, email, password, rol };
   usuarios.push(nuevoUser);
   escribirJSON(DB_USERS, usuarios);
+  crearRespaldoLocal();
   res.json({ ok: true, id: nuevoId });
 });
 
@@ -164,6 +220,7 @@ app.delete("/api/users/:id", authMiddleware, requireAdmin, (req, res) => {
     return res.status(404).json({ error: "Usuario no encontrado" });
   }
   escribirJSON(DB_USERS, usuarios);
+  crearRespaldoLocal();
   res.json({ ok: true });
 });
 
@@ -174,7 +231,6 @@ function generarFolio() {
   const year = ahora.getFullYear();
   const prefix = `BONA-${year}-`;
 
-  // Contar pedidos de este año (no importa si se borran, solo evita repetir)
   const delAnio = pedidos.filter(
     (p) => typeof p.folio === "string" && p.folio.startsWith(prefix)
   );
@@ -191,7 +247,8 @@ app.get("/api/pedidos", authMiddleware, (req, res) => {
 
 app.post("/api/pedidos", authMiddleware, (req, res) => {
   const body = req.body || {};
-  const nuevoId = pedidos.length > 0 ? Math.max(...pedidos.map((p) => p.id || 0)) + 1 : 1;
+  const nuevoId =
+    pedidos.length > 0 ? Math.max(...pedidos.map((p) => p.id || 0)) + 1 : 1;
 
   const pedido = {
     id: nuevoId,
@@ -218,6 +275,7 @@ app.post("/api/pedidos", authMiddleware, (req, res) => {
 
   pedidos.push(pedido);
   escribirJSON(DB_PEDIDOS, pedidos);
+  crearRespaldoLocal();
   res.json(pedido);
 });
 
@@ -230,7 +288,6 @@ app.put("/api/pedidos/:id", authMiddleware, (req, res) => {
   const body = req.body || {};
   const actual = pedidos[idx];
 
-  // NO cambiamos el folio ni el id
   pedidos[idx] = {
     ...actual,
     clienteNombre: body.clienteNombre ?? actual.clienteNombre,
@@ -261,6 +318,7 @@ app.put("/api/pedidos/:id", authMiddleware, (req, res) => {
   };
 
   escribirJSON(DB_PEDIDOS, pedidos);
+  crearRespaldoLocal();
   res.json(pedidos[idx]);
 });
 
@@ -273,10 +331,11 @@ app.delete("/api/pedidos/:id", authMiddleware, (req, res) => {
   }
   escribirJSON(DB_PEDIDOS, pedidos);
 
-  // opcional: borrar registros de imágenes de ese pedido
+  // Borrar registros de imágenes de ese pedido
   imagenes = imagenes.filter((img) => img.pedidoId !== id);
   escribirJSON(DB_IMAGENES, imagenes);
 
+  crearRespaldoLocal();
   res.json({ ok: true });
 });
 
@@ -313,7 +372,6 @@ app.post(
 
     const rutaRelativa = "/uploads/" + req.file.filename;
 
-    // Guardamos registro de imagen
     const nuevoId =
       imagenes.length > 0 ? Math.max(...imagenes.map((i) => i.id || 0)) + 1 : 1;
     const registro = {
@@ -325,10 +383,11 @@ app.post(
     imagenes.push(registro);
     escribirJSON(DB_IMAGENES, imagenes);
 
-    // También podemos dejar la última imagen en el pedido principal
+    // Última imagen también se guarda en el pedido
     pedido.imagenUrl = rutaRelativa;
     escribirJSON(DB_PEDIDOS, pedidos);
 
+    crearRespaldoLocal();
     res.json({ ok: true, imagenUrl: rutaRelativa });
   }
 );
@@ -345,6 +404,5 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log("=================================");
   console.log("  Servidor Uniformes Bonaparte");
   console.log("  Puerto:", PORT);
-  console.log("  Acceso LAN habilitado");
   console.log("=================================");
 });
