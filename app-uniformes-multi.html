@@ -345,6 +345,9 @@
       padding: 0 12px;
     }
   </style>
+
+  <!-- Librería para generar PDF en el navegador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -423,12 +426,12 @@
               <tbody id="tablaPedidosBody"></tbody>
             </table>
             <div class="small-text">Haz clic en un pedido para editarlo.</div>
-            <button class="btn" style="margin-top:6px;" onclick="nuevoPedido()">Nuevo pedido</button>
+            <button class="btn" style="margin-top:6px;" id="btnNuevoPedido" onclick="nuevoPedido()">Nuevo pedido</button>
           </div>
         </section>
 
         <!-- FORMULARIO -->
-        <section class="card">
+        <section class="card" id="formPedidoCard">
           <div class="card-inner">
             <h2 id="tituloFormulario">Nuevo pedido</h2>
             <input type="hidden" id="pedidoId" />
@@ -440,7 +443,7 @@
                 <label for="clienteNombre">Nombre</label>
                 <input id="clienteNombre" type="text" />
               </div>
-              <div>
+              <div id="clienteTelefonoGroup">
                 <label for="clienteTelefono">Teléfono</label>
                 <input id="clienteTelefono" type="text" />
               </div>
@@ -498,35 +501,56 @@
             <label for="confeccionNotas">Confección</label>
             <textarea id="confeccionNotas" placeholder="Detalles de costura, terminados..."></textarea>
 
-            <h3>Finanzas</h3>
-            <div class="row-3">
-              <div>
-                <label for="precioTotal">Precio total ($)</label>
-                <input id="precioTotal" type="number" step="0.01" />
+            <!-- FINANZAS (solo admin/ventas/compras) -->
+            <div id="finanzasSection">
+              <h3>Finanzas</h3>
+              <div class="row-3">
+                <div>
+                  <label for="precioTotal">Precio total ($)</label>
+                  <input id="precioTotal" type="number" step="0.01" />
+                </div>
+                <div>
+                  <label for="anticipo">Anticipo ($)</label>
+                  <input id="anticipo" type="number" step="0.01" />
+                </div>
+                <div>
+                  <label for="saldo">Saldo ($)</label>
+                  <input id="saldo" type="number" step="0.01" />
+                </div>
               </div>
-              <div>
-                <label for="anticipo">Anticipo ($)</label>
-                <input id="anticipo" type="number" step="0.01" />
+              <label for="gastosCompras">Gastos compras ($)</label>
+              <input id="gastosCompras" type="number" step="0.01" />
+
+              <div id="condicionesWrapper">
+                <h3>Condiciones del pedido (cliente)</h3>
+                <label for="condicionesCliente">Condiciones</label>
+                <textarea id="condicionesCliente"
+                  placeholder="Ej. Tiempo de entrega, cambios, forma de pago, garantías..."></textarea>
               </div>
-              <div>
-                <label for="saldo">Saldo ($)</label>
-                <input id="saldo" type="number" step="0.01" />
+
+              <div id="comprasDetalleWrapper">
+                <h3>Detalle de compras (insumos)</h3>
+                <label for="comprasDetalle">Detalle de compras</label>
+                <textarea id="comprasDetalle"
+                  placeholder="Ej. Tela Oxford azul | 25 m | $80/m | Proveedor X&#10;Botones metálicos | 200 pzas | $1.5 c/u | Proveedor Y"></textarea>
+                <div class="small-text">
+                  Una línea por insumo (tipo | cantidad | unidad | precio | proveedor).
+                </div>
               </div>
             </div>
-            <label for="gastosCompras">Gastos compras ($)</label>
-            <input id="gastosCompras" type="number" step="0.01" />
 
             <h3>Imágenes de referencia</h3>
             <div class="row">
               <div>
                 <label for="imagenArchivo">Imagen (una por vez)</label>
                 <input id="imagenArchivo" type="file" accept="image/*" />
-                <button class="btn secondary" onclick="subirImagen()">Subir imagen</button>
+                <button class="btn secondary" id="btnSubirImagen" onclick="subirImagen()">Subir imagen</button>
                 <div class="small-text">Sube imágenes una por una ligadas al pedido.</div>
               </div>
               <div>
                 <label>Vista previa</label>
-                <img id="imagenPreview" style="max-width:100%;max-height:150px;border-radius:10px;border:1px solid #e5e7eb;display:none;" />
+                <img id="imagenPreview"
+                     style="max-width:100%;max-height:150px;border-radius:10px;border:1px solid #e5e7eb;display:none;" />
               </div>
             </div>
             <label>Galería de imágenes</label>
@@ -535,8 +559,11 @@
             <div class="small-text" id="infoExtra" style="margin-top:6px;"></div>
 
             <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
-              <button class="btn" onclick="guardarPedido()">Guardar pedido</button>
-              <button class="btn secondary" onclick="nuevoPedido()">Limpiar / nuevo</button>
+              <button class="btn" id="btnGuardarPedido" onclick="guardarPedido()">Guardar pedido</button>
+              <button class="btn secondary" id="btnLimpiarPedido" onclick="nuevoPedido()">Limpiar / nuevo</button>
+              <button class="btn secondary" id="btnNotaPDF" onclick="exportarNotaPDF()">Nota PDF (cliente)</button>
+              <button class="btn secondary" id="btnComprasPDF" onclick="exportarComprasPDF()">PDF compras</button>
+              <button class="btn danger" id="btnEliminarPedido" onclick="eliminarPedido()">Eliminar pedido</button>
             </div>
           </div>
         </section>
@@ -578,7 +605,7 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+              <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tablaUsuariosBody"></tbody>
@@ -625,10 +652,67 @@
     }
 
     function applyRoleUI() {
+      const rol = usuarioActual ? usuarioActual.rol : "";
+
       const usuariosCard = document.getElementById("usuariosCard");
       const resumenCard = document.getElementById("resumenCard");
       if (usuariosCard) usuariosCard.style.display = esAdmin() ? "block" : "none";
       if (resumenCard) resumenCard.style.display = esAdmin() ? "block" : "none";
+
+      const telGroup = document.getElementById("clienteTelefonoGroup");
+      if (telGroup) {
+        telGroup.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
+      }
+
+      const finanzasSection = document.getElementById("finanzasSection");
+      if (finanzasSection) {
+        const showFin = (rol === "admin" || rol === "ventas" || rol === "compras");
+        finanzasSection.style.display = showFin ? "block" : "none";
+      }
+
+      const condWrap = document.getElementById("condicionesWrapper");
+      if (condWrap) {
+        condWrap.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
+      }
+
+      const comprasWrap = document.getElementById("comprasDetalleWrapper");
+      if (comprasWrap) {
+        comprasWrap.style.display = (rol === "admin" || rol === "compras") ? "block" : "none";
+      }
+
+      const btnNotaPDF = document.getElementById("btnNotaPDF");
+      if (btnNotaPDF) {
+        btnNotaPDF.style.display = (rol === "admin" || rol === "ventas") ? "inline-flex" : "none";
+      }
+      const btnComprasPDF = document.getElementById("btnComprasPDF");
+      if (btnComprasPDF) {
+        btnComprasPDF.style.display = (rol === "admin" || rol === "compras") ? "inline-flex" : "none";
+      }
+
+      const canEdit = (rol === "admin" || rol === "ventas" || rol === "compras");
+      const formCard = document.getElementById("formPedidoCard");
+      if (formCard) {
+        const campos = formCard.querySelectorAll("input, select, textarea");
+        campos.forEach(el => {
+          if (el.id === "imagenArchivo") {
+            el.disabled = !canEdit;
+          } else {
+            el.disabled = !canEdit && el.tagName !== "IMG";
+          }
+        });
+
+        const btnGuardar = document.getElementById("btnGuardarPedido");
+        const btnLimpiar = document.getElementById("btnLimpiarPedido");
+        const btnSubir = document.getElementById("btnSubirImagen");
+        const btnNuevo = document.getElementById("btnNuevoPedido");
+        const btnEliminarPedido = document.getElementById("btnEliminarPedido");
+
+        if (btnGuardar) btnGuardar.style.display = canEdit ? "inline-flex" : "none";
+        if (btnLimpiar) btnLimpiar.style.display = canEdit ? "inline-flex" : "none";
+        if (btnSubir) btnSubir.style.display = canEdit ? "inline-flex" : "none";
+        if (btnNuevo) btnNuevo.style.display = canEdit ? "inline-flex" : "none";
+        if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
+      }
     }
 
     async function login() {
@@ -747,6 +831,8 @@
       document.getElementById("anticipo").value = p.anticipo ?? "";
       document.getElementById("saldo").value = p.saldo ?? "";
       document.getElementById("gastosCompras").value = p.gastosCompras ?? "";
+      document.getElementById("condicionesCliente").value = p.condicionesCliente || "";
+      document.getElementById("comprasDetalle").value = p.comprasDetalle || "";
 
       const imgPrev = document.getElementById("imagenPreview");
       if (p.imagenUrl) {
@@ -783,6 +869,8 @@
       document.getElementById("anticipo").value = "";
       document.getElementById("saldo").value = "";
       document.getElementById("gastosCompras").value = "";
+      document.getElementById("condicionesCliente").value = "";
+      document.getElementById("comprasDetalle").value = "";
       document.getElementById("imagenUrl").value = "";
       document.getElementById("imagenPreview").style.display = "none";
       document.getElementById("imagenesLista").innerHTML = "";
@@ -814,6 +902,8 @@
         anticipo: parseFloat(document.getElementById("anticipo").value || "0"),
         saldo: parseFloat(document.getElementById("saldo").value || "0"),
         gastosCompras: parseFloat(document.getElementById("gastosCompras").value || "0"),
+        condicionesCliente: document.getElementById("condicionesCliente").value.trim(),
+        comprasDetalle: document.getElementById("comprasDetalle").value.trim(),
         imagenUrl: document.getElementById("imagenUrl").value || null
       };
 
@@ -842,6 +932,33 @@
       } else {
         nuevoPedido();
       }
+    }
+
+    async function eliminarPedido() {
+      if (!authToken || !esAdmin()) {
+        alert("Solo admin puede eliminar pedidos.");
+        return;
+      }
+      const id = document.getElementById("pedidoId").value;
+      if (!id) {
+        alert("Primero selecciona un pedido a eliminar.");
+        return;
+      }
+      if (!confirm("¿Eliminar el pedido " + id + "? Esta acción no se puede deshacer.")) {
+        return;
+      }
+      const res = await fetch(API_BASE + "/pedidos/" + id, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + authToken }
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Error al eliminar pedido.");
+        return;
+      }
+      alert("Pedido eliminado.");
+      await cargarPedidos();
+      nuevoPedido();
     }
 
     async function subirImagen() {
@@ -925,6 +1042,11 @@
           <td>${u.nombre}</td>
           <td>${u.email}</td>
           <td>${u.rol}</td>
+          <td>
+            <button class="btn danger" onclick="eliminarUsuario(${u.id}); event.stopPropagation();">
+              Eliminar
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       }
@@ -964,6 +1086,27 @@
       document.getElementById("newUserPass").value = "";
       await cargarUsuarios();
       alert("Usuario creado.");
+    }
+
+    async function eliminarUsuario(id) {
+      if (!authToken || !esAdmin()) {
+        alert("Solo admin puede eliminar usuarios.");
+        return;
+      }
+      if (!confirm("¿Eliminar usuario " + id + "? Esta acción no se puede deshacer.")) {
+        return;
+      }
+      const res = await fetch(API_BASE + "/users/" + id, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + authToken }
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Error al eliminar usuario.");
+        return;
+      }
+      alert("Usuario eliminado.");
+      await cargarUsuarios();
     }
 
     async function descargarRespaldo() {
@@ -1021,7 +1164,164 @@
         "Gastos compras: <b>$" + totalGastos.toFixed(2) + "</b><br>" +
         "Utilidad aprox: <b>$" + utilidad.toFixed(2) + "</b>";
     }
+
+    function exportarNotaPDF() {
+      if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "ventas")) {
+        alert("Solo ventas o admin pueden generar la nota para cliente.");
+        return;
+      }
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) {
+        alert("No se pudo cargar la librería de PDF.");
+        return;
+      }
+
+      const id = document.getElementById("pedidoId").value;
+      const pedido = pedidos.find(p => String(p.id) === String(id));
+      const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+      const doc = new jsPDF();
+
+      const nombre = document.getElementById("clienteNombre").value || "";
+      const escuela = document.getElementById("clienteEscuela").value || "";
+      const tel = document.getElementById("clienteTelefono").value || "";
+      const fechaEntrega = document.getElementById("fechaEntrega").value || "";
+      const prendaTipo = document.getElementById("prendaTipo").value || "";
+      const prendaModelo = document.getElementById("prendaModelo").value || "";
+      const tallas = document.getElementById("tallasTexto").value || "";
+      const precioTotal = document.getElementById("precioTotal").value || "0";
+      const anticipo = document.getElementById("anticipo").value || "0";
+      const saldo = document.getElementById("saldo").value || "0";
+      const condiciones = document.getElementById("condicionesCliente").value || "";
+
+      doc.setFontSize(14);
+      doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+      doc.setFontSize(11);
+      doc.text("NOTA DE PEDIDO / VENTA", 10, 18);
+      doc.text("Folio: " + folio, 150, 12);
+
+      let y = 26;
+      doc.setFontSize(10);
+      doc.text("Cliente: " + nombre, 10, y); y += 5;
+      doc.text("Escuela: " + escuela, 10, y); y += 5;
+      if (tel) {
+        doc.text("Teléfono: " + tel, 10, y); y += 5;
+      }
+      if (fechaEntrega) {
+        doc.text("Fecha de entrega: " + fechaEntrega, 10, y); y += 7;
+      } else {
+        y += 2;
+      }
+
+      doc.setFontSize(11);
+      doc.text("Detalle del pedido:", 10, y); y += 5;
+      doc.setFontSize(10);
+      doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+      if (prendaModelo) {
+        doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 5;
+      }
+
+      if (tallas) {
+        y += 3;
+        doc.text("Tallas y cantidades:", 10, y); y += 5;
+        const tallasLineas = tallas.split("\n");
+        tallasLineas.forEach(l => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text("- " + l, 12, y);
+          y += 5;
+        });
+      }
+
+      y += 4;
+      doc.setFontSize(11);
+      doc.text("Importes:", 10, y); y += 5;
+      doc.setFontSize(10);
+      doc.text("Precio total: $" + precioTotal, 10, y); y += 5;
+      doc.text("Anticipo: $" + anticipo, 10, y); y += 5;
+      doc.text("Saldo: $" + saldo, 10, y); y += 8;
+
+      if (condiciones) {
+        doc.setFontSize(11);
+        doc.text("Condiciones del pedido:", 10, y); y += 5;
+        doc.setFontSize(10);
+        const condLineas = condiciones.split("\n");
+        condLineas.forEach(l => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text(l, 12, y);
+          y += 5;
+        });
+      }
+
+      y += 12;
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFontSize(10);
+      doc.text("Firma de conformidad del cliente: ______________________________", 10, y);
+
+      doc.save("nota-pedido-" + folio + ".pdf");
+    }
+
+    function exportarComprasPDF() {
+      if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "compras")) {
+        alert("Solo compras o admin pueden generar el PDF de compras.");
+        return;
+      }
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) {
+        alert("No se pudo cargar la librería de PDF.");
+        return;
+      }
+
+      const id = document.getElementById("pedidoId").value;
+      const pedido = pedidos.find(p => String(p.id) === String(id));
+      const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+      const doc = new jsPDF();
+
+      const nombre = document.getElementById("clienteNombre").value || "";
+      const escuela = document.getElementById("clienteEscuela").value || "";
+      const prendaTipo = document.getElementById("prendaTipo").value || "";
+      const prendaModelo = document.getElementById("prendaModelo").value || "";
+      const gastosCompras = document.getElementById("gastosCompras").value || "0";
+      const comprasDetalle = document.getElementById("comprasDetalle").value || "";
+
+      doc.setFontSize(14);
+      doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+      doc.setFontSize(11);
+      doc.text("REPORTE DE COMPRAS POR PEDIDO", 10, 18);
+      doc.text("Folio: " + folio, 150, 12);
+
+      let y = 26;
+      doc.setFontSize(10);
+      doc.text("Cliente: " + nombre, 10, y); y += 5;
+      doc.text("Escuela: " + escuela, 10, y); y += 5;
+      doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+      if (prendaModelo) {
+        doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 7;
+      } else {
+        y += 3;
+      }
+
+      doc.setFontSize(11);
+      doc.text("Detalle de compras:", 10, y); y += 5;
+      doc.setFontSize(10);
+
+      if (comprasDetalle) {
+        const lineas = comprasDetalle.split("\n");
+        lineas.forEach(l => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text("- " + l, 12, y);
+          y += 5;
+        });
+      } else {
+        doc.text("Sin detalle capturado.", 12, y); y += 5;
+      }
+
+      y += 6;
+      doc.setFontSize(11);
+      doc.text("Gasto total registrado (campo gastos compras): $" + gastosCompras, 10, y);
+
+      doc.save("compras-pedido-" + folio + ".pdf");
+    }
   </script>
 </body>
 </html>
-
