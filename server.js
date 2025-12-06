@@ -1,86 +1,117 @@
-// server.js - Uniformes Escolares Bonaparte (listo para Railway + volumen)
+// server.js - Uniformes Escolares Bonaparte usando Supabase (Render + DB estable)
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// -------------------- SUPABASE --------------------
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en variables de entorno.");
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // -------------------- CONFIG BÁSICA --------------------
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// En Railway Nixpacks pone el código en /app
-// Vamos a usar un ROOT para almacenamiento que puede ser:
-// - En local: la carpeta del proyecto (__dirname)
-// - En Railway: el volumen montado (RAILWAY_VOLUME_MOUNT_PATH), que vamos a montar en /app/storage
 const PUBLIC_DIR = __dirname;
-const STORAGE_ROOT = process.env.RAILWAY_VOLUME_MOUNT_PATH
-  ? process.env.RAILWAY_VOLUME_MOUNT_PATH
-  : path.join(__dirname, "storage");
+const UPLOADS_DIR = path.join(__dirname, "uploads");
 
-const DATA_DIR = path.join(STORAGE_ROOT, "data");
-const UPLOADS_DIR = path.join(STORAGE_ROOT, "uploads");
-
-// Crear carpetas si no existen
-if (!fs.existsSync(STORAGE_ROOT)) fs.mkdirSync(STORAGE_ROOT, { recursive: true });
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+// Crear carpeta uploads (solo para guardado local; en Render puede ser efímero)
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-
-// Archivos de datos
-const PEDIDOS_FILE = path.join(DATA_DIR, "pedidos.json");
-const USUARIOS_FILE = path.join(DATA_DIR, "usuarios.json");
-const IMAGENES_FILE = path.join(DATA_DIR, "imagenes.json");
-
-// -------------------- UTILIDADES DE PERSISTENCIA --------------------
-function loadJSON(filePath, defaultValue) {
-  try {
-    if (!fs.existsSync(filePath)) return defaultValue;
-    const raw = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("Error cargando", filePath, err);
-    return defaultValue;
-  }
-}
-
-function saveJSON(filePath, data) {
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-  } catch (err) {
-    console.error("Error guardando", filePath, err);
-  }
-}
-
-// -------------------- DATOS EN MEMORIA (CARGADOS DESDE DISCO) --------------------
-let pedidos = loadJSON(PEDIDOS_FILE, []);
-let usuarios = loadJSON(USUARIOS_FILE, []);
-let imagenes = loadJSON(IMAGENES_FILE, []);
-
-// Si no hay usuarios, crear admin por defecto
-if (usuarios.length === 0) {
-  usuarios.push({
-    id: 1,
-    nombre: "Administrador",
-    email: "admin@local",
-    password: "admin123",
-    rol: "admin",
-  });
-  saveJSON(USUARIOS_FILE, usuarios);
-  console.log("Usuario admin por defecto creado: admin@local / admin123");
-}
-
-// Para id autoincremental
-function nextId(items) {
-  let max = 0;
-  for (const it of items) if (it.id > max) max = it.id;
-  return max + 1;
-}
 
 // Sesiones simples en memoria
 const sesiones = {}; // token -> { userId, nombre, rol }
+
+// -------------------- MULTER (para subir imágenes a disco local) --------------------
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname) || ".jpg";
+    const base = path.basename(file.originalname, ext).replace(/\s+/g, "_");
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, base + "-" + unique + ext);
+  },
+});
+const upload = multer({ storage });
+
+// -------------------- HELPERS DE MAPEO --------------------
+function mapPedidoFromDb(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    folio: row.folio,
+    clienteNombre: row.cliente_nombre,
+    clienteTelefono: row.cliente_telefono,
+    clienteEscuela: row.cliente_escuela,
+    prendaTipo: row.prenda_tipo,
+    prendaModelo: row.prenda_modelo,
+    descripcionGeneral: row.descripcion_general,
+    fechaEntrega: row.fecha_entrega,
+    estado: row.estado,
+    tallasTexto: row.tallas_texto,
+    comprasNotas: row.compras_notas,
+    corteNotas: row.corte_notas,
+    confeccionNotas: row.confeccion_notas,
+    precioTotal: Number(row.precio_total || 0),
+    anticipo: Number(row.anticipo || 0),
+    saldo: Number(row.saldo || 0),
+    gastosCompras: Number(row.gastos_compras || 0),
+    condicionesCliente: row.condiciones_cliente,
+    comprasDetalle: row.compras_detalle,
+    imagenUrl: row.imagen_url,
+    creadoEn: row.creado_en,
+    actualizadoEn: row.actualizado_en,
+  };
+}
+
+function mapPedidoToDb(body, extra = {}) {
+  return {
+    folio: body.folio,
+    cliente_nombre: body.clienteNombre,
+    cliente_telefono: body.clienteTelefono,
+    cliente_escuela: body.clienteEscuela,
+    prenda_tipo: body.prendaTipo,
+    prenda_modelo: body.prendaModelo,
+    descripcion_general: body.descripcionGeneral,
+    fecha_entrega: body.fechaEntrega,
+    estado: body.estado,
+    tallas_texto: body.tallasTexto,
+    compras_notas: body.comprasNotas,
+    corte_notas: body.corteNotas,
+    confeccion_notas: body.confeccionNotas,
+    precio_total: body.precioTotal,
+    anticipo: body.anticipo,
+    saldo: body.saldo,
+    gastos_compras: body.gastosCompras,
+    condiciones_cliente: body.condicionesCliente,
+    compras_detalle: body.comprasDetalle,
+    imagen_url: body.imagenUrl,
+    ...extra,
+  };
+}
+
+function mapImagenFromDb(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    pedidoId: row.pedido_id,
+    imagenUrl: row.imagen_url,
+    creadoEn: row.creado_en,
+  };
+}
 
 // -------------------- AUTENTICACIÓN --------------------
 function authMiddleware(req, res, next) {
@@ -98,15 +129,25 @@ function authMiddleware(req, res, next) {
 }
 
 // POST /api/login
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
     return res.status(400).json({ error: "Falta correo o contraseña" });
   }
 
-  const user = usuarios.find(
-    (u) => u.email === email && u.password === password
-  );
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password)
+    .limit(1);
+
+  if (error) {
+    console.error("Error login:", error);
+    return res.status(500).json({ error: "Error en servidor" });
+  }
+
+  const user = data && data[0];
   if (!user) {
     return res.status(401).json({ error: "Credenciales incorrectas" });
   }
@@ -128,127 +169,187 @@ app.post("/api/login", (req, res) => {
 // -------------------- PEDIDOS --------------------
 
 // GET /api/pedidos
-app.get("/api/pedidos", authMiddleware, (req, res) => {
-  res.json(pedidos);
+app.get("/api/pedidos", authMiddleware, async (req, res) => {
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("*")
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Error get pedidos:", error);
+    return res.status(500).json({ error: "Error al obtener pedidos" });
+  }
+
+  const mapped = data.map(mapPedidoFromDb);
+  res.json(mapped);
 });
 
 // POST /api/pedidos
-app.post("/api/pedidos", authMiddleware, (req, res) => {
+app.post("/api/pedidos", authMiddleware, async (req, res) => {
   const body = req.body || {};
-  const id = nextId(pedidos);
-  const folio = body.folio || "BONA-" + String(1000 + id);
 
-  const nuevo = {
-    id,
-    folio,
-    clienteNombre: body.clienteNombre || "",
-    clienteTelefono: body.clienteTelefono || "",
-    clienteEscuela: body.clienteEscuela || "",
-    prendaTipo: body.prendaTipo || "",
-    prendaModelo: body.prendaModelo || "",
-    descripcionGeneral: body.descripcionGeneral || "",
-    fechaEntrega: body.fechaEntrega || "",
-    estado: body.estado || "nuevo",
-    tallasTexto: body.tallasTexto || "",
-    comprasNotas: body.comprasNotas || "",
-    corteNotas: body.corteNotas || "",
-    confeccionNotas: body.confeccionNotas || "",
-    precioTotal: Number(body.precioTotal || 0),
-    anticipo: Number(body.anticipo || 0),
-    saldo: Number(body.saldo || 0),
-    gastosCompras: Number(body.gastosCompras || 0),
-    condicionesCliente: body.condicionesCliente || "",
-    comprasDetalle: body.comprasDetalle || "",
-    imagenUrl: body.imagenUrl || null,
-    creadoEn: new Date().toISOString(),
-    actualizadoEn: new Date().toISOString(),
-  };
+  // generar folio si no viene
+  const { data: maxData, error: maxError } = await supabase
+    .from("pedidos")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(1);
 
-  pedidos.push(nuevo);
-  saveJSON(PEDIDOS_FILE, pedidos);
+  if (maxError) {
+    console.error("Error obteniendo max id:", maxError);
+  }
+  const lastId = maxData && maxData[0] ? maxData[0].id : 0;
+  const nuevoId = Number(lastId) + 1;
+  const folio = body.folio || "BONA-" + String(1000 + nuevoId);
 
-  res.status(201).json(nuevo);
+  const payload = mapPedidoToDb(
+    {
+      ...body,
+      folio,
+      precioTotal: Number(body.precioTotal || 0),
+      anticipo: Number(body.anticipo || 0),
+      saldo: Number(body.saldo || 0),
+      gastosCompras: Number(body.gastosCompras || 0),
+    },
+    {
+      creado_en: new Date().toISOString(),
+      actualizado_en: new Date().toISOString(),
+    }
+  );
+
+  const { data, error } = await supabase
+    .from("pedidos")
+    .insert(payload)
+    .select("*")
+    .limit(1);
+
+  if (error) {
+    console.error("Error creando pedido:", error);
+    return res.status(500).json({ error: "Error al crear pedido" });
+  }
+
+  const row = data[0];
+  res.status(201).json(mapPedidoFromDb(row));
 });
 
 // PUT /api/pedidos/:id
-app.put("/api/pedidos/:id", authMiddleware, (req, res) => {
+app.put("/api/pedidos/:id", authMiddleware, async (req, res) => {
   const id = Number(req.params.id);
-  const idx = pedidos.findIndex((p) => p.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Pedido no encontrado" });
-
   const body = req.body || {};
-  const original = pedidos[idx];
 
-  const actualizado = {
-    ...original,
-    clienteNombre: body.clienteNombre ?? original.clienteNombre,
-    clienteTelefono: body.clienteTelefono ?? original.clienteTelefono,
-    clienteEscuela: body.clienteEscuela ?? original.clienteEscuela,
-    prendaTipo: body.prendaTipo ?? original.prendaTipo,
-    prendaModelo: body.prendaModelo ?? original.prendaModelo,
-    descripcionGeneral: body.descripcionGeneral ?? original.descripcionGeneral,
-    fechaEntrega: body.fechaEntrega ?? original.fechaEntrega,
+  // primero obtener el existente
+  const { data: existingData, error: existingError } = await supabase
+    .from("pedidos")
+    .select("*")
+    .eq("id", id)
+    .limit(1);
+
+  if (existingError) {
+    console.error("Error consultando pedido:", existingError);
+    return res.status(500).json({ error: "Error en servidor" });
+  }
+  const original = existingData && existingData[0];
+  if (!original) {
+    return res.status(404).json({ error: "Pedido no encontrado" });
+  }
+
+  const merged = {
+    folio: body.folio ?? original.folio,
+    clienteNombre: body.clienteNombre ?? original.cliente_nombre,
+    clienteTelefono: body.clienteTelefono ?? original.cliente_telefono,
+    clienteEscuela: body.clienteEscuela ?? original.cliente_escuela,
+    prendaTipo: body.prendaTipo ?? original.prenda_tipo,
+    prendaModelo: body.prendaModelo ?? original.prenda_modelo,
+    descripcionGeneral: body.descripcionGeneral ?? original.descripcion_general,
+    fechaEntrega: body.fechaEntrega ?? original.fecha_entrega,
     estado: body.estado ?? original.estado,
-    tallasTexto: body.tallasTexto ?? original.tallasTexto,
-    comprasNotas: body.comprasNotas ?? original.comprasNotas,
-    corteNotas: body.corteNotas ?? original.corteNotas,
-    confeccionNotas: body.confeccionNotas ?? original.confeccionNotas,
-    precioTotal: body.precioTotal != null ? Number(body.precioTotal) : original.precioTotal,
-    anticipo: body.anticipo != null ? Number(body.anticipo) : original.anticipo,
-    saldo: body.saldo != null ? Number(body.saldo) : original.saldo,
-    gastosCompras: body.gastosCompras != null ? Number(body.gastosCompras) : original.gastosCompras,
-    condicionesCliente: body.condicionesCliente ?? original.condicionesCliente,
-    comprasDetalle: body.comprasDetalle ?? original.comprasDetalle,
-    imagenUrl: body.imagenUrl ?? original.imagenUrl,
-    actualizadoEn: new Date().toISOString(),
+    tallasTexto: body.tallasTexto ?? original.tallas_texto,
+    comprasNotas: body.comprasNotas ?? original.compras_notas,
+    corteNotas: body.corteNotas ?? original.corte_notas,
+    confeccionNotas: body.confeccionNotas ?? original.confeccion_notas,
+    precioTotal:
+      body.precioTotal != null
+        ? Number(body.precioTotal)
+        : Number(original.precio_total || 0),
+    anticipo:
+      body.anticipo != null
+        ? Number(body.anticipo)
+        : Number(original.anticipo || 0),
+    saldo:
+      body.saldo != null ? Number(body.saldo) : Number(original.saldo || 0),
+    gastosCompras:
+      body.gastosCompras != null
+        ? Number(body.gastosCompras)
+        : Number(original.gastos_compras || 0),
+    condicionesCliente:
+      body.condicionesCliente ?? original.condiciones_cliente,
+    comprasDetalle: body.comprasDetalle ?? original.compras_detalle,
+    imagenUrl: body.imagenUrl ?? original.imagen_url,
   };
 
-  pedidos[idx] = actualizado;
-  saveJSON(PEDIDOS_FILE, pedidos);
+  const payload = mapPedidoToDb(merged, {
+    actualizado_en: new Date().toISOString(),
+  });
 
-  res.json(actualizado);
+  const { data, error } = await supabase
+    .from("pedidos")
+    .update(payload)
+    .eq("id", id)
+    .select("*")
+    .limit(1);
+
+  if (error) {
+    console.error("Error actualizando pedido:", error);
+    return res.status(500).json({ error: "Error al actualizar pedido" });
+  }
+
+  res.json(mapPedidoFromDb(data[0]));
 });
 
 // DELETE /api/pedidos/:id
-app.delete("/api/pedidos/:id", authMiddleware, (req, res) => {
+app.delete("/api/pedidos/:id", authMiddleware, async (req, res) => {
   const id = Number(req.params.id);
-  const idx = pedidos.findIndex((p) => p.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Pedido no encontrado" });
 
-  pedidos.splice(idx, 1);
-  saveJSON(PEDIDOS_FILE, pedidos);
+  // Borrar imágenes relacionadas en tabla imagenes
+  const { error: imgDelError } = await supabase
+    .from("imagenes")
+    .delete()
+    .eq("pedido_id", id);
+  if (imgDelError) {
+    console.error("Error borrando imag de pedido:", imgDelError);
+  }
 
-  const restantes = imagenes.filter((img) => img.pedidoId !== id);
-  if (restantes.length !== imagenes.length) {
-    imagenes = restantes;
-    saveJSON(IMAGENES_FILE, imagenes);
+  const { error } = await supabase.from("pedidos").delete().eq("id", id);
+  if (error) {
+    console.error("Error borrando pedido:", error);
+    return res.status(500).json({ error: "Error al eliminar pedido" });
   }
 
   res.json({ ok: true });
 });
 
 // -------------------- IMÁGENES DE PEDIDOS --------------------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname) || ".jpg";
-    const base = path.basename(file.originalname, ext).replace(/\s+/g, "_");
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, base + "-" + unique + ext);
-  },
-});
-const upload = multer({ storage });
 
 // POST /api/pedidos/:id/imagen
 app.post(
   "/api/pedidos/:id/imagen",
   authMiddleware,
   upload.single("imagen"),
-  (req, res) => {
+  async (req, res) => {
     const idPedido = Number(req.params.id);
-    const pedido = pedidos.find((p) => p.id === idPedido);
+
+    // Verificar pedido
+    const { data: pedidoData, error: pedidoError } = await supabase
+      .from("pedidos")
+      .select("*")
+      .eq("id", idPedido)
+      .limit(1);
+
+    if (pedidoError) {
+      console.error("Error consultando pedido:", pedidoError);
+      return res.status(500).json({ error: "Error en servidor" });
+    }
+    const pedido = pedidoData && pedidoData[0];
     if (!pedido) {
       return res.status(404).json({ error: "Pedido no encontrado" });
     }
@@ -256,92 +357,168 @@ app.post(
       return res.status(400).json({ error: "No se recibió archivo" });
     }
 
-    // En Railway, UPLOADS_DIR estará dentro del volumen, pero la URL pública se expone como /uploads
     const relativeUrl = "/uploads/" + req.file.filename;
 
-    const img = {
-      id: nextId(imagenes),
-      pedidoId: idPedido,
-      imagenUrl: relativeUrl,
-      creadoEn: new Date().toISOString(),
-    };
-    imagenes.push(img);
-    saveJSON(IMAGENES_FILE, imagenes);
+    // Guardar en tabla imagenes
+    const { data, error } = await supabase
+      .from("imagenes")
+      .insert({
+        pedido_id: idPedido,
+        imagen_url: relativeUrl,
+      })
+      .select("*")
+      .limit(1);
 
-    if (!pedido.imagenUrl) {
-      pedido.imagenUrl = relativeUrl;
-      pedido.actualizadoEn = new Date().toISOString();
-      saveJSON(PEDIDOS_FILE, pedidos);
+    if (error) {
+      console.error("Error guardando imagen en DB:", error);
+      return res.status(500).json({ error: "Error al guardar imagen" });
+    }
+    const imgRow = data[0];
+
+    // Asignar imagen principal si no tiene
+    if (!pedido.imagen_url) {
+      const { error: updError } = await supabase
+        .from("pedidos")
+        .update({
+          imagen_url: relativeUrl,
+          actualizado_en: new Date().toISOString(),
+        })
+        .eq("id", idPedido);
+      if (updError) {
+        console.error("Error actualizando imagen principal:", updError);
+      }
     }
 
-    res.status(201).json(img);
+    res.status(201).json(mapImagenFromDb(imgRow));
   }
 );
 
 // GET /api/pedidos/:id/imagenes
-app.get("/api/pedidos/:id/imagenes", authMiddleware, (req, res) => {
+app.get("/api/pedidos/:id/imagenes", authMiddleware, async (req, res) => {
   const idPedido = Number(req.params.id);
-  const lista = imagenes.filter((img) => img.pedidoId === idPedido);
-  res.json(lista);
+  const { data, error } = await supabase
+    .from("imagenes")
+    .select("*")
+    .eq("pedido_id", idPedido)
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error("Error obteniendo imagenes:", error);
+    return res.status(500).json({ error: "Error al obtener imágenes" });
+  }
+
+  const mapped = data.map(mapImagenFromDb);
+  res.json(mapped);
 });
 
 // -------------------- USUARIOS --------------------
 
 // GET /api/users
-app.get("/api/users", authMiddleware, (req, res) => {
+app.get("/api/users", authMiddleware, async (req, res) => {
   if (req.user.rol !== "admin") {
     return res.status(403).json({ error: "Solo admin" });
   }
-  const sinPass = usuarios.map(({ password, ...u }) => u);
-  res.json(sinPass);
+
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("id, nombre, email, rol");
+
+  if (error) {
+    console.error("Error obteniendo usuarios:", error);
+    return res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+
+  res.json(data);
 });
 
 // POST /api/users
-app.post("/api/users", authMiddleware, (req, res) => {
+app.post("/api/users", authMiddleware, async (req, res) => {
   if (req.user.rol !== "admin") {
     return res.status(403).json({ error: "Solo admin" });
   }
+
   const { nombre, email, password, rol } = req.body || {};
   if (!nombre || !email || !password || !rol) {
     return res.status(400).json({ error: "Faltan campos" });
   }
-  if (usuarios.some((u) => u.email === email)) {
+
+  // Verificar que no exista el correo
+  const { data: existing, error: existingError } = await supabase
+    .from("usuarios")
+    .select("id")
+    .eq("email", email)
+    .limit(1);
+
+  if (existingError) {
+    console.error("Error verificando usuario:", existingError);
+    return res.status(500).json({ error: "Error en servidor" });
+  }
+  if (existing && existing[0]) {
     return res.status(400).json({ error: "Ese correo ya existe" });
   }
 
-  const id = nextId(usuarios);
-  const nuevo = { id, nombre, email, password, rol };
-  usuarios.push(nuevo);
-  saveJSON(USUARIOS_FILE, usuarios);
+  const { data, error } = await supabase
+    .from("usuarios")
+    .insert({
+      nombre,
+      email,
+      password,
+      rol,
+    })
+    .select("id, nombre, email, rol")
+    .limit(1);
 
-  const { password: _p, ...sinPass } = nuevo;
-  res.status(201).json(sinPass);
+  if (error) {
+    console.error("Error creando usuario:", error);
+    return res.status(500).json({ error: "Error al crear usuario" });
+  }
+
+  res.status(201).json(data[0]);
 });
 
 // DELETE /api/users/:id
-app.delete("/api/users/:id", authMiddleware, (req, res) => {
+app.delete("/api/users/:id", authMiddleware, async (req, res) => {
   if (req.user.rol !== "admin") {
     return res.status(403).json({ error: "Solo admin" });
   }
+
   const id = Number(req.params.id);
-  const idx = usuarios.findIndex((u) => u.id === id);
-  if (idx === -1) {
-    return res.status(404).json({ error: "Usuario no encontrado" });
+
+  const { error } = await supabase.from("usuarios").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error eliminando usuario:", error);
+    return res.status(500).json({ error: "Error al eliminar usuario" });
   }
-  usuarios.splice(idx, 1);
-  saveJSON(USUARIOS_FILE, usuarios);
+
   res.json({ ok: true });
 });
 
 // -------------------- RESPALDO --------------------
-app.get("/api/respaldo", authMiddleware, (req, res) => {
+app.get("/api/respaldo", authMiddleware, async (req, res) => {
   if (req.user.rol !== "admin") {
     return res.status(403).json({ error: "Solo admin" });
   }
+
+  const [pedidosRes, usuariosRes, imagenesRes] = await Promise.all([
+    supabase.from("pedidos").select("*"),
+    supabase.from("usuarios").select("id, nombre, email, rol"),
+    supabase.from("imagenes").select("*"),
+  ]);
+
+  if (pedidosRes.error || usuariosRes.error || imagenesRes.error) {
+    console.error("Error generando respaldo:", {
+      pedidos: pedidosRes.error,
+      usuarios: usuariosRes.error,
+      imagenes: imagenesRes.error,
+    });
+    return res.status(500).json({ error: "Error al generar respaldo" });
+  }
+
   res.json({
-    pedidos,
-    usuarios: usuarios.map(({ password, ...u }) => u),
-    imagenes,
+    pedidos: pedidosRes.data,
+    usuarios: usuariosRes.data,
+    imagenes: imagenesRes.data,
     generadoEn: new Date().toISOString(),
   });
 });
@@ -359,6 +536,5 @@ app.listen(PORT, () => {
   console.log("=================================");
   console.log("  Servidor Bonaparte en puerto", PORT);
   console.log("  http://localhost:" + PORT + "/");
-  console.log("  STORAGE_ROOT:", STORAGE_ROOT);
   console.log("=================================");
 });
