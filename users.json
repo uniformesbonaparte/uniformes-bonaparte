@@ -5,5 +5,12 @@
     "email": "admin@local",
     "password": "admin123",
     "rol": "admin"
+  },
+  {
+    "id": 2,
+    "nombre": "SONIA",
+    "email": "SONIA_",
+    "password": "12345",
+    "rol": "ventas"
   }
 ]
