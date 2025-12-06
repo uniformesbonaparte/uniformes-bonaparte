@@ -1,22 +1,14 @@
 {
-  "name": "uniformes-admin",
+  "name": "uniformes-bonaparte",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sistema de pedidos para Uniformes Escolares Bonaparte",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.2",
-    "sqlite3": "^5.1.7"
+    "multer": "1.4.5-lts.2"
   }
 }
