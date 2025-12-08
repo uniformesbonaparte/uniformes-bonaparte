@@ -1,6 +1,8 @@
 // =========================
 //  UNIFORMES BONAPARTE
-//  SERVER.JS CON SUPABASE DB + STORAGE
+//  SERVER.JS
+//  - Supabase DB (campos mapeados a camelCase)
+//  - Supabase Storage para imágenes
 // =========================
 
 require("dotenv").config();
@@ -18,32 +20,104 @@ const PORT = process.env.PORT || 4000;
 // ---------------------------
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const STORAGE_BUCKET = "imagenes-bonaparte"; // <---- TU BUCKET
+const STORAGE_BUCKET = "imagenes-bonaparte"; // tu bucket en Supabase Storage
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // ---------------------------
-//  CONFIG
+//  CONFIG EXPRESS
 // ---------------------------
 app.use(cors());
 app.use(express.json({ limit: "20mb" }));
 
-// Sesiones simples
+const PUBLIC_DIR = __dirname;
+
+// Sesiones simples en memoria
 const sesiones = {};
 
 // ---------------------------
-//  MULTER - memoria para subir a Supabase
+//  MULTER: memoria para subir a Supabase Storage
 // ---------------------------
 const upload = multer({
-  storage: multer.memoryStorage(), // NO disco, ahora memoria
+  storage: multer.memoryStorage(),
 });
+
+// ---------------------------
+//  HELPERS DE MAPEO (DB <-> FRONT)
+// ---------------------------
+function mapPedidoFromDb(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    folio: row.folio,
+    clienteNombre: row.cliente_nombre,
+    clienteTelefono: row.cliente_telefono,
+    clienteEscuela: row.cliente_escuela,
+    prendaTipo: row.prenda_tipo,
+    prendaModelo: row.prenda_modelo,
+    descripcionGeneral: row.descripcion_general,
+    fechaEntrega: row.fecha_entrega,
+    estado: row.estado,
+    tallasTexto: row.tallas_texto,
+    comprasNotas: row.compras_notas,
+    corteNotas: row.corte_notas,
+    confeccionNotas: row.confeccion_notas,
+    precioTotal: Number(row.precio_total || 0),
+    anticipo: Number(row.anticipo || 0),
+    saldo: Number(row.saldo || 0),
+    gastosCompras: Number(row.gastos_compras || 0),
+    condicionesCliente: row.condiciones_cliente,
+    comprasDetalle: row.compras_detalle,
+    imagenUrl: row.imagen_url,
+    creadoEn: row.creado_en,
+    actualizadoEn: row.actualizado_en,
+  };
+}
+
+function mapPedidoToDb(body, extra = {}) {
+  return {
+    folio: body.folio,
+    cliente_nombre: body.clienteNombre,
+    cliente_telefono: body.clienteTelefono,
+    cliente_escuela: body.clienteEscuela,
+    prenda_tipo: body.prendaTipo,
+    prenda_modelo: body.prendaModelo,
+    descripcion_general: body.descripcionGeneral,
+    fecha_entrega: body.fechaEntrega,
+    estado: body.estado,
+    tallas_texto: body.tallasTexto,
+    compras_notas: body.comprasNotas,
+    corte_notas: body.corteNotas,
+    confeccion_notas: body.confeccionNotas,
+    precio_total: body.precioTotal,
+    anticipo: body.anticipo,
+    saldo: body.saldo,
+    gastos_compras: body.gastosCompras,
+    condiciones_cliente: body.condicionesCliente,
+    compras_detalle: body.comprasDetalle,
+    imagen_url: body.imagenUrl,
+    ...extra,
+  };
+}
+
+function mapImagenFromDb(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    pedidoId: row.pedido_id,
+    imagenUrl: row.imagen_url,
+    creadoEn: row.creado_en,
+  };
+}
 
 // ---------------------------
 //  AUTENTICACIÓN
 // ---------------------------
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
-  if (!token || !sesiones[token]) return res.status(401).json({ error: "No autorizado" });
+  if (!token || !sesiones[token]) {
+    return res.status(401).json({ error: "No autorizado" });
+  }
   req.user = sesiones[token];
   next();
 }
@@ -52,7 +126,7 @@ function auth(req, res, next) {
 //  LOGIN
 // ---------------------------
 app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body || {};
 
   const { data, error } = await supabase
     .from("usuarios")
@@ -61,7 +135,9 @@ app.post("/api/login", async (req, res) => {
     .eq("password", password)
     .single();
 
-  if (error || !data) return res.status(401).json({ error: "Credenciales incorrectas" });
+  if (error || !data) {
+    return res.status(401).json({ error: "Credenciales incorrectas" });
+  }
 
   const token = Date.now() + "-" + data.id;
   sesiones[token] = { userId: data.id, nombre: data.nombre, rol: data.rol };
@@ -70,208 +146,338 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ---------------------------
-//  GET PEDIDOS
+//  PEDIDOS
 // ---------------------------
+
+// GET todos los pedidos
 app.get("/api/pedidos", auth, async (req, res) => {
-  const { data, error } = await supabase.from("pedidos").select("*").order("id", { ascending: false });
-  if (error) return res.status(500).json({ error: "Error al obtener pedidos" });
-  res.json(data);
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("*")
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Error get pedidos:", error);
+    return res.status(500).json({ error: "Error al obtener pedidos" });
+  }
+
+  const mapped = data.map(mapPedidoFromDb);
+  res.json(mapped);
 });
 
-// ---------------------------
-//  CREAR PEDIDO
-// ---------------------------
+// POST crear pedido
 app.post("/api/pedidos", auth, async (req, res) => {
-  const body = req.body;
+  const body = req.body || {};
 
-  const { data: maxID } = await supabase
+  // Obtener último id para sugerir folio
+  const { data: maxID, error: maxError } = await supabase
     .from("pedidos")
     .select("id")
     .order("id", { ascending: false })
     .limit(1);
 
-  const nuevoID = maxID?.[0]?.id + 1 || 1;
+  if (maxError) {
+    console.error("Error obteniendo max id:", maxError);
+  }
+
+  const nuevoID = maxID?.[0]?.id ? maxID[0].id + 1 : 1;
   const folio = body.folio || "BONA-" + (1000 + nuevoID);
 
+  const payload = mapPedidoToDb(
+    {
+      ...body,
+      folio,
+      precioTotal: Number(body.precioTotal || 0),
+      anticipo: Number(body.anticipo || 0),
+      saldo: Number(body.saldo || 0),
+      gastosCompras: Number(body.gastosCompras || 0),
+    },
+    {
+      creado_en: new Date().toISOString(),
+      actualizado_en: new Date().toISOString(),
+    }
+  );
+
   const { data, error } = await supabase
     .from("pedidos")
-    .insert({
-      folio,
-      cliente_nombre: body.clienteNombre,
-      cliente_telefono: body.clienteTelefono,
-      cliente_escuela: body.clienteEscuela,
-      prenda_tipo: body.prendaTipo,
-      prenda_modelo: body.prendaModelo,
-      descripcion_general: body.descripcionGeneral,
-      fecha_entrega: body.fechaEntrega,
-      estado: body.estado,
-      tallas_texto: body.tallasTexto,
-      compras_notas: body.comprasNotas,
-      corte_notas: body.corteNotas,
-      confeccion_notas: body.confeccionNotas,
-      precio_total: body.precioTotal || 0,
-      anticipo: body.anticipo || 0,
-      saldo: body.saldo || 0,
-      gastos_compras: body.gastosCompras || 0,
-      condiciones_cliente: body.condicionesCliente,
-      compras_detalle: body.comprasDetalle,
-      imagen_url: null,
-    })
-    .select()
+    .insert(payload)
+    .select("*")
     .single();
 
-  if (error) return res.status(500).json({ error: "Error al crear pedido" });
-  res.json(data);
+  if (error) {
+    console.error("Error creando pedido:", error);
+    return res.status(500).json({ error: "Error al crear pedido" });
+  }
+
+  res.status(201).json(mapPedidoFromDb(data));
 });
 
-// ---------------------------
-//  ACTUALIZAR PEDIDO
-// ---------------------------
+// PUT actualizar pedido
 app.put("/api/pedidos/:id", auth, async (req, res) => {
   const id = Number(req.params.id);
-  const body = req.body;
+  const body = req.body || {};
+
+  // Traer el original
+  const { data: existingData, error: existingError } = await supabase
+    .from("pedidos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (existingError || !existingData) {
+    console.error("Error consultando pedido:", existingError);
+    return res.status(404).json({ error: "Pedido no encontrado" });
+  }
+
+  const original = mapPedidoFromDb(existingData);
+
+  // Merge: si no viene en body, se deja lo original
+  const merged = {
+    folio: body.folio ?? original.folio,
+    clienteNombre: body.clienteNombre ?? original.clienteNombre,
+    clienteTelefono: body.clienteTelefono ?? original.clienteTelefono,
+    clienteEscuela: body.clienteEscuela ?? original.clienteEscuela,
+    prendaTipo: body.prendaTipo ?? original.prendaTipo,
+    prendaModelo: body.prendaModelo ?? original.prendaModelo,
+    descripcionGeneral: body.descripcionGeneral ?? original.descripcionGeneral,
+    fechaEntrega: body.fechaEntrega ?? original.fechaEntrega,
+    estado: body.estado ?? original.estado,
+    tallasTexto: body.tallasTexto ?? original.tallasTexto,
+    comprasNotas: body.comprasNotas ?? original.comprasNotas,
+    corteNotas: body.corteNotas ?? original.corteNotas,
+    confeccionNotas: body.confeccionNotas ?? original.confeccionNotas,
+    precioTotal:
+      body.precioTotal != null
+        ? Number(body.precioTotal)
+        : original.precioTotal,
+    anticipo:
+      body.anticipo != null ? Number(body.anticipo) : original.anticipo,
+    saldo: body.saldo != null ? Number(body.saldo) : original.saldo,
+    gastosCompras:
+      body.gastosCompras != null
+        ? Number(body.gastosCompras)
+        : original.gastosCompras,
+    condicionesCliente:
+      body.condicionesCliente ?? original.condicionesCliente,
+    comprasDetalle: body.comprasDetalle ?? original.comprasDetalle,
+    imagenUrl: body.imagenUrl ?? original.imagenUrl,
+  };
+
+  const payload = mapPedidoToDb(merged, {
+    actualizado_en: new Date().toISOString(),
+  });
 
   const { data, error } = await supabase
     .from("pedidos")
-    .update({
-      cliente_nombre: body.clienteNombre,
-      cliente_telefono: body.clienteTelefono,
-      cliente_escuela: body.clienteEscuela,
-      prenda_tipo: body.prendaTipo,
-      prenda_modelo: body.prendaModelo,
-      descripcion_general: body.descripcionGeneral,
-      fecha_entrega: body.fechaEntrega,
-      estado: body.estado,
-      tallas_texto: body.tallasTexto,
-      compras_notas: body.comprasNotas,
-      corte_notas: body.corteNotas,
-      confeccion_notas: body.confeccionNotas,
-      precio_total: body.precioTotal,
-      anticipo: body.anticipo,
-      saldo: body.saldo,
-      gastos_compras: body.gastosCompras,
-      condiciones_cliente: body.condicionesCliente,
-      compras_detalle: body.comprasDetalle,
-      imagen_url: body.imagenUrl,
-    })
+    .update(payload)
     .eq("id", id)
-    .select()
+    .select("*")
     .single();
 
-  if (error) return res.status(500).json({ error: "Error al actualizar pedido" });
-  res.json(data);
+  if (error) {
+    console.error("Error actualizando pedido:", error);
+    return res.status(500).json({ error: "Error al actualizar pedido" });
+  }
+
+  res.json(mapPedidoFromDb(data));
 });
 
-// ---------------------------
-//  ELIMINAR PEDIDO
-// ---------------------------
+// DELETE pedido
 app.delete("/api/pedidos/:id", auth, async (req, res) => {
   const id = Number(req.params.id);
 
   await supabase.from("imagenes").delete().eq("pedido_id", id);
-  await supabase.from("pedidos").delete().eq("id", id);
+
+  const { error } = await supabase.from("pedidos").delete().eq("id", id);
+  if (error) {
+    console.error("Error eliminando pedido:", error);
+    return res.status(500).json({ error: "Error al eliminar pedido" });
+  }
 
   res.json({ ok: true });
 });
 
 // ---------------------------
-//  SUBIR IMAGEN A SUPABASE STORAGE
+//  IMÁGENES (STORAGE)
 // ---------------------------
-app.post("/api/pedidos/:id/imagen", auth, upload.single("imagen"), async (req, res) => {
-  const id = Number(req.params.id);
 
-  if (!req.file) return res.status(400).json({ error: "No se recibió imagen" });
+// Subir imagen de pedido a Supabase Storage
+app.post(
+  "/api/pedidos/:id/imagen",
+  auth,
+  upload.single("imagen"),
+  async (req, res) => {
+    const id = Number(req.params.id);
 
-  const ext = path.extname(req.file.originalname) || ".jpg";
-  const filename = `pedido-${id}-${Date.now()}${ext}`;
-  const filePath = `pedidos/${id}/${filename}`;
+    if (!req.file) {
+      return res.status(400).json({ error: "No se recibió imagen" });
+    }
 
-  // Subir a Storage
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, req.file.buffer, {
-      contentType: req.file.mimetype,
-      upsert: false,
+    const ext = path.extname(req.file.originalname) || ".jpg";
+    const filename = `pedido-${id}-${Date.now()}${ext}`;
+    const filePath = `pedidos/${id}/${filename}`;
+
+    // Subir a Storage
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Error subiendo a Storage:", uploadError);
+      return res.status(500).json({ error: "Error al subir imagen" });
+    }
+
+    // Obtener URL pública
+    const { data: publicData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicData.publicUrl;
+
+    // Guardar en tabla imagenes
+    const { error: imgError } = await supabase.from("imagenes").insert({
+      pedido_id: id,
+      imagen_url: publicUrl,
     });
 
-  if (uploadError) return res.status(500).json({ error: "Error al subir imagen" });
+    if (imgError) {
+      console.error("Error guardando imagen en tabla:", imgError);
+    }
 
-  // Obtener URL pública
-  const { data: publicUrl } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(filePath);
+    // Si el pedido no tiene imagen principal, actualizamos
+    const { error: updError } = await supabase
+      .from("pedidos")
+      .update({
+        imagen_url: publicUrl,
+        actualizado_en: new Date().toISOString(),
+      })
+      .eq("id", id);
 
-  // Guardar en tabla
-  await supabase.from("imagenes").insert({
-    pedido_id: id,
-    imagen_url: publicUrl.publicUrl,
-  });
+    if (updError) {
+      console.error("Error actualizando pedido con imagen:", updError);
+    }
 
-  // Si el pedido no tiene imagen principal, asignarla
-  await supabase
-    .from("pedidos")
-    .update({ imagen_url: publicUrl.publicUrl })
-    .eq("id", id);
+    res.status(201).json({ url: publicUrl });
+  }
+);
 
-  res.json({ url: publicUrl.publicUrl });
-});
-
-// ---------------------------
-//  LISTAR IMÁGENES
-// ---------------------------
+// Listar imágenes de un pedido
 app.get("/api/pedidos/:id/imagenes", auth, async (req, res) => {
   const id = Number(req.params.id);
 
   const { data, error } = await supabase
     .from("imagenes")
     .select("*")
-    .eq("pedido_id", id);
+    .eq("pedido_id", id)
+    .order("id", { ascending: true });
 
-  if (error) return res.status(500).json({ error: "Error al obtener imágenes" });
-  res.json(data);
+  if (error) {
+    console.error("Error obteniendo imágenes:", error);
+    return res.status(500).json({ error: "Error al obtener imágenes" });
+  }
+
+  const mapped = data.map(mapImagenFromDb);
+  res.json(mapped);
 });
 
 // ---------------------------
 //  USUARIOS
 // ---------------------------
 app.get("/api/users", auth, async (req, res) => {
-  if (req.user.rol !== "admin") return res.status(403).json({ error: "Solo admin" });
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Solo admin" });
+  }
 
-  const { data } = await supabase.from("usuarios").select("id, nombre, email, rol");
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("id, nombre, email, rol");
+
+  if (error) {
+    console.error("Error obteniendo usuarios:", error);
+    return res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+
   res.json(data);
 });
 
 app.post("/api/users", auth, async (req, res) => {
-  if (req.user.rol !== "admin") return res.status(403).json({ error: "Solo admin" });
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Solo admin" });
+  }
 
-  const { nombre, email, password, rol } = req.body;
+  const { nombre, email, password, rol } = req.body || {};
 
   const { data, error } = await supabase
     .from("usuarios")
     .insert({ nombre, email, password, rol })
-    .select()
+    .select("id, nombre, email, rol")
     .single();
 
-  if (error) return res.status(500).json({ error: "Error creando usuario" });
-  res.json(data);
+  if (error) {
+    console.error("Error creando usuario:", error);
+    return res.status(500).json({ error: "Error al crear usuario" });
+  }
+
+  res.status(201).json(data);
 });
 
 app.delete("/api/users/:id", auth, async (req, res) => {
-  if (req.user.rol !== "admin") return res.status(403).json({ error: "Solo admin" });
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Solo admin" });
+  }
 
   const id = Number(req.params.id);
-  await supabase.from("usuarios").delete().eq("id", id);
+  const { error } = await supabase.from("usuarios").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error eliminando usuario:", error);
+    return res.status(500).json({ error: "Error al eliminar usuario" });
+  }
 
   res.json({ ok: true });
 });
 
 // ---------------------------
+//  RESPALDO
+// ---------------------------
+app.get("/api/respaldo", auth, async (req, res) => {
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Solo admin" });
+  }
+
+  const [pedidosRes, usuariosRes, imagenesRes] = await Promise.all([
+    supabase.from("pedidos").select("*"),
+    supabase.from("usuarios").select("id, nombre, email, rol"),
+    supabase.from("imagenes").select("*"),
+  ]);
+
+  if (pedidosRes.error || usuariosRes.error || imagenesRes.error) {
+    console.error("Error en respaldo:", {
+      pedidos: pedidosRes.error,
+      usuarios: usuariosRes.error,
+      imagenes: imagenesRes.error,
+    });
+    return res.status(500).json({ error: "Error al generar respaldo" });
+  }
+
+  res.json({
+    pedidos: pedidosRes.data,
+    usuarios: usuariosRes.data,
+    imagenes: imagenesRes.data,
+    generadoEn: new Date().toISOString(),
+  });
+});
+
+// ---------------------------
 //  FRONTEND
 // ---------------------------
-app.use(express.static(__dirname));
+app.use(express.static(PUBLIC_DIR));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "app-uniformes-multi.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "app-uniformes-multi.html"));
 });
 
 // ---------------------------
