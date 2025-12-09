@@ -84,7 +84,34 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
     return res.status(500).send("Error interno del servidor");
   }
 });
+// Página sencilla para probar subida de imagen (SIN archivo físico)
+app.get("/test-imagen", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Test subir imagen a Supabase</title>
+    </head>
+    <body>
+      <h1>Subir imagen de prueba a Supabase</h1>
+      <p>
+        Selecciona una imagen y envíala. Si todo está bien, verás la URL pública y la imagen
+        directamente desde Supabase Storage.
+      </p>
 
+      <form action="/test-imagen" method="post" enctype="multipart/form-data">
+        <label>
+          Elige una imagen:
+          <input type="file" name="imagen" accept="image/*" required />
+        </label>
+        <br /><br />
+        <button type="submit">Subir imagen</button>
+      </form>
+    </body>
+    </html>
+  `);
+});
 // ---------------------------
 //  HELPERS DE MAPEO (DB <-> FRONT)
 // ---------------------------
