@@ -9,18 +9,35 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-app.use(express.static(path.join(__dirname, "public")));
 const multer = require("multer");
 const { supabase, STORAGE_BUCKET } = require("./supabaseClient");
 
 const app = express();
-// Configuración de multer (subir archivos a memoria)
+const PORT = process.env.PORT || 4000;
+const PUBLIC_DIR = __dirname;
+
+// ---------------------------
+//  CONFIG EXPRESS
+// ---------------------------
+app.use(cors());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Sesiones simples en memoria
+const sesiones = {};
+
+// ---------------------------
+//  MULTER: memoria para subir a Supabase Storage
+// ---------------------------
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
-// RUTA DE PRUEBA PARA SUBIR UNA IMAGEN
+// ---------------------------
+//  RUTA DE PRUEBA PARA SUBIR UNA IMAGEN
+//  POST /test-imagen  (form con campo "imagen")
+// ---------------------------
 app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
   const file = req.file;
 
@@ -30,7 +47,9 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
 
   try {
     const fileExt = file.originalname.split(".").pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const fileName = `${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
     const filePath = `tests/${fileName}`;
 
     // 1) Subir al bucket de Supabase
@@ -64,34 +83,6 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
     console.error("Error inesperado:", err);
     return res.status(500).send("Error interno del servidor");
   }
-});
-const PORT = process.env.PORT || 4000;
-
-// ---------------------------
-//  SUPABASE CLIENT
-// ---------------------------
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const STORAGE_BUCKET = "imagenes-bonaparte"; // tu bucket en Supabase Storage
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// ---------------------------
-//  CONFIG EXPRESS
-// ---------------------------
-app.use(cors());
-app.use(express.json({ limit: "20mb" }));
-
-const PUBLIC_DIR = __dirname;
-
-// Sesiones simples en memoria
-const sesiones = {};
-
-// ---------------------------
-//  MULTER: memoria para subir a Supabase Storage
-// ---------------------------
-const upload = multer({
-  storage: multer.memoryStorage(),
 });
 
 // ---------------------------
@@ -526,8 +517,6 @@ app.get("/api/respaldo", auth, async (req, res) => {
 // ---------------------------
 //  FRONTEND
 // ---------------------------
-app.use(express.static(PUBLIC_DIR));
-
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "app-uniformes-multi.html"));
 });
