@@ -9,10 +9,64 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
 const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
+const multer = require("multer");
+const { supabase, STORAGE_BUCKET } = require("./supabaseClient");
 
 const app = express();
+// Configuración de multer (subir archivos a memoria)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});
+
+// RUTA DE PRUEBA PARA SUBIR UNA IMAGEN
+app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).send("No se recibió ningún archivo");
+  }
+
+  try {
+    const fileExt = file.originalname.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `tests/${fileName}`;
+
+    // 1) Subir al bucket de Supabase
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Error subiendo a Supabase Storage:", uploadError);
+      return res.status(500).send("Error subiendo la imagen");
+    }
+
+    // 2) Obtener URL pública
+    const { data: publicData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicData?.publicUrl;
+
+    return res.send(`
+      <p>Imagen subida correctamente ✅</p>
+      <p>URL pública:</p>
+      <a href="${publicUrl}" target="_blank">${publicUrl}</a>
+      <br><br>
+      <img src="${publicUrl}" style="max-width:200px;">
+    `);
+  } catch (err) {
+    console.error("Error inesperado:", err);
+    return res.status(500).send("Error interno del servidor");
+  }
+});
 const PORT = process.env.PORT || 4000;
 
 // ---------------------------
