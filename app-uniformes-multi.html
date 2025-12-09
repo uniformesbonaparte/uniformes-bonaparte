@@ -520,7 +520,7 @@
               </div>
               <label for="gastosCompras">Gastos compras ($)</label>
               <input id="gastosCompras" type="number" step="0.01" />
-
+              <div id="galeria-imagenes"></div>
               <div id="condicionesWrapper">
                 <h3>Condiciones del pedido (cliente)</h3>
                 <label for="condicionesCliente">Condiciones</label>
@@ -765,7 +765,7 @@
       document.getElementById("appView").style.display = "none";
       document.getElementById("loginView").style.display = "block";
     }
-
+    
     async function cargarPedidos() {
       if (!authToken) return;
       const res = await fetch(API_BASE + "/pedidos", {
@@ -809,7 +809,86 @@
         tbody.appendChild(tr);
       }
     }
+    //------------------------------------------------------
+//   CARGAR IMÁGENES DE UN PEDIDO DESDE SUPABASE
+//------------------------------------------------------
+async function cargarImagenesPedido(pedidoId) {
+  try {
+    const token = localStorage.getItem("token");
 
+    // 1) Pedimos las imágenes al backend
+    const res = await fetch(`/api/pedidos/${pedidoId}/imagenes`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error("Error al obtener imágenes:", res.status);
+      return;
+    }
+
+    const imagenes = await res.json(); // ← array de imágenes del pedido
+
+    // 2) Tomamos el contenedor donde se mostrarán
+    const contenedor = document.getElementById("galeria-imagenes");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = ""; // limpiamos
+
+    if (!imagenes || imagenes.length === 0) {
+      contenedor.innerHTML = "<p>Este pedido no tiene imágenes aún.</p>";
+      return;
+    }
+
+    // 3) Filtrar SOLO imágenes con URL válida (https://...)
+    const imagenesValidas = imagenes.filter(
+      (img) => img.imagenUrl && img.imagenUrl.startsWith("http")
+    );
+
+    // 4) Crear los elementos de imagen
+    imagenesValidas.forEach((img) => {
+      const url = img.imagenUrl; // YA VIENE CORRECTA DESDE SUPABASE
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+
+      const imgEl = document.createElement("img");
+      imgEl.src = url;
+      imgEl.style.maxWidth = "150px";
+      imgEl.style.margin = "6px";
+      imgEl.style.borderRadius = "6px";
+      imgEl.style.cursor = "pointer";
+      imgEl.style.boxShadow = "0px 2px 6px rgba(0,0,0,0.2)";
+
+      link.appendChild(imgEl);
+      contenedor.appendChild(link);
+    });
+  } catch (e) {
+    console.error("Error cargando imágenes del pedido:", e);
+  }
+}
+
+//------------------------------------------------------
+//   FUNCIÓN PARA ABRIR UN PEDIDO Y MOSTRAR TODO
+//------------------------------------------------------
+function abrirDetallePedido(pedido) {
+  // ----------------------------
+  // Esto depende de tu HTML actual:
+  // ----------------------------
+  document.getElementById("detalle-folio").textContent = pedido.folio;
+  document.getElementById("detalle-cliente").textContent = pedido.clienteNombre;
+  document.getElementById("detalle-escuela").textContent = pedido.clienteEscuela;
+  document.getElementById("detalle-descripcion").textContent =
+    pedido.descripcionGeneral;
+  document.getElementById("detalle-total").textContent = "$" + pedido.precioTotal;
+
+  // ----------------------------
+  // AQUÍ VIENE LO IMPORTANTE:
+  // ----------------------------
+  cargarImagenesPedido(pedido.id);
+}
     async function cargarPedido(id) {
       const p = pedidos.find(x => x.id === id);
       if (!p) return;
