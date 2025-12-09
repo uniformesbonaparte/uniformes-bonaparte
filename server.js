@@ -11,8 +11,6 @@ const cors = require("cors");
 const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 const multer = require("multer");
-const { createClient } = require("@supabase/supabase-js");
-const multer = require("multer");
 const { supabase, STORAGE_BUCKET } = require("./supabaseClient");
 
 const app = express();
