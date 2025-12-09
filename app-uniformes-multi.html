@@ -626,781 +626,719 @@
   </div>
 
   <script>
-    const API_BASE = window.location.origin + "/api";
-    const SERVER_BASE = window.location.origin;
+  const API_BASE = window.location.origin + "/api";
+  const SERVER_BASE = window.location.origin;
 
-    let authToken = null;
-    let usuarioActual = null;
-    let pedidos = [];
-    let usuarios = [];
+  let authToken = null;
+  let usuarioActual = null;
+  let pedidos = [];
+  let usuarios = [];
 
-    function statusPill(estado) {
-      const map = {
-        "nuevo": { t: "Nuevo", c: "s-nuevo" },
-        "compras": { t: "Compras", c: "s-compras" },
-        "corte": { t: "Corte", c: "s-corte" },
-        "confeccion": { t: "Confección", c: "s-confeccion" },
-        "listo": { t: "Listo", c: "s-listo" },
-        "entregado": { t: "Entregado", c: "s-entregado" }
-      };
-      const info = map[estado] || { t: estado, c: "" };
-      return '<span class="status-pill ' + info.c + '">' + info.t + '</span>';
-    }
-
-    function esAdmin() {
-      return usuarioActual && usuarioActual.rol === "admin";
-    }
-
-    function applyRoleUI() {
-      const rol = usuarioActual ? usuarioActual.rol : "";
-
-      const usuariosCard = document.getElementById("usuariosCard");
-      const resumenCard = document.getElementById("resumenCard");
-      if (usuariosCard) usuariosCard.style.display = esAdmin() ? "block" : "none";
-      if (resumenCard) resumenCard.style.display = esAdmin() ? "block" : "none";
-
-      const telGroup = document.getElementById("clienteTelefonoGroup");
-      if (telGroup) {
-        telGroup.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
-      }
-
-      const finanzasSection = document.getElementById("finanzasSection");
-      if (finanzasSection) {
-        const showFin = (rol === "admin" || rol === "ventas" || rol === "compras");
-        finanzasSection.style.display = showFin ? "block" : "none";
-      }
-
-      const condWrap = document.getElementById("condicionesWrapper");
-      if (condWrap) {
-        condWrap.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
-      }
-
-      const comprasWrap = document.getElementById("comprasDetalleWrapper");
-      if (comprasWrap) {
-        comprasWrap.style.display = (rol === "admin" || rol === "compras") ? "block" : "none";
-      }
-
-      const btnNotaPDF = document.getElementById("btnNotaPDF");
-      if (btnNotaPDF) {
-        btnNotaPDF.style.display = (rol === "admin" || rol === "ventas") ? "inline-flex" : "none";
-      }
-      const btnComprasPDF = document.getElementById("btnComprasPDF");
-      if (btnComprasPDF) {
-        btnComprasPDF.style.display = (rol === "admin" || rol === "compras") ? "inline-flex" : "none";
-      }
-
-      const canEdit = (rol === "admin" || rol === "ventas" || rol === "compras");
-      const formCard = document.getElementById("formPedidoCard");
-      if (formCard) {
-        const campos = formCard.querySelectorAll("input, select, textarea");
-        campos.forEach(el => {
-          if (el.id === "imagenArchivo") {
-            el.disabled = !canEdit;
-          } else {
-            el.disabled = !canEdit && el.tagName !== "IMG";
-          }
-        });
-
-        const btnGuardar = document.getElementById("btnGuardarPedido");
-        const btnLimpiar = document.getElementById("btnLimpiarPedido");
-        const btnSubir = document.getElementById("btnSubirImagen");
-        const btnNuevo = document.getElementById("btnNuevoPedido");
-        const btnEliminarPedido = document.getElementById("btnEliminarPedido");
-
-        if (btnGuardar) btnGuardar.style.display = canEdit ? "inline-flex" : "none";
-        if (btnLimpiar) btnLimpiar.style.display = canEdit ? "inline-flex" : "none";
-        if (btnSubir) btnSubir.style.display = canEdit ? "inline-flex" : "none";
-        if (btnNuevo) btnNuevo.style.display = canEdit ? "inline-flex" : "none";
-        if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
-      }
-    }
-
-    async function login() {
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
-      const err = document.getElementById("loginError");
-      err.textContent = "";
-
-      if (!email || !password) {
-        err.textContent = "Llena correo y contraseña.";
-        return;
-      }
-
-      try {
-        const res = await fetch(API_BASE + "/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          err.textContent = data.error || "Error al iniciar sesión.";
-          return;
-        }
-
-        const data = await res.json();
-        authToken = data.token;
-        usuarioActual = { nombre: data.nombre, rol: data.rol };
-
-        document.getElementById("loginView").style.display = "none";
-        document.getElementById("appView").style.display = "block";
-        document.getElementById("userInfo").textContent =
-          usuarioActual.nombre + " (" + usuarioActual.rol + ")";
-
-        applyRoleUI();
-        await cargarPedidos();
-        if (esAdmin()) {
-          await cargarUsuarios();
-          actualizarResumen();
-        }
-      } catch (e) {
-        err.textContent = "No se pudo conectar al servidor.";
-      }
-    }
-
-    function logout() {
-      authToken = null;
-      usuarioActual = null;
-      document.getElementById("appView").style.display = "none";
-      document.getElementById("loginView").style.display = "block";
-    }
-    
-    async function cargarPedidos() {
-      if (!authToken) return;
-      const res = await fetch(API_BASE + "/pedidos", {
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-      if (!res.ok) return;
-      pedidos = await res.json();
-      renderPedidos();
-      actualizarResumen();
-    }
-
-    function renderPedidos() {
-      const tbody = document.getElementById("tablaPedidosBody");
-      tbody.innerHTML = "";
-      const filtroTexto = document.getElementById("filtroTexto").value.toLowerCase().trim();
-      const filtroEstado = document.getElementById("filtroEstado").value;
-
-      let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
-
-      lista = lista.filter(p => {
-        let okTexto = true;
-        if (filtroTexto) {
-          const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
-          okTexto = t.includes(filtroTexto);
-        }
-        let okEstado = true;
-        if (filtroEstado) okEstado = p.estado === filtroEstado;
-        return okTexto && okEstado;
-      });
-
-      for (const p of lista) {
-        const tr = document.createElement("tr");
-        tr.onclick = () => cargarPedido(p.id);
-        tr.innerHTML = `
-          <td>${p.folio || "-"}</td>
-          <td>${p.clienteNombre || ""}</td>
-          <td>${p.clienteEscuela || ""}</td>
-          <td>${p.fechaEntrega || ""}</td>
-          <td>${statusPill(p.estado)}</td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
-    //------------------------------------------------------
-//   CARGAR IMÁGENES DE UN PEDIDO DESDE SUPABASE
-//------------------------------------------------------
-async function cargarImagenesPedido(pedidoId) {
-  try {
-    const token = localStorage.getItem("token");
-
-    // 1) Pedimos las imágenes al backend
-    const res = await fetch(`/api/pedidos/${pedidoId}/imagenes`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      console.error("Error al obtener imágenes:", res.status);
-      return;
-    }
-
-    const imagenes = await res.json(); // ← array de imágenes del pedido
-
-    // 2) Tomamos el contenedor donde se mostrarán
-    const contenedor = document.getElementById("galeria-imagenes");
-    if (!contenedor) return;
-
-    contenedor.innerHTML = ""; // limpiamos
-
-    if (!imagenes || imagenes.length === 0) {
-      contenedor.innerHTML = "<p>Este pedido no tiene imágenes aún.</p>";
-      return;
-    }
-
-    // 3) Filtrar SOLO imágenes con URL válida (https://...)
-    const imagenesValidas = imagenes.filter(
-      (img) => img.imagenUrl && img.imagenUrl.startsWith("http")
-    );
-
-    // 4) Crear los elementos de imagen
-    imagenesValidas.forEach((img) => {
-      const url = img.imagenUrl; // YA VIENE CORRECTA DESDE SUPABASE
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-
-      const imgEl = document.createElement("img");
-      imgEl.src = url;
-      imgEl.style.maxWidth = "150px";
-      imgEl.style.margin = "6px";
-      imgEl.style.borderRadius = "6px";
-      imgEl.style.cursor = "pointer";
-      imgEl.style.boxShadow = "0px 2px 6px rgba(0,0,0,0.2)";
-
-      link.appendChild(imgEl);
-      contenedor.appendChild(link);
-    });
-  } catch (e) {
-    console.error("Error cargando imágenes del pedido:", e);
+  function statusPill(estado) {
+    const map = {
+      "nuevo": { t: "Nuevo", c: "s-nuevo" },
+      "compras": { t: "Compras", c: "s-compras" },
+      "corte": { t: "Corte", c: "s-corte" },
+      "confeccion": { t: "Confección", c: "s-confeccion" },
+      "listo": { t: "Listo", c: "s-listo" },
+      "entregado": { t: "Entregado", c: "s-entregado" }
+    };
+    const info = map[estado] || { t: estado, c: "" };
+    return '<span class="status-pill ' + info.c + '">' + info.t + '</span>';
   }
-}
 
-//------------------------------------------------------
-//   FUNCIÓN PARA ABRIR UN PEDIDO Y MOSTRAR TODO
-//------------------------------------------------------
-function abrirDetallePedido(pedido) {
-  // ----------------------------
-  // Esto depende de tu HTML actual:
-  // ----------------------------
-  document.getElementById("detalle-folio").textContent = pedido.folio;
-  document.getElementById("detalle-cliente").textContent = pedido.clienteNombre;
-  document.getElementById("detalle-escuela").textContent = pedido.clienteEscuela;
-  document.getElementById("detalle-descripcion").textContent =
-    pedido.descripcionGeneral;
-  document.getElementById("detalle-total").textContent = "$" + pedido.precioTotal;
+  function esAdmin() {
+    return usuarioActual && usuarioActual.rol === "admin";
+  }
 
-  // ----------------------------
-  // AQUÍ VIENE LO IMPORTANTE:
-  // ----------------------------
-  cargarImagenesPedido(pedido.id);
-}
-    async function cargarPedido(id) {
-      const p = pedidos.find(x => x.id === id);
-      if (!p) return;
+  function applyRoleUI() {
+    const rol = usuarioActual ? usuarioActual.rol : "";
 
-      document.getElementById("pedidoId").value = p.id;
-      document.getElementById("clienteNombre").value = p.clienteNombre || "";
-      document.getElementById("clienteTelefono").value = p.clienteTelefono || "";
-      document.getElementById("clienteEscuela").value = p.clienteEscuela || "";
-      document.getElementById("prendaTipo").value = p.prendaTipo || "";
-      document.getElementById("prendaModelo").value = p.prendaModelo || "";
-      document.getElementById("descripcionGeneral").value = p.descripcionGeneral || "";
-      document.getElementById("fechaEntrega").value = p.fechaEntrega || "";
-      document.getElementById("estado").value = p.estado || "nuevo";
-      document.getElementById("tallasTexto").value = p.tallasTexto || "";
-      document.getElementById("comprasNotas").value = p.comprasNotas || "";
-      document.getElementById("corteNotas").value = p.corteNotas || "";
-      document.getElementById("confeccionNotas").value = p.confeccionNotas || "";
-      document.getElementById("precioTotal").value = p.precioTotal ?? "";
-      document.getElementById("anticipo").value = p.anticipo ?? "";
-      document.getElementById("saldo").value = p.saldo ?? "";
-      document.getElementById("gastosCompras").value = p.gastosCompras ?? "";
-      document.getElementById("condicionesCliente").value = p.condicionesCliente || "";
-      document.getElementById("comprasDetalle").value = p.comprasDetalle || "";
+    const usuariosCard = document.getElementById("usuariosCard");
+    const resumenCard = document.getElementById("resumenCard");
+    if (usuariosCard) usuariosCard.style.display = esAdmin() ? "block" : "none";
+    if (resumenCard) resumenCard.style.display = esAdmin() ? "block" : "none";
 
-      const imgPrev = document.getElementById("imagenPreview");
-      if (p.imagenUrl) {
-        imgPrev.src = SERVER_BASE + p.imagenUrl;
-        imgPrev.style.display = "block";
-      } else {
-        imgPrev.src = "";
-        imgPrev.style.display = "none";
-      }
-
-      document.getElementById("tituloFormulario").textContent =
-        "Editar pedido " + (p.folio || "");
-      document.getElementById("infoExtra").textContent =
-        "ID: " + p.id + " · Estado: " + p.estado;
-
-      await cargarImagenes(id);
+    const telGroup = document.getElementById("clienteTelefonoGroup");
+    if (telGroup) {
+      telGroup.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
     }
 
-    function nuevoPedido() {
-      document.getElementById("pedidoId").value = "";
-      document.getElementById("clienteNombre").value = "";
-      document.getElementById("clienteTelefono").value = "";
-      document.getElementById("clienteEscuela").value = "";
-      document.getElementById("prendaTipo").value = "";
-      document.getElementById("prendaModelo").value = "";
-      document.getElementById("descripcionGeneral").value = "";
-      document.getElementById("fechaEntrega").value = "";
-      document.getElementById("estado").value = "nuevo";
-      document.getElementById("tallasTexto").value = "";
-      document.getElementById("comprasNotas").value = "";
-      document.getElementById("corteNotas").value = "";
-      document.getElementById("confeccionNotas").value = "";
-      document.getElementById("precioTotal").value = "";
-      document.getElementById("anticipo").value = "";
-      document.getElementById("saldo").value = "";
-      document.getElementById("gastosCompras").value = "";
-      document.getElementById("condicionesCliente").value = "";
-      document.getElementById("comprasDetalle").value = "";
-      document.getElementById("imagenUrl").value = "";
-      document.getElementById("imagenPreview").style.display = "none";
-      document.getElementById("imagenesLista").innerHTML = "";
-      document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
-      document.getElementById("infoExtra").textContent = "";
+    const finanzasSection = document.getElementById("finanzasSection");
+    if (finanzasSection) {
+      const showFin = (rol === "admin" || rol === "ventas" || rol === "compras");
+      finanzasSection.style.display = showFin ? "block" : "none";
     }
 
-    async function guardarPedido() {
-      if (!authToken) {
-        alert("Primero inicia sesión.");
-        return;
-      }
+    const condWrap = document.getElementById("condicionesWrapper");
+    if (condWrap) {
+      condWrap.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
+    }
 
-      const id = document.getElementById("pedidoId").value;
-      const payload = {
-        clienteNombre: document.getElementById("clienteNombre").value.trim(),
-        clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
-        clienteEscuela: document.getElementById("clienteEscuela").value.trim(),
-        prendaTipo: document.getElementById("prendaTipo").value.trim(),
-        prendaModelo: document.getElementById("prendaModelo").value.trim(),
-        descripcionGeneral: document.getElementById("descripcionGeneral").value.trim(),
-        fechaEntrega: document.getElementById("fechaEntrega").value,
-        estado: document.getElementById("estado").value,
-        tallasTexto: document.getElementById("tallasTexto").value.trim(),
-        comprasNotas: document.getElementById("comprasNotas").value.trim(),
-        corteNotas: document.getElementById("corteNotas").value.trim(),
-        confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
-        precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
-        anticipo: parseFloat(document.getElementById("anticipo").value || "0"),
-        saldo: parseFloat(document.getElementById("saldo").value || "0"),
-        gastosCompras: parseFloat(document.getElementById("gastosCompras").value || "0"),
-        condicionesCliente: document.getElementById("condicionesCliente").value.trim(),
-        comprasDetalle: document.getElementById("comprasDetalle").value.trim(),
-        imagenUrl: document.getElementById("imagenUrl").value || null
-      };
+    const comprasWrap = document.getElementById("comprasDetalleWrapper");
+    if (comprasWrap) {
+      comprasWrap.style.display = (rol === "admin" || rol === "compras") ? "block" : "none";
+    }
 
-      const url = API_BASE + "/pedidos" + (id ? "/" + id : "");
-      const method = id ? "PUT" : "POST";
+    const btnNotaPDF = document.getElementById("btnNotaPDF");
+    if (btnNotaPDF) {
+      btnNotaPDF.style.display = (rol === "admin" || rol === "ventas") ? "inline-flex" : "none";
+    }
+    const btnComprasPDF = document.getElementById("btnComprasPDF");
+    if (btnComprasPDF) {
+      btnComprasPDF.style.display = (rol === "admin" || rol === "compras") ? "inline-flex" : "none";
+    }
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Authorization": "Bearer " + authToken,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+    const canEdit = (rol === "admin" || rol === "ventas" || rol === "compras");
+    const formCard = document.getElementById("formPedidoCard");
+    if (formCard) {
+      const campos = formCard.querySelectorAll("input, select, textarea");
+      campos.forEach(el => {
+        if (el.id === "imagenArchivo") {
+          el.disabled = !canEdit;
+        } else {
+          el.disabled = !canEdit && el.tagName !== "IMG";
+        }
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Error al guardar pedido.");
-        return;
-      }
+      const btnGuardar = document.getElementById("btnGuardarPedido");
+      const btnLimpiar = document.getElementById("btnLimpiarPedido");
+      const btnSubir = document.getElementById("btnSubirImagen");
+      const btnNuevo = document.getElementById("btnNuevoPedido");
+      const btnEliminarPedido = document.getElementById("btnEliminarPedido");
 
-      alert("Pedido guardado.");
-      await cargarPedidos();
-      if (id) {
-        cargarPedido(parseInt(id));
-      } else {
-        nuevoPedido();
-      }
+      if (btnGuardar) btnGuardar.style.display = canEdit ? "inline-flex" : "none";
+      if (btnLimpiar) btnLimpiar.style.display = canEdit ? "inline-flex" : "none";
+      if (btnSubir) btnSubir.style.display = canEdit ? "inline-flex" : "none";
+      if (btnNuevo) btnNuevo.style.display = canEdit ? "inline-flex" : "none";
+      if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
+    }
+  }
+
+  async function login() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const err = document.getElementById("loginError");
+    err.textContent = "";
+
+    if (!email || !password) {
+      err.textContent = "Llena correo y contraseña.";
+      return;
     }
 
-    async function eliminarPedido() {
-      if (!authToken || !esAdmin()) {
-        alert("Solo admin puede eliminar pedidos.");
-        return;
-      }
-      const id = document.getElementById("pedidoId").value;
-      if (!id) {
-        alert("Primero selecciona un pedido a eliminar.");
-        return;
-      }
-      if (!confirm("¿Eliminar el pedido " + id + "? Esta acción no se puede deshacer.")) {
-        return;
-      }
-      const res = await fetch(API_BASE + "/pedidos/" + id, {
-        method: "DELETE",
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Error al eliminar pedido.");
-        return;
-      }
-      alert("Pedido eliminado.");
-      await cargarPedidos();
-      nuevoPedido();
-    }
-
-    async function subirImagen() {
-      if (!authToken) {
-        alert("Primero inicia sesión.");
-        return;
-      }
-      const id = document.getElementById("pedidoId").value;
-      if (!id) {
-        alert("Primero guarda el pedido.");
-        return;
-      }
-      const fileInput = document.getElementById("imagenArchivo");
-      if (!fileInput.files.length) {
-        alert("Selecciona una imagen.");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("imagen", fileInput.files[0]);
-
-      const res = await fetch(API_BASE + "/pedidos/" + id + "/imagen", {
+    try {
+      const res = await fetch(API_BASE + "/login", {
         method: "POST",
-        headers: { "Authorization": "Bearer " + authToken },
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "Error al subir imagen.");
-        return;
-      }
-
-      fileInput.value = "";
-      await cargarImagenes(id);
-      alert("Imagen subida.");
-    }
-
-    async function cargarImagenes(id) {
-      if (!authToken) return;
-      const res = await fetch(API_BASE + "/pedidos/" + id + "/imagenes", {
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-      if (!res.ok) return;
-      const lista = await res.json();
-      const cont = document.getElementById("imagenesLista");
-      cont.innerHTML = "";
-
-      const imgPrev = document.getElementById("imagenPreview");
-      if (lista.length > 0) {
-        const urlPrev = SERVER_BASE + lista[0].imagenUrl;
-        imgPrev.src = urlPrev;
-        imgPrev.style.display = "block";
-      } else {
-        imgPrev.src = "";
-        imgPrev.style.display = "none";
-      }
-
-      lista.forEach(img => {
-        const div = document.createElement("div");
-        div.className = "thumb";
-        const url = SERVER_BASE + img.imagenUrl;
-        div.innerHTML = `<img src="${url}" onclick="window.open('${url}','_blank')" />`;
-        cont.appendChild(div);
-      });
-    }
-
-    async function cargarUsuarios() {
-      if (!authToken || !esAdmin()) return;
-      const res = await fetch(API_BASE + "/users", {
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-      if (!res.ok) return;
-      usuarios = await res.json();
-      const tbody = document.getElementById("tablaUsuariosBody");
-      tbody.innerHTML = "";
-      for (const u of usuarios) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${u.id}</td>
-          <td>${u.nombre}</td>
-          <td>${u.email}</td>
-          <td>${u.rol}</td>
-          <td>
-            <button class="btn danger" onclick="eliminarUsuario(${u.id}); event.stopPropagation();">
-              Eliminar
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
-
-    async function crearUsuario() {
-      if (!authToken || !esAdmin()) {
-        alert("Solo admin puede crear usuarios.");
-        return;
-      }
-      const nombre = document.getElementById("newUserNombre").value.trim();
-      const email = document.getElementById("newUserEmail").value.trim();
-      const password = document.getElementById("newUserPass").value.trim();
-      const rol = document.getElementById("newUserRol").value;
-      if (!nombre || !email || !password) {
-        alert("Llena todos los campos.");
-        return;
-      }
-
-      const res = await fetch(API_BASE + "/users", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + authToken,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ nombre, email, password, rol })
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Error al crear usuario.");
-        return;
-      }
-
-      document.getElementById("newUserNombre").value = "";
-      document.getElementById("newUserEmail").value = "";
-      document.getElementById("newUserPass").value = "";
-      await cargarUsuarios();
-      alert("Usuario creado.");
-    }
-
-    async function eliminarUsuario(id) {
-      if (!authToken || !esAdmin()) {
-        alert("Solo admin puede eliminar usuarios.");
-        return;
-      }
-      if (!confirm("¿Eliminar usuario " + id + "? Esta acción no se puede deshacer.")) {
-        return;
-      }
-      const res = await fetch(API_BASE + "/users/" + id, {
-        method: "DELETE",
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Error al eliminar usuario.");
-        return;
-      }
-      alert("Usuario eliminado.");
-      await cargarUsuarios();
-    }
-
-    async function descargarRespaldo() {
-      if (!authToken || !esAdmin()) {
-        alert("Solo admin puede respaldar.");
-        return;
-      }
-
-      const res = await fetch(API_BASE + "/respaldo", {
-        headers: { "Authorization": "Bearer " + authToken }
-      });
-
-      if (!res.ok) {
-        alert("No se pudo generar el respaldo.");
+        err.textContent = data.error || "Error al iniciar sesión.";
         return;
       }
 
       const data = await res.json();
-      const contenido = JSON.stringify(data, null, 2);
-      const blob = new Blob([contenido], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      authToken = data.token;
+      usuarioActual = { nombre: data.nombre, rol: data.rol };
 
-      const hoy = new Date();
-      const yyyy = hoy.getFullYear();
-      const mm = String(hoy.getMonth() + 1).padStart(2, "0");
-      const dd = String(hoy.getDate()).padStart(2, "0");
+      document.getElementById("loginView").style.display = "none";
+      document.getElementById("appView").style.display = "block";
+      document.getElementById("userInfo").textContent =
+        usuarioActual.nombre + " (" + usuarioActual.rol + ")";
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `respaldo-bonaparte-${yyyy}-${mm}-${dd}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      applyRoleUI();
+      await cargarPedidos();
+      if (esAdmin()) {
+        await cargarUsuarios();
+        actualizarResumen();
+      }
+    } catch (e) {
+      err.textContent = "No se pudo conectar al servidor.";
+    }
+  }
 
-      alert("Respaldo descargado.");
+  function logout() {
+    authToken = null;
+    usuarioActual = null;
+    document.getElementById("appView").style.display = "none";
+    document.getElementById("loginView").style.display = "block";
+  }
+
+  async function cargarPedidos() {
+    if (!authToken) return;
+    const res = await fetch(API_BASE + "/pedidos", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    pedidos = await res.json();
+    renderPedidos();
+    actualizarResumen();
+  }
+
+  function renderPedidos() {
+    const tbody = document.getElementById("tablaPedidosBody");
+    tbody.innerHTML = "";
+    const filtroTexto = document.getElementById("filtroTexto").value.toLowerCase().trim();
+    const filtroEstado = document.getElementById("filtroEstado").value;
+
+    let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
+
+    lista = lista.filter(p => {
+      let okTexto = true;
+      if (filtroTexto) {
+        const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
+        okTexto = t.includes(filtroTexto);
+      }
+      let okEstado = true;
+      if (filtroEstado) okEstado = p.estado === filtroEstado;
+      return okTexto && okEstado;
+    });
+
+    for (const p of lista) {
+      const tr = document.createElement("tr");
+      tr.onclick = () => cargarPedido(p.id);
+      tr.innerHTML = `
+        <td>${p.folio || "-"}</td>
+        <td>${p.clienteNombre || ""}</td>
+        <td>${p.clienteEscuela || ""}</td>
+        <td>${p.fechaEntrega || ""}</td>
+        <td>${statusPill(p.estado)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function cargarPedido(id) {
+    const p = pedidos.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById("pedidoId").value = p.id;
+    document.getElementById("clienteNombre").value = p.clienteNombre || "";
+    document.getElementById("clienteTelefono").value = p.clienteTelefono || "";
+    document.getElementById("clienteEscuela").value = p.clienteEscuela || "";
+    document.getElementById("prendaTipo").value = p.prendaTipo || "";
+    document.getElementById("prendaModelo").value = p.prendaModelo || "";
+    document.getElementById("descripcionGeneral").value = p.descripcionGeneral || "";
+    document.getElementById("fechaEntrega").value = p.fechaEntrega || "";
+    document.getElementById("estado").value = p.estado || "nuevo";
+    document.getElementById("tallasTexto").value = p.tallasTexto || "";
+    document.getElementById("comprasNotas").value = p.comprasNotas || "";
+    document.getElementById("corteNotas").value = p.corteNotas || "";
+    document.getElementById("confeccionNotas").value = p.confeccionNotas || "";
+    document.getElementById("precioTotal").value = p.precioTotal ?? "";
+    document.getElementById("anticipo").value = p.anticipo ?? "";
+    document.getElementById("saldo").value = p.saldo ?? "";
+    document.getElementById("gastosCompras").value = p.gastosCompras ?? "";
+    document.getElementById("condicionesCliente").value = p.condicionesCliente || "";
+    document.getElementById("comprasDetalle").value = p.comprasDetalle || "";
+
+    const imgPrev = document.getElementById("imagenPreview");
+    if (p.imagenUrl) {
+      let urlPrev = p.imagenUrl;
+      // si es una URL vieja tipo /uploads/... la pegamos al SERVER_BASE
+      if (!/^https?:\/\//.test(urlPrev)) {
+        urlPrev = SERVER_BASE + urlPrev;
+      }
+      imgPrev.src = urlPrev;
+      imgPrev.style.display = "block";
+    } else {
+      imgPrev.src = "";
+      imgPrev.style.display = "none";
     }
 
-    function actualizarResumen() {
-      if (!esAdmin()) return;
-      const div = document.getElementById("resumenContenido");
-      let totalPedidos = pedidos.length;
-      let totalVentas = 0;
-      let totalGastos = 0;
+    document.getElementById("tituloFormulario").textContent =
+      "Editar pedido " + (p.folio || "");
+    document.getElementById("infoExtra").textContent =
+      "ID: " + p.id + " · Estado: " + p.estado;
 
-      for (const p of pedidos) {
-        totalVentas += parseFloat(p.precioTotal || 0);
-        totalGastos += parseFloat(p.gastosCompras || 0);
-      }
-      const utilidad = totalVentas - totalGastos;
+    await cargarImagenes(id);
+  }
 
-      div.innerHTML =
-        "Pedidos: <b>" + totalPedidos + "</b><br>" +
-        "Ventas totales: <b>$" + totalVentas.toFixed(2) + "</b><br>" +
-        "Gastos compras: <b>$" + totalGastos.toFixed(2) + "</b><br>" +
-        "Utilidad aprox: <b>$" + utilidad.toFixed(2) + "</b>";
+  function nuevoPedido() {
+    document.getElementById("pedidoId").value = "";
+    document.getElementById("clienteNombre").value = "";
+    document.getElementById("clienteTelefono").value = "";
+    document.getElementById("clienteEscuela").value = "";
+    document.getElementById("prendaTipo").value = "";
+    document.getElementById("prendaModelo").value = "";
+    document.getElementById("descripcionGeneral").value = "";
+    document.getElementById("fechaEntrega").value = "";
+    document.getElementById("estado").value = "nuevo";
+    document.getElementById("tallasTexto").value = "";
+    document.getElementById("comprasNotas").value = "";
+    document.getElementById("corteNotas").value = "";
+    document.getElementById("confeccionNotas").value = "";
+    document.getElementById("precioTotal").value = "";
+    document.getElementById("anticipo").value = "";
+    document.getElementById("saldo").value = "";
+    document.getElementById("gastosCompras").value = "";
+    document.getElementById("condicionesCliente").value = "";
+    document.getElementById("comprasDetalle").value = "";
+    document.getElementById("imagenUrl").value = "";
+    document.getElementById("imagenPreview").style.display = "none";
+    document.getElementById("imagenesLista").innerHTML = "";
+    document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
+    document.getElementById("infoExtra").textContent = "";
+  }
+
+  async function guardarPedido() {
+    if (!authToken) {
+      alert("Primero inicia sesión.");
+      return;
     }
 
-    function exportarNotaPDF() {
-      if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "ventas")) {
-        alert("Solo ventas o admin pueden generar la nota para cliente.");
-        return;
-      }
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF) {
-        alert("No se pudo cargar la librería de PDF.");
-        return;
-      }
+    const id = document.getElementById("pedidoId").value;
+    const payload = {
+      clienteNombre: document.getElementById("clienteNombre").value.trim(),
+      clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
+      clienteEscuela: document.getElementById("clienteEscuela").value.trim(),
+      prendaTipo: document.getElementById("prendaTipo").value.trim(),
+      prendaModelo: document.getElementById("prendaModelo").value.trim(),
+      descripcionGeneral: document.getElementById("descripcionGeneral").value.trim(),
+      fechaEntrega: document.getElementById("fechaEntrega").value,
+      estado: document.getElementById("estado").value,
+      tallasTexto: document.getElementById("tallasTexto").value.trim(),
+      comprasNotas: document.getElementById("comprasNotas").value.trim(),
+      corteNotas: document.getElementById("corteNotas").value.trim(),
+      confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
+      precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
+      anticipo: parseFloat(document.getElementById("anticipo").value || "0"),
+      saldo: parseFloat(document.getElementById("saldo").value || "0"),
+      gastosCompras: parseFloat(document.getElementById("gastosCompras").value || "0"),
+      condicionesCliente: document.getElementById("condicionesCliente").value.trim(),
+      comprasDetalle: document.getElementById("comprasDetalle").value.trim(),
+      imagenUrl: document.getElementById("imagenUrl").value || null
+    };
 
-      const id = document.getElementById("pedidoId").value;
-      const pedido = pedidos.find(p => String(p.id) === String(id));
-      const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+    const url = API_BASE + "/pedidos" + (id ? "/" + id : "");
+    const method = id ? "PUT" : "POST";
 
-      const doc = new jsPDF();
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Authorization": "Bearer " + authToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-      const nombre = document.getElementById("clienteNombre").value || "";
-      const escuela = document.getElementById("clienteEscuela").value || "";
-      const tel = document.getElementById("clienteTelefono").value || "";
-      const fechaEntrega = document.getElementById("fechaEntrega").value || "";
-      const prendaTipo = document.getElementById("prendaTipo").value || "";
-      const prendaModelo = document.getElementById("prendaModelo").value || "";
-      const tallas = document.getElementById("tallasTexto").value || "";
-      const precioTotal = document.getElementById("precioTotal").value || "0";
-      const anticipo = document.getElementById("anticipo").value || "0";
-      const saldo = document.getElementById("saldo").value || "0";
-      const condiciones = document.getElementById("condicionesCliente").value || "";
-
-      doc.setFontSize(14);
-      doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
-      doc.setFontSize(11);
-      doc.text("NOTA DE PEDIDO / VENTA", 10, 18);
-      doc.text("Folio: " + folio, 150, 12);
-
-      let y = 26;
-      doc.setFontSize(10);
-      doc.text("Cliente: " + nombre, 10, y); y += 5;
-      doc.text("Escuela: " + escuela, 10, y); y += 5;
-      if (tel) {
-        doc.text("Teléfono: " + tel, 10, y); y += 5;
-      }
-      if (fechaEntrega) {
-        doc.text("Fecha de entrega: " + fechaEntrega, 10, y); y += 7;
-      } else {
-        y += 2;
-      }
-
-      doc.setFontSize(11);
-      doc.text("Detalle del pedido:", 10, y); y += 5;
-      doc.setFontSize(10);
-      doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
-      if (prendaModelo) {
-        doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 5;
-      }
-
-      if (tallas) {
-        y += 3;
-        doc.text("Tallas y cantidades:", 10, y); y += 5;
-        const tallasLineas = tallas.split("\n");
-        tallasLineas.forEach(l => {
-          if (y > 270) { doc.addPage(); y = 20; }
-          doc.text("- " + l, 12, y);
-          y += 5;
-        });
-      }
-
-      y += 4;
-      doc.setFontSize(11);
-      doc.text("Importes:", 10, y); y += 5;
-      doc.setFontSize(10);
-      doc.text("Precio total: $" + precioTotal, 10, y); y += 5;
-      doc.text("Anticipo: $" + anticipo, 10, y); y += 5;
-      doc.text("Saldo: $" + saldo, 10, y); y += 8;
-
-      if (condiciones) {
-        doc.setFontSize(11);
-        doc.text("Condiciones del pedido:", 10, y); y += 5;
-        doc.setFontSize(10);
-        const condLineas = condiciones.split("\n");
-        condLineas.forEach(l => {
-          if (y > 270) { doc.addPage(); y = 20; }
-          doc.text(l, 12, y);
-          y += 5;
-        });
-      }
-
-      y += 12;
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.setFontSize(10);
-      doc.text("Firma de conformidad del cliente: ______________________________", 10, y);
-
-      doc.save("nota-pedido-" + folio + ".pdf");
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al guardar pedido.");
+      return;
     }
 
-    function exportarComprasPDF() {
-      if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "compras")) {
-        alert("Solo compras o admin pueden generar el PDF de compras.");
-        return;
-      }
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF) {
-        alert("No se pudo cargar la librería de PDF.");
-        return;
-      }
-
-      const id = document.getElementById("pedidoId").value;
-      const pedido = pedidos.find(p => String(p.id) === String(id));
-      const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
-
-      const doc = new jsPDF();
-
-      const nombre = document.getElementById("clienteNombre").value || "";
-      const escuela = document.getElementById("clienteEscuela").value || "";
-      const prendaTipo = document.getElementById("prendaTipo").value || "";
-      const prendaModelo = document.getElementById("prendaModelo").value || "";
-      const gastosCompras = document.getElementById("gastosCompras").value || "0";
-      const comprasDetalle = document.getElementById("comprasDetalle").value || "";
-
-      doc.setFontSize(14);
-      doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
-      doc.setFontSize(11);
-      doc.text("REPORTE DE COMPRAS POR PEDIDO", 10, 18);
-      doc.text("Folio: " + folio, 150, 12);
-
-      let y = 26;
-      doc.setFontSize(10);
-      doc.text("Cliente: " + nombre, 10, y); y += 5;
-      doc.text("Escuela: " + escuela, 10, y); y += 5;
-      doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
-      if (prendaModelo) {
-        doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 7;
-      } else {
-        y += 3;
-      }
-
-      doc.setFontSize(11);
-      doc.text("Detalle de compras:", 10, y); y += 5;
-      doc.setFontSize(10);
-
-      if (comprasDetalle) {
-        const lineas = comprasDetalle.split("\n");
-        lineas.forEach(l => {
-          if (y > 270) { doc.addPage(); y = 20; }
-          doc.text("- " + l, 12, y);
-          y += 5;
-        });
-      } else {
-        doc.text("Sin detalle capturado.", 12, y); y += 5;
-      }
-
-      y += 6;
-      doc.setFontSize(11);
-      doc.text("Gasto total registrado (campo gastos compras): $" + gastosCompras, 10, y);
-
-      doc.save("compras-pedido-" + folio + ".pdf");
+    alert("Pedido guardado.");
+    await cargarPedidos();
+    if (id) {
+      cargarPedido(parseInt(id));
+    } else {
+      nuevoPedido();
     }
-  </script>
+  }
+
+  async function eliminarPedido() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede eliminar pedidos.");
+      return;
+    }
+    const id = document.getElementById("pedidoId").value;
+    if (!id) {
+      alert("Primero selecciona un pedido a eliminar.");
+      return;
+    }
+    if (!confirm("¿Eliminar el pedido " + id + "? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    const res = await fetch(API_BASE + "/pedidos/" + id, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al eliminar pedido.");
+      return;
+    }
+    alert("Pedido eliminado.");
+    await cargarPedidos();
+    nuevoPedido();
+  }
+
+  async function subirImagen() {
+    if (!authToken) {
+      alert("Primero inicia sesión.");
+      return;
+    }
+    const id = document.getElementById("pedidoId").value;
+    if (!id) {
+      alert("Primero guarda el pedido.");
+      return;
+    }
+    const fileInput = document.getElementById("imagenArchivo");
+    if (!fileInput.files.length) {
+      alert("Selecciona una imagen.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("imagen", fileInput.files[0]);
+
+    const res = await fetch(API_BASE + "/pedidos/" + id + "/imagen", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + authToken },
+      body: formData
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al subir imagen.");
+      return;
+    }
+
+    fileInput.value = "";
+    await cargarImagenes(id);
+    alert("Imagen subida.");
+  }
+
+  async function cargarImagenes(id) {
+    if (!authToken) return;
+    const res = await fetch(API_BASE + "/pedidos/" + id + "/imagenes", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    const lista = await res.json();
+
+    const cont = document.getElementById("imagenesLista");
+    cont.innerHTML = "";
+
+    const imgPrev = document.getElementById("imagenPreview");
+
+    // normalizar URLs: si empiezan con http usamos tal cual, si no, pegamos SERVER_BASE (legacy /uploads)
+    const normalizadas = (lista || [])
+      .filter(img => img.imagenUrl)
+      .map(img => {
+        let url = img.imagenUrl;
+        if (!/^https?:\/\//.test(url)) {
+          url = SERVER_BASE + url;
+        }
+        return { ...img, _url: url };
+      });
+
+    if (normalizadas.length > 0) {
+      imgPrev.src = normalizadas[0]._url;
+      imgPrev.style.display = "block";
+    } else {
+      imgPrev.src = "";
+      imgPrev.style.display = "none";
+    }
+
+    normalizadas.forEach(img => {
+      const url = img._url;
+      const div = document.createElement("div");
+      div.className = "thumb";
+      div.innerHTML = `<img src="${url}" onclick="window.open('${url}','_blank')" />`;
+      cont.appendChild(div);
+    });
+  }
+
+  async function cargarUsuarios() {
+    if (!authToken || !esAdmin()) return;
+    const res = await fetch(API_BASE + "/users", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    usuarios = await res.json();
+    const tbody = document.getElementById("tablaUsuariosBody");
+    tbody.innerHTML = "";
+    for (const u of usuarios) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.email}</td>
+        <td>${u.rol}</td>
+        <td>
+          <button class="btn danger" onclick="eliminarUsuario(${u.id}); event.stopPropagation();">
+            Eliminar
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function crearUsuario() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede crear usuarios.");
+      return;
+    }
+    const nombre = document.getElementById("newUserNombre").value.trim();
+    const email = document.getElementById("newUserEmail").value.trim();
+    const password = document.getElementById("newUserPass").value.trim();
+    const rol = document.getElementById("newUserRol").value;
+    if (!nombre || !email || !password) {
+      alert("Llena todos los campos.");
+      return;
+    }
+
+    const res = await fetch(API_BASE + "/users", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + authToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ nombre, email, password, rol })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al crear usuario.");
+      return;
+    }
+
+    document.getElementById("newUserNombre").value = "";
+    document.getElementById("newUserEmail").value = "";
+    document.getElementById("newUserPass").value = "";
+    await cargarUsuarios();
+    alert("Usuario creado.");
+  }
+
+  async function eliminarUsuario(id) {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede eliminar usuarios.");
+      return;
+    }
+    if (!confirm("¿Eliminar usuario " + id + "? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    const res = await fetch(API_BASE + "/users/" + id, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al eliminar usuario.");
+      return;
+    }
+    alert("Usuario eliminado.");
+    await cargarUsuarios();
+  }
+
+  async function descargarRespaldo() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede respaldar.");
+      return;
+    }
+
+    const res = await fetch(API_BASE + "/respaldo", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+
+    if (!res.ok) {
+      alert("No se pudo generar el respaldo.");
+      return;
+    }
+
+    const data = await res.json();
+    const contenido = JSON.stringify(data, null, 2);
+    const blob = new Blob([contenido], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd = String(hoy.getDate()).padStart(2, "0");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `respaldo-bonaparte-${yyyy}-${mm}-${dd}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    alert("Respaldo descargado.");
+  }
+
+  function actualizarResumen() {
+    if (!esAdmin()) return;
+    const div = document.getElementById("resumenContenido");
+    let totalPedidos = pedidos.length;
+    let totalVentas = 0;
+    let totalGastos = 0;
+
+    for (const p of pedidos) {
+      totalVentas += parseFloat(p.precioTotal || 0);
+      totalGastos += parseFloat(p.gastosCompras || 0);
+    }
+    const utilidad = totalVentas - totalGastos;
+
+    div.innerHTML =
+      "Pedidos: <b>" + totalPedidos + "</b><br>" +
+      "Ventas totales: <b>$" + totalVentas.toFixed(2) + "</b><br>" +
+      "Gastos compras: <b>$" + totalGastos.toFixed(2) + "</b><br>" +
+      "Utilidad aprox: <b>$" + utilidad.toFixed(2) + "</b>";
+  }
+
+  function exportarNotaPDF() {
+    if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "ventas")) {
+      alert("Solo ventas o admin pueden generar la nota para cliente.");
+      return;
+    }
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+      alert("No se pudo cargar la librería de PDF.");
+      return;
+    }
+
+    const id = document.getElementById("pedidoId").value;
+    const pedido = pedidos.find(p => String(p.id) === String(id));
+    const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+    const doc = new jsPDF();
+
+    const nombre = document.getElementById("clienteNombre").value || "";
+    const escuela = document.getElementById("clienteEscuela").value || "";
+    const tel = document.getElementById("clienteTelefono").value || "";
+    const fechaEntrega = document.getElementById("fechaEntrega").value || "";
+    const prendaTipo = document.getElementById("prendaTipo").value || "";
+    const prendaModelo = document.getElementById("prendaModelo").value || "";
+    const tallas = document.getElementById("tallasTexto").value || "";
+    const precioTotal = document.getElementById("precioTotal").value || "0";
+    const anticipo = document.getElementById("anticipo").value || "0";
+    const saldo = document.getElementById("saldo").value || "0";
+    const condiciones = document.getElementById("condicionesCliente").value || "";
+
+    doc.setFontSize(14);
+    doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+    doc.setFontSize(11);
+    doc.text("NOTA DE PEDIDO / VENTA", 10, 18);
+    doc.text("Folio: " + folio, 150, 12);
+
+    let y = 26;
+    doc.setFontSize(10);
+    doc.text("Cliente: " + nombre, 10, y); y += 5;
+    doc.text("Escuela: " + escuela, 10, y); y += 5;
+    if (tel) {
+      doc.text("Teléfono: " + tel, 10, y); y += 5;
+    }
+    if (fechaEntrega) {
+      doc.text("Fecha de entrega: " + fechaEntrega, 10, y); y += 7;
+    } else {
+      y += 2;
+    }
+
+    doc.setFontSize(11);
+    doc.text("Detalle del pedido:", 10, y); y += 5;
+    doc.setFontSize(10);
+    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+    if (prendaModelo) {
+      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 5;
+    }
+
+    if (tallas) {
+      y += 3;
+      doc.text("Tallas y cantidades:", 10, y); y += 5;
+      const tallasLineas = tallas.split("\n");
+      tallasLineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text("- " + l, 12, y);
+        y += 5;
+      });
+    }
+
+    y += 4;
+    doc.setFontSize(11);
+    doc.text("Importes:", 10, y); y += 5;
+    doc.setFontSize(10);
+    doc.text("Precio total: $" + precioTotal, 10, y); y += 5;
+    doc.text("Anticipo: $" + anticipo, 10, y); y += 5;
+    doc.text("Saldo: $" + saldo, 10, y); y += 8;
+
+    if (condiciones) {
+      doc.setFontSize(11);
+      doc.text("Condiciones del pedido:", 10, y); y += 5;
+      doc.setFontSize(10);
+      const condLineas = condiciones.split("\n");
+      condLineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(l, 12, y);
+        y += 5;
+      });
+    }
+
+    y += 12;
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFontSize(10);
+    doc.text("Firma de conformidad del cliente: ______________________________", 10, y);
+
+    doc.save("nota-pedido-" + folio + ".pdf");
+  }
+
+  function exportarComprasPDF() {
+    if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "compras")) {
+      alert("Solo compras o admin pueden generar el PDF de compras.");
+      return;
+    }
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+      alert("No se pudo cargar la librería de PDF.");
+      return;
+    }
+
+    const id = document.getElementById("pedidoId").value;
+    const pedido = pedidos.find(p => String(p.id) === String(id));
+    const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+    const doc = new jsPDF();
+
+    const nombre = document.getElementById("clienteNombre").value || "";
+    const escuela = document.getElementById("clienteEscuela").value || "";
+    const prendaTipo = document.getElementById("prendaTipo").value || "";
+    const prendaModelo = document.getElementById("prendaModelo").value || "";
+    const gastosCompras = document.getElementById("gastosCompras").value || "0";
+    const comprasDetalle = document.getElementById("comprasDetalle").value || "";
+
+    doc.setFontSize(14);
+    doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+    doc.setFontSize(11);
+    doc.text("REPORTE DE COMPRAS POR PEDIDO", 10, 18);
+    doc.text("Folio: " + folio, 150, 12);
+
+    let y = 26;
+    doc.setFontSize(10);
+    doc.text("Cliente: " + nombre, 10, y); y += 5;
+    doc.text("Escuela: " + escuela, 10, y); y += 5;
+    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+    if (prendaModelo) {
+      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 7;
+    } else {
+      y += 3;
+    }
+
+    doc.setFontSize(11);
+    doc.text("Detalle de compras:", 10, y); y += 5;
+    doc.setFontSize(10);
+
+    if (comprasDetalle) {
+      const lineas = comprasDetalle.split("\n");
+      lineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text("- " + l, 12, y);
+        y += 5;
+      });
+    } else {
+      doc.text("Sin detalle capturado.", 12, y); y += 5;
+    }
+
+    y += 6;
+    doc.setFontSize(11);
+    doc.text("Gasto total registrado (campo gastos compras): $" + gastosCompras, 10, y);
+
+    doc.save("compras-pedido-" + folio + ".pdf");
+  }
+</script>
 </body>
 </html>
