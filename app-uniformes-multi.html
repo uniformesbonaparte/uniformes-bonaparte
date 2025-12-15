@@ -344,6 +344,131 @@
       margin: 10px auto 0;
       padding: 0 12px;
     }
+  
+    /* ===== MEJORAS BONAPARTE ===== */
+    
+    /* TABLA DE TALLAS DINÁMICA */
+    .tabla-tallas-dinamica {
+      background: var(--gris-fondo);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .tabla-tallas-dinamica table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tabla-tallas-dinamica thead {
+      background: var(--azul);
+      color: white;
+    }
+
+    .tabla-tallas-dinamica th {
+      padding: 10px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .tabla-tallas-dinamica td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--gris-borde);
+    }
+
+    .tabla-tallas-dinamica input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--gris-borde);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .btn-agregar-talla {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-agregar-talla:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+
+    .btn-eliminar-fila {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .totales-tallas {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--azul-claro);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-weight: 600;
+      color: var(--azul);
+      font-size: 14px;
+    }
+
+    /* NOTIFICACIONES */
+    .notificaciones-container {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notificacion {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border-left: 4px solid var(--azul);
+      animation: slideIn 0.3s ease-out;
+      min-width: 300px;
+      font-size: 14px;
+    }
+
+    .notificacion.success { 
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .notificacion.error { 
+      border-left-color: var(--rojo);
+      background: #fef2f2;
+    }
+
+    .notificacion.warning { 
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
   </style>
 
   <!-- Librería para generar PDF en el navegador -->
@@ -484,14 +609,47 @@
             </div>
 
             <h3>Tallas y cantidades</h3>
-            <label for="tallasTexto">Tallas</label>
-            <textarea id="tallasTexto" placeholder="Ej. 10 pzas 6, 15 pzas 8, 8 pzas 10..."></textarea>
+            
+            <!-- Tabla dinámica de tallas -->
+            <div class="tabla-tallas-dinamica">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Talla</th>
+                    <th style="width: 100px;">Cantidad</th>
+                    <th style="width: 120px;">Precio Unit.</th>
+                    <th style="width: 120px;">Subtotal</th>
+                    <th style="width: 60px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="tablaTallasBody">
+                  <!-- Se llena dinámicamente -->
+                </tbody>
+              </table>
+              
+              <button type="button" class="btn-agregar-talla" onclick="agregarFilaTalla()">
+                ➕ Agregar Talla
+              </button>
+              
+              <div class="totales-tallas">
+                <div>Total Piezas: <strong id="totalPiezas">0</strong></div>
+                <div>Precio Total: <strong id="totalPrecio">$0.00</strong></div>
+              </div>
+            </div>
+
+            <!-- Campo oculto para guardar en formato texto (compatible con backend) -->
+            <textarea id="tallasTexto" style="display: none;"></textarea>
 
             <h3>Notas por área</h3>
             <div class="row">
               <div>
                 <label for="comprasNotas">Compras</label>
                 <textarea id="comprasNotas" placeholder="Tela, accesorios, insumos..."></textarea>
+              </div>
+              <div>
+                <label for="especificacionesTelas">🧵 Especificaciones de Telas (CORTE → COMPRAS)</label>
+                <textarea id="especificacionesTelas" placeholder="Cantidad de tela necesaria, tipo, color, metraje..."></textarea>
+                <div class="small-text">CORTE especifica aquí las telas. COMPRAS lo verá.</div>
               </div>
               <div>
                 <label for="corteNotas">Corte</label>
@@ -714,6 +872,211 @@
       if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
     }
   }
+  // ========== MEJORAS BONAPARTE - FUNCIONES NUEVAS ==========
+  
+  // === SISTEMA DE NOTIFICACIONES ===
+  function mostrarNotificacion(mensaje, tipo = 'info') {
+    const container = document.getElementById('notificacionesContainer');
+    if (!container) return;
+    
+    const notif = document.createElement('div');
+    notif.className = `notificacion ${tipo}`;
+    notif.innerHTML = `
+      <strong>${tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ'}</strong>
+      ${mensaje}
+    `;
+    
+    container.appendChild(notif);
+    
+    setTimeout(() => {
+      notif.style.animation = 'slideIn 0.3s ease-out reverse';
+      setTimeout(() => notif.remove(), 300);
+    }, 3000);
+  }
+
+  // === TABLA DE TALLAS DINÁMICA ===
+  let tallasData = [];
+  let tallaIdCounter = 1;
+
+  function agregarFilaTalla() {
+    const nuevaTalla = {
+      id: tallaIdCounter++,
+      talla: '',
+      cantidad: 1,
+      precioUnitario: 0,
+      subtotal: 0
+    };
+    
+    tallasData.push(nuevaTalla);
+    renderTablaTallas();
+  }
+
+  function eliminarFilaTalla(id) {
+    tallasData = tallasData.filter(t => t.id !== id);
+    renderTablaTallas();
+    calcularTotalesTallas();
+  }
+
+  function actualizarTalla(id, campo, valor) {
+    const talla = tallasData.find(t => t.id === id);
+    if (!talla) return;
+    
+    talla[campo] = valor;
+    
+    if (campo === 'cantidad' || campo === 'precioUnitario') {
+      const cantidad = parseFloat(talla.cantidad) || 0;
+      const precio = parseFloat(talla.precioUnitario) || 0;
+      talla.subtotal = cantidad * precio;
+      
+      const subtotalInput = document.getElementById(`subtotal-${id}`);
+      if (subtotalInput) {
+        subtotalInput.value = talla.subtotal.toFixed(2);
+      }
+    }
+    
+    calcularTotalesTallas();
+  }
+
+  function renderTablaTallas() {
+    const tbody = document.getElementById('tablaTallasBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = tallasData.map(talla => `
+      <tr>
+        <td>
+          <input 
+            type="text" 
+            value="${talla.talla || ''}" 
+            placeholder="Ej: M, 8, XL"
+            onchange="actualizarTalla(${talla.id}, 'talla', this.value)"
+          />
+        </td>
+        <td>
+          <input 
+            type="number" 
+            value="${talla.cantidad}" 
+            min="1"
+            onchange="actualizarTalla(${talla.id}, 'cantidad', this.value)"
+          />
+        </td>
+        <td>
+          <input 
+            type="number" 
+            value="${talla.precioUnitario}" 
+            min="0"
+            step="0.01"
+            placeholder="$0.00"
+            onchange="actualizarTalla(${talla.id}, 'precioUnitario', this.value)"
+          />
+        </td>
+        <td>
+          <input 
+            type="number" 
+            id="subtotal-${talla.id}"
+            value="${talla.subtotal.toFixed(2)}" 
+            readonly
+            style="background: #f1f5f9; cursor: not-allowed;"
+          />
+        </td>
+        <td style="text-align: center;">
+          <button 
+            type="button"
+            class="btn-eliminar-fila" 
+            onclick="eliminarFilaTalla(${talla.id})"
+            title="Eliminar"
+          >
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `).join('');
+    
+    calcularTotalesTallas();
+  }
+
+  function calcularTotalesTallas() {
+    let totalPiezas = 0;
+    let totalPrecio = 0;
+    
+    tallasData.forEach(talla => {
+      totalPiezas += parseFloat(talla.cantidad) || 0;
+      totalPrecio += parseFloat(talla.subtotal) || 0;
+    });
+    
+    const elemPiezas = document.getElementById('totalPiezas');
+    const elemPrecio = document.getElementById('totalPrecio');
+    const elemPrecioTotal = document.getElementById('precioTotal');
+    
+    if (elemPiezas) elemPiezas.textContent = totalPiezas;
+    if (elemPrecio) elemPrecio.textContent = '$' + totalPrecio.toFixed(2);
+    
+    // Actualizar precio total del pedido
+    if (elemPrecioTotal && totalPrecio > 0) {
+      elemPrecioTotal.value = totalPrecio.toFixed(2);
+    }
+    
+    // Convertir a texto para el backend
+    convertirTallasATexto();
+  }
+
+  function convertirTallasATexto() {
+    const texto = tallasData
+      .filter(t => t.talla.trim() !== '')
+      .map(t => {
+        const cantidad = t.cantidad || 0;
+        const talla = t.talla || '';
+        const precio = parseFloat(t.precioUnitario) || 0;
+        const subtotal = parseFloat(t.subtotal) || 0;
+        
+        if (precio > 0) {
+          return `${cantidad} pzas talla ${talla} @ $${precio.toFixed(2)} = $${subtotal.toFixed(2)}`;
+        } else {
+          return `${cantidad} pzas talla ${talla}`;
+        }
+      })
+      .join('\n');
+    
+    const textareaOculto = document.getElementById('tallasTexto');
+    if (textareaOculto) {
+      textareaOculto.value = texto;
+    }
+  }
+
+  function cargarTallasDesdeTexto(textoTallas) {
+    if (!textoTallas || textoTallas.trim() === '') {
+      tallasData = [];
+      agregarFilaTalla();
+      return;
+    }
+    
+    // Parsear el texto a la estructura de tallas
+    const lineas = textoTallas.split('\n');
+    tallasData = [];
+    
+    lineas.forEach((linea, index) => {
+      const match = linea.match(/(\d+)\s*pzas?\s+talla\s+(\S+)/i);
+      if (match) {
+        tallasData.push({
+          id: index + 1,
+          talla: match[2],
+          cantidad: parseInt(match[1]) || 0,
+          precioUnitario: 0,
+          subtotal: 0
+        });
+      }
+    });
+    
+    if (tallasData.length === 0) {
+      agregarFilaTalla();
+    } else {
+      tallaIdCounter = tallasData.length + 1;
+      renderTablaTallas();
+    }
+  }
+
+  // ========== FIN MEJORAS BONAPARTE ==========
+
+
 
   async function login() {
     const email = document.getElementById("loginEmail").value.trim();
@@ -750,6 +1113,7 @@
 
       applyRoleUI();
       await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
       if (esAdmin()) {
         await cargarUsuarios();
         actualizarResumen();
@@ -824,6 +1188,15 @@
     document.getElementById("fechaEntrega").value = p.fechaEntrega || "";
     document.getElementById("estado").value = p.estado || "nuevo";
     document.getElementById("tallasTexto").value = p.tallasTexto || "";
+    
+    // MEJORA: Cargar tallas en tabla dinámica
+    cargarTallasDesdeTexto(pedido.tallasTexto || "");
+    
+    // MEJORA: Cargar especificaciones de telas
+    const especTelas = document.getElementById("especificacionesTelas");
+    if (especTelas) {
+      especTelas.value = pedido.especificacionesTelas || "";
+    }
     document.getElementById("comprasNotas").value = p.comprasNotas || "";
     document.getElementById("corteNotas").value = p.corteNotas || "";
     document.getElementById("confeccionNotas").value = p.confeccionNotas || "";
@@ -881,6 +1254,9 @@
     document.getElementById("imagenesLista").innerHTML = "";
     document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
     document.getElementById("infoExtra").textContent = "";
+    // Reiniciar tabla de tallas
+    tallasData = [];
+    agregarFilaTalla();
   }
 
   async function guardarPedido() {
@@ -932,6 +1308,7 @@
 
     alert("Pedido guardado.");
     await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
     if (id) {
       cargarPedido(parseInt(id));
     } else {
@@ -963,6 +1340,7 @@
     }
     alert("Pedido eliminado.");
     await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
     nuevoPedido();
   }
 
@@ -1339,6 +1717,16 @@
 
     doc.save("compras-pedido-" + folio + ".pdf");
   }
+
+  // Inicializar tabla de tallas al cargar la página
+  window.addEventListener('DOMContentLoaded', () => {
+    agregarFilaTalla();
+  });
+
 </script>
+
+  <!-- Contenedor de notificaciones -->
+  <div class="notificaciones-container" id="notificacionesContainer"></div>
+
 </body>
 </html>
