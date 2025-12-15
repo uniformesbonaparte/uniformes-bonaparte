@@ -486,16 +486,7 @@
     }
 
     .prenda-card.collapsed {
-      padding: 10px 16px;
-      margin-bottom: 8px;
-      border: 1px solid #e2e8f0;
-      transition: all 0.2s;
-    }
-
-    .prenda-card.collapsed:hover {
-      border-color: #0b3a73;
-      box-shadow: 0 2px 8px rgba(11, 58, 115, 0.1);
-      transform: translateX(4px);
+      padding: 12px 20px;
     }
 
     .prenda-header {
@@ -816,23 +807,12 @@
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h3 style="margin: 0;">Prendas del Pedido</h3>
-              <div id="contadorPrendas" style="background: #0b3a73; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600;">
-                0 prendas
-              </div>
-            </div>
+            <h3>Prendas del Pedido</h3>
             
             <!-- Tabla de prendas múltiples -->
             <div class="prendas-container">
-              
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; gap: 12px; align-items: center;">
-                  <div style="font-size: 15px; color: #64748b;">Agrega las prendas y sus tallas</div>
-                  <button type="button" class="btn-secondary" onclick="toggleTodasPrendas()" style="padding: 6px 12px; font-size: 13px;">
-                    <span id="toggleAllText">Expandir Todas</span>
-                  </button>
-                </div>
+                <div style="font-size: 15px; color: #64748b;">Agrega las prendas y sus tallas</div>
                 <button type="button" class="btn-agregar-prenda" id="btnAgregarPrenda" onclick="agregarNuevaPrenda()">
                   <span>➕</span>
                   <span>Agregar Prenda</span>
@@ -1166,22 +1146,6 @@
     }
   }
 
-  // Toggle todas las prendas
-  function toggleTodasPrendas() {
-    const todasColapsadas = prendasData.every(p => p.collapsed);
-    
-    prendasData.forEach(prenda => {
-      prenda.collapsed = !todasColapsadas;
-    });
-    
-    const texto = document.getElementById('toggleAllText');
-    if (texto) {
-      texto.textContent = todasColapsadas ? 'Colapsar Todas' : 'Expandir Todas';
-    }
-    
-    renderPrendas();
-  }
-
   // Colapsar/expandir prenda
   function togglePrenda(prendaId) {
     const prenda = prendasData.find(p => p.id === prendaId);
@@ -1275,14 +1239,6 @@
     document.getElementById('totalPedidoGlobal').textContent = '$' + totalPedido.toFixed(2);
     document.getElementById('totalPiezasGlobal').textContent = totalPiezas;
     
-    // Actualizar contador de prendas
-    const contador = document.getElementById('contadorPrendas');
-    if (contador) {
-      const numPrendas = prendasData.length;
-      contador.textContent = `${numPrendas} prenda${numPrendas !== 1 ? 's' : ''}`;
-      contador.style.display = numPrendas > 0 ? 'block' : 'none';
-    }
-    
     const precioTotalInput = document.getElementById('precioTotal');
     if (precioTotalInput && totalPedido > 0) {
       precioTotalInput.value = totalPedido.toFixed(2);
@@ -1309,26 +1265,18 @@
     
     lista.innerHTML = prendasData.map(prenda => {
       if (prenda.collapsed) {
-        const totalTallas = prenda.tallas.length;
-        const totalPiezas = prenda.tallas.reduce((sum, t) => sum + (parseFloat(t.cantidad) || 0), 0);
-        
         return `
-          <div class="prenda-card collapsed" onclick="togglePrenda(${prenda.id})" style="cursor: pointer;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
-              <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                <span style="font-size: 18px;">📦</span>
-                <div>
-                  <div style="font-weight: 600; color: #0b3a73; font-size: 15px;">
-                    ${prenda.tipoPrenda || 'Prenda sin nombre'}
-                  </div>
-                  <div style="font-size: 12px; color: #64748b;">
-                    ${totalTallas} talla${totalTallas !== 1 ? 's' : ''} • ${totalPiezas} piezas
-                  </div>
-                </div>
-              </div>
+          <div class="prenda-card collapsed" onclick="togglePrenda(${prenda.id})">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="margin: 0; font-size: 15px; color: #0b3a73;">
+                ${prenda.tipoPrenda || 'Prenda sin nombre'} 
+                <span style="color: #64748b; font-weight: normal; font-size: 13px;">
+                  (${prenda.tallas.length} talla${prenda.tallas.length !== 1 ? 's' : ''})
+                </span>
+              </h4>
               <div style="display: flex; align-items: center; gap: 12px;">
                 ${verPrecios ? `<span style="font-size: 16px; font-weight: 700; color: #0b3a73;">$${prenda.subtotalPrenda.toFixed(2)}</span>` : ''}
-                <span style="color: #64748b; font-size: 14px;">▼</span>
+                <span style="color: #64748b; font-size: 12px;">▼</span>
               </div>
             </div>
           </div>
@@ -1457,25 +1405,17 @@
   }
 
   // Convertir a formato texto para compatibilidad
-  // Convertir a formato JSON para compatibilidad
   function convertirPrendasATexto() {
-    // Guardar en formato JSON para mejor parsing
-    const prendasJSON = JSON.stringify(prendasData.map(prenda => ({
-      tipoPrenda: prenda.tipoPrenda,
-      tallas: prenda.tallas.map(t => ({
-        talla: t.talla,
-        cantidad: t.cantidad,
-        precioUnitario: t.precioUnitario,
-        subtotal: t.subtotal
-      })),
-      subtotal: prenda.subtotalPrenda
-    })));
-    
-    const textareaOculto = document.getElementById('tallasTexto');
-    if (textareaOculto) {
-      textareaOculto.value = prendasJSON;
-    }
-  } else {
+    const texto = prendasData
+      .filter(p => p.tipoPrenda.trim() !== '')
+      .map(prenda => {
+        const tallasTexto = prenda.tallas
+          .filter(t => t.talla.trim() !== '')
+          .map(t => {
+            const precio = parseFloat(t.precioUnitario) || 0;
+            if (precio > 0) {
+              return `  ${t.cantidad} pzas talla ${t.talla} @ $${precio.toFixed(2)} = $${t.subtotal.toFixed(2)}`;
+            } else {
               return `  ${t.cantidad} pzas talla ${t.talla}`;
             }
           })
@@ -1492,87 +1432,12 @@
   }
 
   // Cargar prendas desde texto
-  // Cargar prendas desde JSON
   function cargarPrendasDesdeTexto(textoTallas) {
     if (!textoTallas || textoTallas.trim() === '') {
       prendasData = [];
-      if (usuarioActual && (usuarioActual.rol === 'admin' || usuarioActual.rol === 'ventas')) {
-        agregarNuevaPrenda();
-      }
+      agregarNuevaPrenda();
       return;
     }
-    
-    try {
-      // Intentar parsear como JSON primero
-      const prendasArray = JSON.parse(textoTallas);
-      
-      prendasData = prendasArray.map((prenda, index) => ({
-        id: index + 1,
-        tipoPrenda: prenda.tipoPrenda || '',
-        tallas: prenda.tallas.map((t, tIndex) => ({
-          id: tIndex + 1,
-          talla: t.talla || '',
-          cantidad: parseFloat(t.cantidad) || 0,
-          precioUnitario: parseFloat(t.precioUnitario) || 0,
-          subtotal: parseFloat(t.subtotal) || 0
-        })),
-        subtotalPrenda: parseFloat(prenda.subtotal) || 0,
-        collapsed: true,
-        tallaIdCounter: (prenda.tallas?.length || 0) + 1
-      }));
-      
-      prendaIdCounter = prendasData.length + 1;
-      
-    } catch (e) {
-      // Si no es JSON, intentar parsear formato viejo de texto
-      console.log('Parseando formato texto legacy...');
-      prendasData = [];
-      const bloquesPrenda = textoTallas.split('\n\n');
-      
-      bloquesPrenda.forEach((bloque, idx) => {
-        const lineas = bloque.split('\n');
-        if (lineas.length === 0) return;
-        
-        const tipoPrenda = lineas[0].replace(':', '').trim();
-        const tallas = [];
-        
-        for (let i = 1; i < lineas.length; i++) {
-          const linea = lineas[i].trim();
-          if (linea.startsWith('Subtotal:')) continue;
-          
-          const match = linea.match(/(\d+)\s*pzas?\s+talla\s+(\S+)/i);
-          if (match) {
-            tallas.push({
-              id: i,
-              talla: match[2],
-              cantidad: parseInt(match[1]) || 0,
-              precioUnitario: 0,
-              subtotal: 0
-            });
-          }
-        }
-        
-        if (tallas.length > 0) {
-          prendasData.push({
-            id: idx + 1,
-            tipoPrenda: tipoPrenda,
-            tallas: tallas,
-            subtotalPrenda: 0,
-            collapsed: true,
-            tallaIdCounter: tallas.length + 1
-          });
-        }
-      });
-      
-      if (prendasData.length === 0 && usuarioActual && (usuarioActual.rol === 'admin' || usuarioActual.rol === 'ventas')) {
-        agregarNuevaPrenda();
-      } else {
-        prendaIdCounter = prendasData.length + 1;
-      }
-    }
-    
-    renderPrendas();
-  }
     
     // Intentar parsear el formato de prendas
     prendasData = [];
