@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uniformes Escolares Bonaparte · Sistema de pedidos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --azul-oscuro: #041527;
+      --azul: #0b3a73;
+      --azul-claro: #e0ecff;
+      --rojo: #e4272b;
+      --gris-fondo: #f3f4f6;
+      --gris-card: #ffffff;
+      --gris-borde: #d1d5db;
+      --texto: #111827;
+      --texto-suave: #6b7280;
+      --radius: 14px;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #102241 0, #020617 50%, #030712 100%);
+      color: var(--texto);
+    }
+
+    header {
+      background: rgba(3, 15, 35, 0.96);
+      backdrop-filter: blur(10px);
+      color: #f9fafb;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid rgba(148,163,184,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .brand-text-main {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .brand-text-sub {
+      font-size: 11px;
+      color: #cbd5f5;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 16px auto 24px;
+      padding: 0 12px 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top, #ffffff 0, #f9fafb 50%, #f3f4f6 100%);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(148,163,184,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(130deg, rgba(11,58,115,0.12), rgba(228,39,43,0.08));
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card h2, .card h3 {
+      margin: 0 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--texto);
+    }
+
+    .card h2::before {
+      content: "";
+      width: 22px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--azul), var(--rojo));
+    }
+
+    .card h3 {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #374151;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid var(--gris-borde);
+      font-size: 13px;
+      background: #f9fafb;
+      transition: border 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--azul);
+      box-shadow: 0 0 0 1px rgba(11,58,115,0.45);
+      background: #ffffff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 750px) {
+      .row, .row-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--azul), #052f5f);
+      color: #f9fafb;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 6px;
+      box-shadow: 0 8px 16px rgba(15,23,42,0.35);
+      transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #e5e7eb, var(--azul-claro));
+      color: #111827;
+      box-shadow: 0 6px 12px rgba(148,163,184,0.5);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #f9fafb;
+      box-shadow: 0 6px 12px rgba(248,113,113,0.6);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow: 0 10px 22px rgba(15,23,42,0.45);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 9px rgba(15,23,42,0.35);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .small-text {
+      font-size: 11px;
+      color: var(--texto-suave);
+      margin-top: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+      background: rgba(255,255,255,0.98);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 6px 6px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      background: linear-gradient(90deg, #e5e7eb, #dde7ff);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #374151;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148,163,184,0.8);
+    }
+
+    .s-nuevo { background: #dcfce7; }
+    .s-compras { background: #dbeafe; }
+    .s-corte { background: #fee2e2; }
+    .s-confeccion { background: #f3e8ff; }
+    .s-listo { background: #fef9c3; }
+    .s-entregado { background: #bbf7d0; }
+
+    #loginView {
+      max-width: 400px;
+      margin: 80px auto;
+    }
+
+    #appView {
+      display: none;
+    }
+
+    #imagenesLista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(148,163,184,0.6);
+    }
+
+    .thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .thumb img:hover {
+      transform: scale(1.06);
+    }
+
+    #usuariosCard, #resumenCard {
+      max-width: 1200px;
+      margin: 10px auto 0;
+      padding: 0 12px;
+    }
+  
+    /* ===== MEJORAS BONAPARTE ===== */
+    
+    /* TABLA DE TALLAS DINÁMICA */
+    .tabla-tallas-dinamica {
+      background: var(--gris-fondo);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .tabla-tallas-dinamica table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tabla-tallas-dinamica thead {
+      background: var(--azul);
+      color: white;
+    }
+
+    .tabla-tallas-dinamica th {
+      padding: 10px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .tabla-tallas-dinamica td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--gris-borde);
+    }
+
+    .tabla-tallas-dinamica input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--gris-borde);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .btn-agregar-talla {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-agregar-talla:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+
+    .btn-eliminar-fila {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .totales-tallas {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--azul-claro);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-weight: 600;
+      color: var(--azul);
+      font-size: 14px;
+    }
+
+    /* NOTIFICACIONES */
+    .notificaciones-container {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notificacion {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border-left: 4px solid var(--azul);
+      animation: slideIn 0.3s ease-out;
+      min-width: 300px;
+      font-size: 14px;
+    }
+
+    .notificacion.success { 
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .notificacion.error { 
+      border-left-color: var(--rojo);
+      background: #fef2f2;
+    }
+
+    .notificacion.warning { 
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+
+
+    /* ===== TABLA DE PRENDAS MÚLTIPLES ===== */
+    .prendas-container {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .prenda-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .prenda-card.collapsed {
+      padding: 12px 20px;
+    }
+
+    .prenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+
+    .prenda-header h4 {
+      margin: 0;
+      font-size: 16px;
+      color: #0b3a73;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prenda-subtotal {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b3a73;
+    }
+
+    .input-tipo-prenda {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .input-tipo-prenda input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .input-tipo-prenda input:focus {
+      border-color: #0b3a73;
+      outline: none;
+    }
+
+    .tabla-tallas-prenda {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .tabla-tallas-prenda thead {
+      background: #f1f5f9;
+    }
+
+    .tabla-tallas-prenda th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .tabla-tallas-prenda td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .tabla-tallas-prenda input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .tabla-tallas-prenda input:focus {
+      border-color: #0b3a73;
+      outline: none;
+    }
+
+    .tabla-tallas-prenda input[readonly] {
+      background: #f8fafc;
+      cursor: not-allowed;
+    }
+
+    .btn-agregar-prenda {
+      background: #0b3a73;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-agregar-prenda:hover {
+      background: #041527;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(11, 58, 115, 0.3);
+    }
+
+    .btn-agregar-talla-prenda {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-eliminar-prenda {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    }
+
+    .resumen-pedido {
+      background: linear-gradient(135deg, #0b3a73 0%, #041527 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .resumen-pedido .label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .resumen-pedido .valor {
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .empty-prendas {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+    }
+
+    .empty-prendas svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* Ocultar columnas de precio según rol */
+    .precio-column {
+      /* Se mostrará/ocultará con JavaScript según el rol */
+    }
+
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+  </style>
+
+  <!-- Librería para generar PDF en el navegador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginView">
+    <section class="card">
+      <div class="card-inner">
+        <h2>Acceso · Uniformes Bonaparte</h2>
+        <p class="small-text">
+          Usuario de prueba:<br>
+          <b>Correo:</b> admin@local<br>
+          <b>Contraseña:</b> admin123
+        </p>
+        <label for="loginEmail">Correo</label>
+        <input id="loginEmail" type="email" placeholder="admin@local" />
+        <label for="loginPassword">Contraseña</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" />
+        <button class="btn" onclick="login()">Entrar</button>
+        <div id="loginError" class="small-text" style="color:#b91c1c; margin-top:6px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- APP -->
+  <div id="appView">
+    <header>
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="logo-bonaparte.jpg" alt="Logo Bonaparte" />
+        </div>
+        <div>
+          <div class="brand-text-main">UNIFORMES ESCOLARES BONAPARTE</div>
+          <div class="brand-text-sub">Control de pedidos · Taller y producción</div>
+        </div>
+      </div>
+      <div class="top-right">
+        <span id="userInfo"></span>
+        <button class="btn secondary" onclick="logout()">Salir</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <!-- LISTA DE PEDIDOS -->
+        <section class="card">
+          <div class="card-inner">
+            <h2>Pedidos</h2>
+            <div class="row" style="margin-bottom:4px;">
+              <div>
+                <label for="filtroTexto">Buscar</label>
+                <input id="filtroTexto" type="text" placeholder="Cliente o escuela" oninput="renderPedidos()" />
+              </div>
+              <div>
+                <label for="filtroEstado">Estado</label>
+                <select id="filtroEstado" onchange="renderPedidos()">
+                  <option value="">Todos</option>
+                  <option value="nuevo">Nuevo</option>
+                  <option value="compras">Compras</option>
+                  <option value="corte">Corte</option>
+                  <option value="confeccion">Confección</option>
+                  <option value="listo">Listo</option>
+                  <option value="entregado">Entregado</option>
+                </select>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Cliente</th>
+                  <th>Escuela</th>
+                  <th>Entrega</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tablaPedidosBody"></tbody>
+            </table>
+            <div class="small-text">Haz clic en un pedido para editarlo.</div>
+            <button class="btn" style="margin-top:6px;" id="btnNuevoPedido" onclick="nuevoPedido()">Nuevo pedido</button>
+          </div>
+        </section>
+
+        <!-- FORMULARIO -->
+        <section class="card" id="formPedidoCard">
+          <div class="card-inner">
+            <h2 id="tituloFormulario">Nuevo pedido</h2>
+            <input type="hidden" id="pedidoId" />
+            <input type="hidden" id="imagenUrl" />
+
+            <h3>Datos del cliente</h3>
+            <div class="row">
+              <div>
+                <label for="clienteNombre">Nombre</label>
+                <input id="clienteNombre" type="text" />
+              </div>
+              <div id="clienteTelefonoGroup">
+                <label for="clienteTelefono">Teléfono</label>
+                <input id="clienteTelefono" type="text" />
+              </div>
+            </div>
+            <label for="clienteEscuela">Escuela / Empresa</label>
+            <input id="clienteEscuela" type="text" />
+
+            <h3>Datos del pedido</h3>
+            <div class="row">
+              <div>
+                <label for="prendaTipo">Tipo de prenda</label>
+                <input id="prendaTipo" type="text" placeholder="Polo, pants, falda..." />
+              </div>
+              <div>
+                <label for="prendaModelo">Modelo / Referencia</label>
+                <input id="prendaModelo" type="text" />
+              </div>
+            </div>
+            <label for="descripcionGeneral">Descripción general</label>
+            <textarea id="descripcionGeneral" placeholder="Colores, logo, detalles importantes..."></textarea>
+
+            <div class="row" style="margin-top:4px;">
+              <div>
+                <label for="fechaEntrega">Fecha de entrega</label>
+                <input id="fechaEntrega" type="date" />
+              </div>
+              <div>
+                <label for="estado">Estado</label>
+                <select id="estado">
+                  <option value="nuevo">Nuevo</option>
+                  <option value="compras">Compras</option>
+                  <option value="corte">Corte</option>
+                  <option value="confeccion">Confección</option>
+                  <option value="listo">Listo</option>
+                  <option value="entregado">Entregado</option>
+                </select>
+              </div>
+            </div>
+
+            <h3>Prendas del Pedido</h3>
+            
+            <!-- Tabla de prendas múltiples -->
+            <div class="prendas-container">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-size: 15px; color: #64748b;">Agrega las prendas y sus tallas</div>
+                <button type="button" class="btn-agregar-prenda" id="btnAgregarPrenda" onclick="agregarNuevaPrenda()">
+                  <span>➕</span>
+                  <span>Agregar Prenda</span>
+                </button>
+              </div>
+
+              <div id="prendasLista">
+                <!-- Las prendas se agregan dinámicamente aquí -->
+              </div>
+
+              <div id="emptyPrendas" class="empty-prendas">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p><strong>No hay prendas agregadas</strong></p>
+                <p style="font-size: 13px;">Haz clic en "Agregar Prenda" para comenzar</p>
+              </div>
+
+              <div class="resumen-pedido" id="resumenPedido">
+                <div>
+                  <div class="label">Total del Pedido</div>
+                  <div class="valor" id="totalPedidoGlobal">$0.00</div>
+                </div>
+                <div style="text-align: right;">
+                  <div class="label">Total de Piezas</div>
+                  <div style="font-size: 24px; font-weight: 700;" id="totalPiezasGlobal">0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campo oculto para compatibilidad con backend -->
+            <textarea id="tallasTexto" style="display: none;"></textarea>
+
+            <h3>Notas por área</h3>
+            <div class="row">
+              <div>
+                <label for="comprasNotas">Compras</label>
+                <textarea id="comprasNotas" placeholder="Tela, accesorios, insumos..."></textarea>
+              </div>
+              <div>
+                <label for="especificacionesTelas">🧵 Especificaciones de Telas (CORTE → COMPRAS)</label>
+                <textarea id="especificacionesTelas" placeholder="Cantidad de tela necesaria, tipo, color, metraje..."></textarea>
+                <div class="small-text">CORTE especifica aquí las telas. COMPRAS lo verá.</div>
+              </div>
+              <div>
+                <label for="corteNotas">Corte</label>
+                <textarea id="corteNotas" placeholder="Detalles de trazo y corte..."></textarea>
+              </div>
+            </div>
+            <label for="confeccionNotas">Confección</label>
+            <textarea id="confeccionNotas" placeholder="Detalles de costura, terminados..."></textarea>
+
+            <!-- FINANZAS (solo admin/ventas/compras) -->
+            <div id="finanzasSection">
+              <h3>Finanzas</h3>
+              <div class="row-3">
+                <div>
+                  <label for="precioTotal">Precio total ($)</label>
+                  <input id="precioTotal" type="number" step="0.01" />
+                </div>
+                <div>
+                  <label for="anticipo">Anticipo ($)</label>
+                  <input id="anticipo" type="number" step="0.01" />
+                </div>
+                <div>
+                  <label for="saldo">Saldo ($)</label>
+                  <input id="saldo" type="number" step="0.01" />
+                </div>
+              </div>
+              <label for="gastosCompras">Gastos compras ($)</label>
+              <input id="gastosCompras" type="number" step="0.01" />
+              <div id="galeria-imagenes"></div>
+              <div id="condicionesWrapper">
+                <h3>Condiciones del pedido (cliente)</h3>
+                <label for="condicionesCliente">Condiciones</label>
+                <textarea id="condicionesCliente"
+                  placeholder="Ej. Tiempo de entrega, cambios, forma de pago, garantías..."></textarea>
+              </div>
+
+              <div id="comprasDetalleWrapper">
+                <h3>Detalle de compras (insumos)</h3>
+                <label for="comprasDetalle">Detalle de compras</label>
+                <textarea id="comprasDetalle"
+                  placeholder="Ej. Tela Oxford azul | 25 m | $80/m | Proveedor X&#10;Botones metálicos | 200 pzas | $1.5 c/u | Proveedor Y"></textarea>
+                <div class="small-text">
+                  Una línea por insumo (tipo | cantidad | unidad | precio | proveedor).
+                </div>
+              </div>
+            </div>
+
+            <h3>Imágenes de referencia</h3>
+            <div class="row">
+              <div>
+                <label for="imagenArchivo">Imagen (una por vez)</label>
+                <input id="imagenArchivo" type="file" accept="image/*" />
+                <button class="btn secondary" id="btnSubirImagen" onclick="subirImagen()">Subir imagen</button>
+                <div class="small-text">Sube imágenes una por una ligadas al pedido.</div>
+              </div>
+              <div>
+                <label>Vista previa</label>
+                <img id="imagenPreview"
+                     style="max-width:100%;max-height:150px;border-radius:10px;border:1px solid #e5e7eb;display:none;" />
+              </div>
+            </div>
+            <label>Galería de imágenes</label>
+            <div id="imagenesLista"></div>
+
+            <div class="small-text" id="infoExtra" style="margin-top:6px;"></div>
+
+            <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+              <button class="btn" id="btnGuardarPedido" onclick="guardarPedido()">Guardar pedido</button>
+              <button class="btn secondary" id="btnLimpiarPedido" onclick="nuevoPedido()">Limpiar / nuevo</button>
+              <button class="btn secondary" id="btnNotaPDF" onclick="exportarNotaPDF()">Nota PDF (cliente)</button>
+              <button class="btn secondary" id="btnComprasPDF" onclick="exportarComprasPDF()">PDF compras</button>
+              <button class="btn danger" id="btnEliminarPedido" onclick="eliminarPedido()">Eliminar pedido</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- USUARIOS (ADMIN) -->
+    <section class="card" id="usuariosCard" style="display:none;">
+      <div class="card-inner">
+        <h2>Usuarios por área</h2>
+        <div class="row">
+          <div>
+            <label for="newUserNombre">Nombre</label>
+            <input id="newUserNombre" type="text" placeholder="Ej. Compras" />
+          </div>
+          <div>
+            <label for="newUserEmail">Correo</label>
+            <input id="newUserEmail" type="email" placeholder="compras@taller.com" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="newUserPass">Contraseña</label>
+            <input id="newUserPass" type="password" placeholder="••••••••" />
+          </div>
+          <div>
+            <label for="newUserRol">Rol</label>
+            <select id="newUserRol">
+              <option value="admin">admin</option>
+              <option value="ventas">ventas</option>
+              <option value="compras">compras</option>
+              <option value="corte">corte</option>
+              <option value="confeccion">confeccion</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" onclick="crearUsuario()">Crear usuario</button>
+        <h3>Lista de usuarios</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaUsuariosBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RESUMEN + RESPALDO -->
+    <section class="card" id="resumenCard" style="display:none;">
+      <div class="card-inner">
+        <h2>Resumen y respaldo</h2>
+        <div id="resumenContenido" class="small-text"></div>
+        <button class="btn secondary" style="margin-top:8px;" onclick="descargarRespaldo()">
+          Descargar respaldo (.json)
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  const API_BASE = window.location.origin + "/api";
+  const SERVER_BASE = window.location.origin;
+
+  let authToken = null;
+  let usuarioActual = null;
+  let pedidos = [];
+  let usuarios = [];
+
+  function statusPill(estado) {
+    const map = {
+      "nuevo": { t: "Nuevo", c: "s-nuevo" },
+      "compras": { t: "Compras", c: "s-compras" },
+      "corte": { t: "Corte", c: "s-corte" },
+      "confeccion": { t: "Confección", c: "s-confeccion" },
+      "listo": { t: "Listo", c: "s-listo" },
+      "entregado": { t: "Entregado", c: "s-entregado" }
+    };
+    const info = map[estado] || { t: estado, c: "" };
+    return '<span class="status-pill ' + info.c + '">' + info.t + '</span>';
+  }
+
+  function esAdmin() {
+    return usuarioActual && usuarioActual.rol === "admin";
+  }
+
+  function applyRoleUI() {
+    const rol = usuarioActual ? usuarioActual.rol : "";
+
+    const usuariosCard = document.getElementById("usuariosCard");
+    const resumenCard = document.getElementById("resumenCard");
+    if (usuariosCard) usuariosCard.style.display = esAdmin() ? "block" : "none";
+    if (resumenCard) resumenCard.style.display = esAdmin() ? "block" : "none";
+
+    const telGroup = document.getElementById("clienteTelefonoGroup");
+    if (telGroup) {
+      telGroup.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
+    
+    // Aplicar permisos a tabla de prendas
+    aplicarPermisosPrendas();
+  }
+    const finanzasSection = document.getElementById("finanzasSection");
+    if (finanzasSection) {
+      const showFin = (rol === "admin" || rol === "ventas" || rol === "compras");
+      finanzasSection.style.display = showFin ? "block" : "none";
+    }
+
+    const condWrap = document.getElementById("condicionesWrapper");
+    if (condWrap) {
+      condWrap.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
+    }
+
+    const comprasWrap = document.getElementById("comprasDetalleWrapper");
+    if (comprasWrap) {
+      comprasWrap.style.display = (rol === "admin" || rol === "compras") ? "block" : "none";
+    }
+
+    const btnNotaPDF = document.getElementById("btnNotaPDF");
+    if (btnNotaPDF) {
+      btnNotaPDF.style.display = (rol === "admin" || rol === "ventas") ? "inline-flex" : "none";
+    }
+    const btnComprasPDF = document.getElementById("btnComprasPDF");
+    if (btnComprasPDF) {
+      btnComprasPDF.style.display = (rol === "admin" || rol === "compras") ? "inline-flex" : "none";
+    }
+
+    const canEdit = (rol === "admin" || rol === "ventas" || rol === "compras");
+    const formCard = document.getElementById("formPedidoCard");
+    if (formCard) {
+      const campos = formCard.querySelectorAll("input, select, textarea");
+      campos.forEach(el => {
+        if (el.id === "imagenArchivo") {
+          el.disabled = !canEdit;
+        } else {
+          el.disabled = !canEdit && el.tagName !== "IMG";
+        }
+      });
+
+      const btnGuardar = document.getElementById("btnGuardarPedido");
+      const btnLimpiar = document.getElementById("btnLimpiarPedido");
+      const btnSubir = document.getElementById("btnSubirImagen");
+      const btnNuevo = document.getElementById("btnNuevoPedido");
+      const btnEliminarPedido = document.getElementById("btnEliminarPedido");
+
+      if (btnGuardar) btnGuardar.style.display = canEdit ? "inline-flex" : "none";
+      if (btnLimpiar) btnLimpiar.style.display = canEdit ? "inline-flex" : "none";
+      if (btnSubir) btnSubir.style.display = canEdit ? "inline-flex" : "none";
+      if (btnNuevo) btnNuevo.style.display = canEdit ? "inline-flex" : "none";
+      if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
+    }
+  }
+  // ========== MEJORAS BONAPARTE - FUNCIONES NUEVAS ==========
+  
+  // === SISTEMA DE NOTIFICACIONES ===
+  function mostrarNotificacion(mensaje, tipo = 'info') {
+    const container = document.getElementById('notificacionesContainer');
+    if (!container) return;
+    
+    const notif = document.createElement('div');
+    notif.className = `notificacion ${tipo}`;
+    notif.innerHTML = `
+      <strong>${tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ'}</strong>
+      ${mensaje}
+    `;
+    
+    container.appendChild(notif);
+    
+    setTimeout(() => {
+      notif.style.animation = 'slideIn 0.3s ease-out reverse';
+      setTimeout(() => notif.remove(), 300);
+    }, 3000);
+  }
+
+  // ========== SISTEMA DE PRENDAS MÚLTIPLES ==========
+  let prendasData = [];
+  let prendaIdCounter = 1;
+
+  // Agregar nueva prenda
+  function agregarNuevaPrenda() {
+    const nuevaPrenda = {
+      id: prendaIdCounter++,
+      tipoPrenda: '',
+      tallas: [
+        { id: 1, talla: '', cantidad: 1, precioUnitario: 0, subtotal: 0 }
+      ],
+      subtotalPrenda: 0,
+      collapsed: false,
+      tallaIdCounter: 2
+    };
+    
+    prendasData.push(nuevaPrenda);
+    renderPrendas();
+    
+    setTimeout(() => {
+      const input = document.getElementById(`tipoPrenda-${nuevaPrenda.id}`);
+      if (input) input.focus();
+    }, 100);
+  }
+
+  // Eliminar prenda
+  function eliminarPrenda(prendaId) {
+    if (!confirm('¿Eliminar esta prenda y todas sus tallas?')) return;
+    
+    prendasData = prendasData.filter(p => p.id !== prendaId);
+    renderPrendas();
+    calcularTotalesGlobales();
+  }
+
+  // Actualizar tipo de prenda
+  function actualizarTipoPrenda(prendaId, valor) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tipoPrenda = valor;
+    }
+  }
+
+  // Colapsar/expandir prenda
+  function togglePrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.collapsed = !prenda.collapsed;
+      renderPrendas();
+    }
+  }
+
+  // Agregar talla a prenda
+  function agregarTallaPrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tallas.push({
+        id: prenda.tallaIdCounter++,
+        talla: '',
+        cantidad: 1,
+        precioUnitario: 0,
+        subtotal: 0
+      });
+      renderPrendas();
+    }
+  }
+
+  // Eliminar talla de prenda
+  function eliminarTallaPrenda(prendaId, tallaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tallas = prenda.tallas.filter(t => t.id !== tallaId);
+      calcularSubtotalPrenda(prendaId);
+      renderPrendas();
+    }
+  }
+
+  // Actualizar talla de prenda
+  function actualizarTallaPrenda(prendaId, tallaId, campo, valor) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (!prenda) return;
+    
+    const talla = prenda.tallas.find(t => t.id === tallaId);
+    if (!talla) return;
+    
+    talla[campo] = valor;
+    
+    if (campo === 'cantidad' || campo === 'precioUnitario') {
+      const cantidad = parseFloat(talla.cantidad) || 0;
+      const precio = parseFloat(talla.precioUnitario) || 0;
+      talla.subtotal = cantidad * precio;
+      
+      const subtotalInput = document.getElementById(`subtotal-${prendaId}-${tallaId}`);
+      if (subtotalInput) {
+        subtotalInput.value = talla.subtotal.toFixed(2);
+      }
+      
+      calcularSubtotalPrenda(prendaId);
+    }
+  }
+
+  // Calcular subtotal de prenda
+  function calcularSubtotalPrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (!prenda) return;
+    
+    let subtotal = 0;
+    prenda.tallas.forEach(talla => {
+      subtotal += parseFloat(talla.subtotal) || 0;
+    });
+    
+    prenda.subtotalPrenda = subtotal;
+    
+    const subtotalElem = document.getElementById(`subtotalPrenda-${prendaId}`);
+    if (subtotalElem) {
+      subtotalElem.textContent = '$' + subtotal.toFixed(2);
+    }
+    
+    calcularTotalesGlobales();
+  }
+
+  // Calcular totales globales
+  function calcularTotalesGlobales() {
+    let totalPedido = 0;
+    let totalPiezas = 0;
+    
+    prendasData.forEach(prenda => {
+      totalPedido += prenda.subtotalPrenda || 0;
+      prenda.tallas.forEach(talla => {
+        totalPiezas += parseFloat(talla.cantidad) || 0;
+      });
+    });
+    
+    document.getElementById('totalPedidoGlobal').textContent = '$' + totalPedido.toFixed(2);
+    document.getElementById('totalPiezasGlobal').textContent = totalPiezas;
+    
+    const precioTotalInput = document.getElementById('precioTotal');
+    if (precioTotalInput && totalPedido > 0) {
+      precioTotalInput.value = totalPedido.toFixed(2);
+    }
+    
+    convertirPrendasATexto();
+  }
+
+  // Renderizar prendas con permisos por rol
+  function renderPrendas() {
+    const lista = document.getElementById('prendasLista');
+    const empty = document.getElementById('emptyPrendas');
+    const rol = usuarioActual ? usuarioActual.rol : 'admin';
+    const puedeEditar = (rol === 'admin' || rol === 'ventas');
+    const verPrecios = (rol === 'admin' || rol === 'ventas');
+    
+    if (prendasData.length === 0) {
+      lista.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    
+    empty.style.display = 'none';
+    
+    lista.innerHTML = prendasData.map(prenda => {
+      if (prenda.collapsed) {
+        return `
+          <div class="prenda-card collapsed" onclick="togglePrenda(${prenda.id})">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="margin: 0; font-size: 15px; color: #0b3a73;">
+                ${prenda.tipoPrenda || 'Prenda sin nombre'} 
+                <span style="color: #64748b; font-weight: normal; font-size: 13px;">
+                  (${prenda.tallas.length} talla${prenda.tallas.length !== 1 ? 's' : ''})
+                </span>
+              </h4>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                ${verPrecios ? `<span style="font-size: 16px; font-weight: 700; color: #0b3a73;">$${prenda.subtotalPrenda.toFixed(2)}</span>` : ''}
+                <span style="color: #64748b; font-size: 12px;">▼</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="prenda-card">
+          <div class="prenda-header" onclick="togglePrenda(${prenda.id})">
+            <h4>
+              Prenda #${prenda.id}
+              ${prenda.tipoPrenda ? `- ${prenda.tipoPrenda}` : ''}
+            </h4>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              ${verPrecios ? `<span class="prenda-subtotal" id="subtotalPrenda-${prenda.id}">$${prenda.subtotalPrenda.toFixed(2)}</span>` : ''}
+              <span style="color: #64748b; font-size: 12px;">▲</span>
+            </div>
+          </div>
+          
+          <div class="input-tipo-prenda">
+            <input 
+              type="text" 
+              id="tipoPrenda-${prenda.id}"
+              value="${prenda.tipoPrenda}" 
+              placeholder="Ej: Playera, Pants, Falda, Chamarra..."
+              onchange="actualizarTipoPrenda(${prenda.id}, this.value)"
+              onclick="event.stopPropagation()"
+              ${!puedeEditar ? 'readonly style="background: #f8fafc; cursor: default;"' : ''}
+            />
+          </div>
+          
+          <table class="tabla-tallas-prenda">
+            <thead>
+              <tr>
+                <th style="width: ${verPrecios ? '25%' : '35%'};">Talla</th>
+                <th style="width: ${verPrecios ? '20%' : '30%'};">Cantidad</th>
+                ${verPrecios ? '<th style="width: 25%;">Precio Unit.</th>' : ''}
+                ${verPrecios ? '<th style="width: 25%;">Subtotal</th>' : ''}
+                ${puedeEditar ? '<th style="width: 5%;"></th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${prenda.tallas.map(talla => `
+                <tr>
+                  <td>
+                    <input 
+                      type="text" 
+                      value="${talla.talla}" 
+                      placeholder="6, 8, M, L..."
+                      onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'talla', this.value)"
+                      onclick="event.stopPropagation()"
+                      ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      type="number" 
+                      value="${talla.cantidad}" 
+                      min="1"
+                      onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'cantidad', this.value)"
+                      onclick="event.stopPropagation()"
+                      ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                    />
+                  </td>
+                  ${verPrecios ? `
+                    <td>
+                      <input 
+                        type="number" 
+                        value="${talla.precioUnitario}" 
+                        min="0"
+                        step="0.01"
+                        placeholder="$0.00"
+                        onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'precioUnitario', this.value)"
+                        onclick="event.stopPropagation()"
+                        ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                      />
+                    </td>
+                    <td>
+                      <input 
+                        type="number" 
+                        id="subtotal-${prenda.id}-${talla.id}"
+                        value="${talla.subtotal.toFixed(2)}" 
+                        readonly
+                        style="background: #f8fafc;"
+                      />
+                    </td>
+                  ` : ''}
+                  ${puedeEditar ? `
+                    <td>
+                      <button 
+                        class="btn-icon" 
+                        onclick="event.stopPropagation(); eliminarTallaPrenda(${prenda.id}, ${talla.id})"
+                        title="Eliminar talla"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  ` : ''}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            ${puedeEditar ? `
+              <button 
+                class="btn-agregar-talla-prenda" 
+                onclick="event.stopPropagation(); agregarTallaPrenda(${prenda.id})"
+              >
+                ➕ Agregar Talla
+              </button>
+              
+              <button 
+                class="btn-eliminar-prenda" 
+                onclick="event.stopPropagation(); eliminarPrenda(${prenda.id})"
+              >
+                🗑️ Eliminar Prenda
+              </button>
+            ` : '<div></div>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    calcularTotalesGlobales();
+  }
+
+  // Convertir a formato texto para compatibilidad
+  function convertirPrendasATexto() {
+    const texto = prendasData
+      .filter(p => p.tipoPrenda.trim() !== '')
+      .map(prenda => {
+        const tallasTexto = prenda.tallas
+          .filter(t => t.talla.trim() !== '')
+          .map(t => {
+            const precio = parseFloat(t.precioUnitario) || 0;
+            if (precio > 0) {
+              return `  ${t.cantidad} pzas talla ${t.talla} @ $${precio.toFixed(2)} = $${t.subtotal.toFixed(2)}`;
+            } else {
+              return `  ${t.cantidad} pzas talla ${t.talla}`;
+            }
+          })
+          .join('\n');
+        
+        return `${prenda.tipoPrenda}:\n${tallasTexto}\nSubtotal: $${prenda.subtotalPrenda.toFixed(2)}`;
+      })
+      .join('\n\n');
+    
+    const textareaOculto = document.getElementById('tallasTexto');
+    if (textareaOculto) {
+      textareaOculto.value = texto;
+    }
+  }
+
+  // Cargar prendas desde texto
+  function cargarPrendasDesdeTexto(textoTallas) {
+    if (!textoTallas || textoTallas.trim() === '') {
+      prendasData = [];
+      agregarNuevaPrenda();
+      return;
+    }
+    
+    // Intentar parsear el formato de prendas
+    prendasData = [];
+    const bloquesPrenda = textoTallas.split('\n\n');
+    
+    bloquesPrenda.forEach((bloque, idx) => {
+      const lineas = bloque.split('\n');
+      if (lineas.length === 0) return;
+      
+      const tipoPrenda = lineas[0].replace(':', '').trim();
+      const tallas = [];
+      
+      for (let i = 1; i < lineas.length; i++) {
+        const linea = lineas[i].trim();
+        if (linea.startsWith('Subtotal:')) continue;
+        
+        const match = linea.match(/(\d+)\s*pzas?\s+talla\s+(\S+)/i);
+        if (match) {
+          tallas.push({
+            id: i,
+            talla: match[2],
+            cantidad: parseInt(match[1]) || 0,
+            precioUnitario: 0,
+            subtotal: 0
+          });
+        }
+      }
+      
+      if (tallas.length > 0) {
+        prendasData.push({
+          id: idx + 1,
+          tipoPrenda: tipoPrenda,
+          tallas: tallas,
+          subtotalPrenda: 0,
+          collapsed: false,
+          tallaIdCounter: tallas.length + 1
+        });
+      }
+    });
+    
+    if (prendasData.length === 0) {
+      agregarNuevaPrenda();
+    } else {
+      prendaIdCounter = prendasData.length + 1;
+      renderPrendas();
+    }
+  }
+
+  // Obtener datos para guardar en DB
+  function obtenerDatosPrendas() {
+    return prendasData.map(prenda => ({
+      tipoPrenda: prenda.tipoPrenda,
+      tallas: prenda.tallas.map(t => ({
+        talla: t.talla,
+        cantidad: t.cantidad,
+        precioUnitario: t.precioUnitario,
+        subtotal: t.subtotal
+      })),
+      subtotal: prenda.subtotalPrenda
+    }));
+  }
+
+  // Aplicar permisos de visualización según rol
+  function aplicarPermisosPrendas() {
+    const rol = usuarioActual ? usuarioActual.rol : 'admin';
+    const puedeEditar = (rol === 'admin' || rol === 'ventas');
+    const verPrecios = (rol === 'admin' || rol === 'ventas');
+    
+    const btnAgregar = document.getElementById('btnAgregarPrenda');
+    if (btnAgregar) {
+      btnAgregar.style.display = puedeEditar ? 'flex' : 'none';
+    }
+    
+    const resumen = document.getElementById('resumenPedido');
+    if (resumen && !verPrecios) {
+      const totalPedido = resumen.querySelector('#totalPedidoGlobal');
+      if (totalPedido) {
+        totalPedido.closest('.resumen-pedido').querySelector('div').style.display = 'none';
+      }
+    }
+    
+    renderPrendas();
+  }
+
+  // ========== FIN SISTEMA DE PRENDAS MÚLTIPLES ==========
+
+
+
+  async function login() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const err = document.getElementById("loginError");
+    err.textContent = "";
+
+    if (!email || !password) {
+      err.textContent = "Llena correo y contraseña.";
+      return;
+    }
+
+    try {
+      const res = await fetch(API_BASE + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        err.textContent = data.error || "Error al iniciar sesión.";
+        return;
+      }
+
+      const data = await res.json();
+      authToken = data.token;
+      usuarioActual = { nombre: data.nombre, rol: data.rol };
+
+      document.getElementById("loginView").style.display = "none";
+      document.getElementById("appView").style.display = "block";
+      document.getElementById("userInfo").textContent =
+        usuarioActual.nombre + " (" + usuarioActual.rol + ")";
+
+      applyRoleUI();
+      await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
+      if (esAdmin()) {
+        await cargarUsuarios();
+        actualizarResumen();
+      }
+    } catch (e) {
+      err.textContent = "No se pudo conectar al servidor.";
+    }
+  }
+
+  function logout() {
+    authToken = null;
+    usuarioActual = null;
+    document.getElementById("appView").style.display = "none";
+    document.getElementById("loginView").style.display = "block";
+  }
+
+  async function cargarPedidos() {
+    if (!authToken) return;
+    const res = await fetch(API_BASE + "/pedidos", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    pedidos = await res.json();
+    renderPedidos();
+    actualizarResumen();
+  }
+
+  function renderPedidos() {
+    const tbody = document.getElementById("tablaPedidosBody");
+    tbody.innerHTML = "";
+    const filtroTexto = document.getElementById("filtroTexto").value.toLowerCase().trim();
+    const filtroEstado = document.getElementById("filtroEstado").value;
+
+    let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
+
+    lista = lista.filter(p => {
+      let okTexto = true;
+      if (filtroTexto) {
+        const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
+        okTexto = t.includes(filtroTexto);
+      }
+      let okEstado = true;
+      if (filtroEstado) okEstado = p.estado === filtroEstado;
+      return okTexto && okEstado;
+    });
+
+    for (const p of lista) {
+      const tr = document.createElement("tr");
+      tr.onclick = () => cargarPedido(p.id);
+      tr.innerHTML = `
+        <td>${p.folio || "-"}</td>
+        <td>${p.clienteNombre || ""}</td>
+        <td>${p.clienteEscuela || ""}</td>
+        <td>${p.fechaEntrega || ""}</td>
+        <td>${statusPill(p.estado)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function cargarPedido(id) {
+    const p = pedidos.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById("pedidoId").value = p.id;
+    document.getElementById("clienteNombre").value = p.clienteNombre || "";
+    document.getElementById("clienteTelefono").value = p.clienteTelefono || "";
+    document.getElementById("clienteEscuela").value = p.clienteEscuela || "";
+    document.getElementById("prendaTipo").value = p.prendaTipo || "";
+    document.getElementById("prendaModelo").value = p.prendaModelo || "";
+    document.getElementById("descripcionGeneral").value = p.descripcionGeneral || "";
+    document.getElementById("fechaEntrega").value = p.fechaEntrega || "";
+    document.getElementById("estado").value = p.estado || "nuevo";
+    document.getElementById("tallasTexto").value = p.tallasTexto || "";
+    
+    // MEJORA: Cargar tallas en tabla dinámica
+    cargarPrendasDesdeTexto(pedido.tallasTexto || "");
+    
+    // MEJORA: Cargar especificaciones de telas
+    const especTelas = document.getElementById("especificacionesTelas");
+    if (especTelas) {
+      especTelas.value = pedido.especificacionesTelas || "";
+    }
+    document.getElementById("comprasNotas").value = p.comprasNotas || "";
+    document.getElementById("corteNotas").value = p.corteNotas || "";
+    document.getElementById("confeccionNotas").value = p.confeccionNotas || "";
+    document.getElementById("precioTotal").value = p.precioTotal ?? "";
+    document.getElementById("anticipo").value = p.anticipo ?? "";
+    document.getElementById("saldo").value = p.saldo ?? "";
+    document.getElementById("gastosCompras").value = p.gastosCompras ?? "";
+    document.getElementById("condicionesCliente").value = p.condicionesCliente || "";
+    document.getElementById("comprasDetalle").value = p.comprasDetalle || "";
+
+    const imgPrev = document.getElementById("imagenPreview");
+    if (p.imagenUrl) {
+      let urlPrev = p.imagenUrl;
+      // si es una URL vieja tipo /uploads/... la pegamos al SERVER_BASE
+      if (!/^https?:\/\//.test(urlPrev)) {
+        urlPrev = SERVER_BASE + urlPrev;
+      }
+      imgPrev.src = urlPrev;
+      imgPrev.style.display = "block";
+    } else {
+      imgPrev.src = "";
+      imgPrev.style.display = "none";
+    }
+
+    document.getElementById("tituloFormulario").textContent =
+      "Editar pedido " + (p.folio || "");
+    document.getElementById("infoExtra").textContent =
+      "ID: " + p.id + " · Estado: " + p.estado;
+
+    await cargarImagenes(id);
+  }
+
+  function nuevoPedido() {
+    document.getElementById("pedidoId").value = "";
+    document.getElementById("clienteNombre").value = "";
+    document.getElementById("clienteTelefono").value = "";
+    document.getElementById("clienteEscuela").value = "";
+    document.getElementById("prendaTipo").value = "";
+    document.getElementById("prendaModelo").value = "";
+    document.getElementById("descripcionGeneral").value = "";
+    document.getElementById("fechaEntrega").value = "";
+    document.getElementById("estado").value = "nuevo";
+    document.getElementById("tallasTexto").value = "";
+    document.getElementById("comprasNotas").value = "";
+    document.getElementById("corteNotas").value = "";
+    document.getElementById("confeccionNotas").value = "";
+    document.getElementById("precioTotal").value = "";
+    document.getElementById("anticipo").value = "";
+    document.getElementById("saldo").value = "";
+    document.getElementById("gastosCompras").value = "";
+    document.getElementById("condicionesCliente").value = "";
+    document.getElementById("comprasDetalle").value = "";
+    document.getElementById("imagenUrl").value = "";
+    document.getElementById("imagenPreview").style.display = "none";
+    document.getElementById("imagenesLista").innerHTML = "";
+    document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
+    document.getElementById("infoExtra").textContent = "";
+    // Reiniciar prendas
+    prendasData = [];
+    agregarNuevaPrenda();
+  }
+
+  async function guardarPedido() {
+    if (!authToken) {
+      alert("Primero inicia sesión.");
+      return;
+    }
+
+    const id = document.getElementById("pedidoId").value;
+    const payload = {
+      clienteNombre: document.getElementById("clienteNombre").value.trim(),
+      clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
+      clienteEscuela: document.getElementById("clienteEscuela").value.trim(),
+      prendaTipo: document.getElementById("prendaTipo").value.trim(),
+      prendaModelo: document.getElementById("prendaModelo").value.trim(),
+      descripcionGeneral: document.getElementById("descripcionGeneral").value.trim(),
+      fechaEntrega: document.getElementById("fechaEntrega").value,
+      estado: document.getElementById("estado").value,
+      tallasTexto: document.getElementById("tallasTexto").value.trim(),
+      comprasNotas: document.getElementById("comprasNotas").value.trim(),
+      corteNotas: document.getElementById("corteNotas").value.trim(),
+      confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
+      precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
+      anticipo: parseFloat(document.getElementById("anticipo").value || "0"),
+      saldo: parseFloat(document.getElementById("saldo").value || "0"),
+      gastosCompras: parseFloat(document.getElementById("gastosCompras").value || "0"),
+      condicionesCliente: document.getElementById("condicionesCliente").value.trim(),
+      comprasDetalle: document.getElementById("comprasDetalle").value.trim(),
+      imagenUrl: document.getElementById("imagenUrl").value || null
+    };
+
+    const url = API_BASE + "/pedidos" + (id ? "/" + id : "");
+    const method = id ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Authorization": "Bearer " + authToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al guardar pedido.");
+      return;
+    }
+
+    alert("Pedido guardado.");
+    await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
+    if (id) {
+      cargarPedido(parseInt(id));
+    } else {
+      nuevoPedido();
+    }
+  }
+
+  async function eliminarPedido() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede eliminar pedidos.");
+      return;
+    }
+    const id = document.getElementById("pedidoId").value;
+    if (!id) {
+      alert("Primero selecciona un pedido a eliminar.");
+      return;
+    }
+    if (!confirm("¿Eliminar el pedido " + id + "? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    const res = await fetch(API_BASE + "/pedidos/" + id, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al eliminar pedido.");
+      return;
+    }
+    alert("Pedido eliminado.");
+    await cargarPedidos();
+        mostrarNotificacion('Pedido guardado correctamente', 'success');
+    nuevoPedido();
+  }
+
+  async function subirImagen() {
+    if (!authToken) {
+      alert("Primero inicia sesión.");
+      return;
+    }
+    const id = document.getElementById("pedidoId").value;
+    if (!id) {
+      alert("Primero guarda el pedido.");
+      return;
+    }
+    const fileInput = document.getElementById("imagenArchivo");
+    if (!fileInput.files.length) {
+      alert("Selecciona una imagen.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("imagen", fileInput.files[0]);
+
+    const res = await fetch(API_BASE + "/pedidos/" + id + "/imagen", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + authToken },
+      body: formData
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al subir imagen.");
+      return;
+    }
+
+    fileInput.value = "";
+    await cargarImagenes(id);
+    alert("Imagen subida.");
+  }
+
+  async function cargarImagenes(id) {
+    if (!authToken) return;
+    const res = await fetch(API_BASE + "/pedidos/" + id + "/imagenes", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    const lista = await res.json();
+
+    const cont = document.getElementById("imagenesLista");
+    cont.innerHTML = "";
+
+    const imgPrev = document.getElementById("imagenPreview");
+
+    // normalizar URLs: si empiezan con http usamos tal cual, si no, pegamos SERVER_BASE (legacy /uploads)
+    const normalizadas = (lista || [])
+      .filter(img => img.imagenUrl)
+      .map(img => {
+        let url = img.imagenUrl;
+        if (!/^https?:\/\//.test(url)) {
+          url = SERVER_BASE + url;
+        }
+        return { ...img, _url: url };
+      });
+
+    if (normalizadas.length > 0) {
+      imgPrev.src = normalizadas[0]._url;
+      imgPrev.style.display = "block";
+    } else {
+      imgPrev.src = "";
+      imgPrev.style.display = "none";
+    }
+
+    normalizadas.forEach(img => {
+      const url = img._url;
+      const div = document.createElement("div");
+      div.className = "thumb";
+      div.innerHTML = `<img src="${url}" onclick="window.open('${url}','_blank')" />`;
+      cont.appendChild(div);
+    });
+  }
+
+  async function cargarUsuarios() {
+    if (!authToken || !esAdmin()) return;
+    const res = await fetch(API_BASE + "/users", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) return;
+    usuarios = await res.json();
+    const tbody = document.getElementById("tablaUsuariosBody");
+    tbody.innerHTML = "";
+    for (const u of usuarios) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.email}</td>
+        <td>${u.rol}</td>
+        <td>
+          <button class="btn danger" onclick="eliminarUsuario(${u.id}); event.stopPropagation();">
+            Eliminar
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function crearUsuario() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede crear usuarios.");
+      return;
+    }
+    const nombre = document.getElementById("newUserNombre").value.trim();
+    const email = document.getElementById("newUserEmail").value.trim();
+    const password = document.getElementById("newUserPass").value.trim();
+    const rol = document.getElementById("newUserRol").value;
+    if (!nombre || !email || !password) {
+      alert("Llena todos los campos.");
+      return;
+    }
+
+    const res = await fetch(API_BASE + "/users", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + authToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ nombre, email, password, rol })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al crear usuario.");
+      return;
+    }
+
+    document.getElementById("newUserNombre").value = "";
+    document.getElementById("newUserEmail").value = "";
+    document.getElementById("newUserPass").value = "";
+    await cargarUsuarios();
+    alert("Usuario creado.");
+  }
+
+  async function eliminarUsuario(id) {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede eliminar usuarios.");
+      return;
+    }
+    if (!confirm("¿Eliminar usuario " + id + "? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    const res = await fetch(API_BASE + "/users/" + id, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Error al eliminar usuario.");
+      return;
+    }
+    alert("Usuario eliminado.");
+    await cargarUsuarios();
+  }
+
+  async function descargarRespaldo() {
+    if (!authToken || !esAdmin()) {
+      alert("Solo admin puede respaldar.");
+      return;
+    }
+
+    const res = await fetch(API_BASE + "/respaldo", {
+      headers: { "Authorization": "Bearer " + authToken }
+    });
+
+    if (!res.ok) {
+      alert("No se pudo generar el respaldo.");
+      return;
+    }
+
+    const data = await res.json();
+    const contenido = JSON.stringify(data, null, 2);
+    const blob = new Blob([contenido], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dd = String(hoy.getDate()).padStart(2, "0");
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `respaldo-bonaparte-${yyyy}-${mm}-${dd}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    alert("Respaldo descargado.");
+  }
+
+  function actualizarResumen() {
+    if (!esAdmin()) return;
+    const div = document.getElementById("resumenContenido");
+    let totalPedidos = pedidos.length;
+    let totalVentas = 0;
+    let totalGastos = 0;
+
+    for (const p of pedidos) {
+      totalVentas += parseFloat(p.precioTotal || 0);
+      totalGastos += parseFloat(p.gastosCompras || 0);
+    }
+    const utilidad = totalVentas - totalGastos;
+
+    div.innerHTML =
+      "Pedidos: <b>" + totalPedidos + "</b><br>" +
+      "Ventas totales: <b>$" + totalVentas.toFixed(2) + "</b><br>" +
+      "Gastos compras: <b>$" + totalGastos.toFixed(2) + "</b><br>" +
+      "Utilidad aprox: <b>$" + utilidad.toFixed(2) + "</b>";
+  }
+
+  function exportarNotaPDF() {
+    if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "ventas")) {
+      alert("Solo ventas o admin pueden generar la nota para cliente.");
+      return;
+    }
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+      alert("No se pudo cargar la librería de PDF.");
+      return;
+    }
+
+    const id = document.getElementById("pedidoId").value;
+    const pedido = pedidos.find(p => String(p.id) === String(id));
+    const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+    const doc = new jsPDF();
+
+    const nombre = document.getElementById("clienteNombre").value || "";
+    const escuela = document.getElementById("clienteEscuela").value || "";
+    const tel = document.getElementById("clienteTelefono").value || "";
+    const fechaEntrega = document.getElementById("fechaEntrega").value || "";
+    const prendaTipo = document.getElementById("prendaTipo").value || "";
+    const prendaModelo = document.getElementById("prendaModelo").value || "";
+    const tallas = document.getElementById("tallasTexto").value || "";
+    const precioTotal = document.getElementById("precioTotal").value || "0";
+    const anticipo = document.getElementById("anticipo").value || "0";
+    const saldo = document.getElementById("saldo").value || "0";
+    const condiciones = document.getElementById("condicionesCliente").value || "";
+
+    doc.setFontSize(14);
+    doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+    doc.setFontSize(11);
+    doc.text("NOTA DE PEDIDO / VENTA", 10, 18);
+    doc.text("Folio: " + folio, 150, 12);
+
+    let y = 26;
+    doc.setFontSize(10);
+    doc.text("Cliente: " + nombre, 10, y); y += 5;
+    doc.text("Escuela: " + escuela, 10, y); y += 5;
+    if (tel) {
+      doc.text("Teléfono: " + tel, 10, y); y += 5;
+    }
+    if (fechaEntrega) {
+      doc.text("Fecha de entrega: " + fechaEntrega, 10, y); y += 7;
+    } else {
+      y += 2;
+    }
+
+    doc.setFontSize(11);
+    doc.text("Detalle del pedido:", 10, y); y += 5;
+    doc.setFontSize(10);
+    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+    if (prendaModelo) {
+      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 5;
+    }
+
+    if (tallas) {
+      y += 3;
+      doc.text("Tallas y cantidades:", 10, y); y += 5;
+      const tallasLineas = tallas.split("\n");
+      tallasLineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text("- " + l, 12, y);
+        y += 5;
+      });
+    }
+
+    y += 4;
+    doc.setFontSize(11);
+    doc.text("Importes:", 10, y); y += 5;
+    doc.setFontSize(10);
+    doc.text("Precio total: $" + precioTotal, 10, y); y += 5;
+    doc.text("Anticipo: $" + anticipo, 10, y); y += 5;
+    doc.text("Saldo: $" + saldo, 10, y); y += 8;
+
+    if (condiciones) {
+      doc.setFontSize(11);
+      doc.text("Condiciones del pedido:", 10, y); y += 5;
+      doc.setFontSize(10);
+      const condLineas = condiciones.split("\n");
+      condLineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(l, 12, y);
+        y += 5;
+      });
+    }
+
+    y += 12;
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFontSize(10);
+    doc.text("Firma de conformidad del cliente: ______________________________", 10, y);
+
+    doc.save("nota-pedido-" + folio + ".pdf");
+  }
+
+  function exportarComprasPDF() {
+    if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "compras")) {
+      alert("Solo compras o admin pueden generar el PDF de compras.");
+      return;
+    }
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+      alert("No se pudo cargar la librería de PDF.");
+      return;
+    }
+
+    const id = document.getElementById("pedidoId").value;
+    const pedido = pedidos.find(p => String(p.id) === String(id));
+    const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
+
+    const doc = new jsPDF();
+
+    const nombre = document.getElementById("clienteNombre").value || "";
+    const escuela = document.getElementById("clienteEscuela").value || "";
+    const prendaTipo = document.getElementById("prendaTipo").value || "";
+    const prendaModelo = document.getElementById("prendaModelo").value || "";
+    const gastosCompras = document.getElementById("gastosCompras").value || "0";
+    const comprasDetalle = document.getElementById("comprasDetalle").value || "";
+
+    doc.setFontSize(14);
+    doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
+    doc.setFontSize(11);
+    doc.text("REPORTE DE COMPRAS POR PEDIDO", 10, 18);
+    doc.text("Folio: " + folio, 150, 12);
+
+    let y = 26;
+    doc.setFontSize(10);
+    doc.text("Cliente: " + nombre, 10, y); y += 5;
+    doc.text("Escuela: " + escuela, 10, y); y += 5;
+    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
+    if (prendaModelo) {
+      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 7;
+    } else {
+      y += 3;
+    }
+
+    doc.setFontSize(11);
+    doc.text("Detalle de compras:", 10, y); y += 5;
+    doc.setFontSize(10);
+
+    if (comprasDetalle) {
+      const lineas = comprasDetalle.split("\n");
+      lineas.forEach(l => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text("- " + l, 12, y);
+        y += 5;
+      });
+    } else {
+      doc.text("Sin detalle capturado.", 12, y); y += 5;
+    }
+
+    y += 6;
+    doc.setFontSize(11);
+    doc.text("Gasto total registrado (campo gastos compras): $" + gastosCompras, 10, y);
+
+    doc.save("compras-pedido-" + folio + ".pdf");
+  }
+
+  // Inicializar tabla de tallas al cargar la página
+  window.addEventListener('DOMContentLoaded', () => {
+    agregarNuevaPrenda();
+  });
+
+</script>
+
+  <!-- Contenedor de notificaciones -->
+  <div class="notificaciones-container" id="notificacionesContainer"></div>
+
+</body>
+</html>
