@@ -466,6 +466,205 @@
 
     @keyframes slideIn {
       from { transform: translateX(400px); opacity: 0; }
+
+
+    /* ===== TABLA DE PRENDAS MÚLTIPLES ===== */
+    .prendas-container {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .prenda-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .prenda-card.collapsed {
+      padding: 12px 20px;
+    }
+
+    .prenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+
+    .prenda-header h4 {
+      margin: 0;
+      font-size: 16px;
+      color: #0b3a73;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prenda-subtotal {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b3a73;
+    }
+
+    .input-tipo-prenda {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .input-tipo-prenda input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .input-tipo-prenda input:focus {
+      border-color: #0b3a73;
+      outline: none;
+    }
+
+    .tabla-tallas-prenda {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .tabla-tallas-prenda thead {
+      background: #f1f5f9;
+    }
+
+    .tabla-tallas-prenda th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .tabla-tallas-prenda td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .tabla-tallas-prenda input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .tabla-tallas-prenda input:focus {
+      border-color: #0b3a73;
+      outline: none;
+    }
+
+    .tabla-tallas-prenda input[readonly] {
+      background: #f8fafc;
+      cursor: not-allowed;
+    }
+
+    .btn-agregar-prenda {
+      background: #0b3a73;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-agregar-prenda:hover {
+      background: #041527;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(11, 58, 115, 0.3);
+    }
+
+    .btn-agregar-talla-prenda {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-eliminar-prenda {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    }
+
+    .resumen-pedido {
+      background: linear-gradient(135deg, #0b3a73 0%, #041527 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .resumen-pedido .label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .resumen-pedido .valor {
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .empty-prendas {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+    }
+
+    .empty-prendas svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* Ocultar columnas de precio según rol */
+    .precio-column {
+      /* Se mostrará/ocultará con JavaScript según el rol */
+    }
+
       to { transform: translateX(0); opacity: 1; }
     }
 
@@ -608,36 +807,44 @@
               </div>
             </div>
 
-            <h3>Tallas y cantidades</h3>
+            <h3>Prendas del Pedido</h3>
             
-            <!-- Tabla dinámica de tallas -->
-            <div class="tabla-tallas-dinamica">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Talla</th>
-                    <th style="width: 100px;">Cantidad</th>
-                    <th style="width: 120px;">Precio Unit.</th>
-                    <th style="width: 120px;">Subtotal</th>
-                    <th style="width: 60px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="tablaTallasBody">
-                  <!-- Se llena dinámicamente -->
-                </tbody>
-              </table>
-              
-              <button type="button" class="btn-agregar-talla" onclick="agregarFilaTalla()">
-                ➕ Agregar Talla
-              </button>
-              
-              <div class="totales-tallas">
-                <div>Total Piezas: <strong id="totalPiezas">0</strong></div>
-                <div>Precio Total: <strong id="totalPrecio">$0.00</strong></div>
+            <!-- Tabla de prendas múltiples -->
+            <div class="prendas-container">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-size: 15px; color: #64748b;">Agrega las prendas y sus tallas</div>
+                <button type="button" class="btn-agregar-prenda" id="btnAgregarPrenda" onclick="agregarNuevaPrenda()">
+                  <span>➕</span>
+                  <span>Agregar Prenda</span>
+                </button>
+              </div>
+
+              <div id="prendasLista">
+                <!-- Las prendas se agregan dinámicamente aquí -->
+              </div>
+
+              <div id="emptyPrendas" class="empty-prendas">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p><strong>No hay prendas agregadas</strong></p>
+                <p style="font-size: 13px;">Haz clic en "Agregar Prenda" para comenzar</p>
+              </div>
+
+              <div class="resumen-pedido" id="resumenPedido">
+                <div>
+                  <div class="label">Total del Pedido</div>
+                  <div class="valor" id="totalPedidoGlobal">$0.00</div>
+                </div>
+                <div style="text-align: right;">
+                  <div class="label">Total de Piezas</div>
+                  <div style="font-size: 24px; font-weight: 700;" id="totalPiezasGlobal">0</div>
+                </div>
               </div>
             </div>
 
-            <!-- Campo oculto para guardar en formato texto (compatible con backend) -->
+            <!-- Campo oculto para compatibilidad con backend -->
             <textarea id="tallasTexto" style="display: none;"></textarea>
 
             <h3>Notas por área</h3>
@@ -820,8 +1027,10 @@
     const telGroup = document.getElementById("clienteTelefonoGroup");
     if (telGroup) {
       telGroup.style.display = (rol === "admin" || rol === "ventas") ? "block" : "none";
-    }
-
+    
+    // Aplicar permisos a tabla de prendas
+    aplicarPermisosPrendas();
+  }
     const finanzasSection = document.getElementById("finanzasSection");
     if (finanzasSection) {
       const showFin = (rol === "admin" || rol === "ventas" || rol === "compras");
@@ -894,31 +1103,89 @@
     }, 3000);
   }
 
-  // === TABLA DE TALLAS DINÁMICA ===
-  let tallasData = [];
-  let tallaIdCounter = 1;
+  // ========== SISTEMA DE PRENDAS MÚLTIPLES ==========
+  let prendasData = [];
+  let prendaIdCounter = 1;
 
-  function agregarFilaTalla() {
-    const nuevaTalla = {
-      id: tallaIdCounter++,
-      talla: '',
-      cantidad: 1,
-      precioUnitario: 0,
-      subtotal: 0
+  // Agregar nueva prenda
+  function agregarNuevaPrenda() {
+    const nuevaPrenda = {
+      id: prendaIdCounter++,
+      tipoPrenda: '',
+      tallas: [
+        { id: 1, talla: '', cantidad: 1, precioUnitario: 0, subtotal: 0 }
+      ],
+      subtotalPrenda: 0,
+      collapsed: false,
+      tallaIdCounter: 2
     };
     
-    tallasData.push(nuevaTalla);
-    renderTablaTallas();
+    prendasData.push(nuevaPrenda);
+    renderPrendas();
+    
+    setTimeout(() => {
+      const input = document.getElementById(`tipoPrenda-${nuevaPrenda.id}`);
+      if (input) input.focus();
+    }, 100);
   }
 
-  function eliminarFilaTalla(id) {
-    tallasData = tallasData.filter(t => t.id !== id);
-    renderTablaTallas();
-    calcularTotalesTallas();
+  // Eliminar prenda
+  function eliminarPrenda(prendaId) {
+    if (!confirm('¿Eliminar esta prenda y todas sus tallas?')) return;
+    
+    prendasData = prendasData.filter(p => p.id !== prendaId);
+    renderPrendas();
+    calcularTotalesGlobales();
   }
 
-  function actualizarTalla(id, campo, valor) {
-    const talla = tallasData.find(t => t.id === id);
+  // Actualizar tipo de prenda
+  function actualizarTipoPrenda(prendaId, valor) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tipoPrenda = valor;
+    }
+  }
+
+  // Colapsar/expandir prenda
+  function togglePrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.collapsed = !prenda.collapsed;
+      renderPrendas();
+    }
+  }
+
+  // Agregar talla a prenda
+  function agregarTallaPrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tallas.push({
+        id: prenda.tallaIdCounter++,
+        talla: '',
+        cantidad: 1,
+        precioUnitario: 0,
+        subtotal: 0
+      });
+      renderPrendas();
+    }
+  }
+
+  // Eliminar talla de prenda
+  function eliminarTallaPrenda(prendaId, tallaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (prenda) {
+      prenda.tallas = prenda.tallas.filter(t => t.id !== tallaId);
+      calcularSubtotalPrenda(prendaId);
+      renderPrendas();
+    }
+  }
+
+  // Actualizar talla de prenda
+  function actualizarTallaPrenda(prendaId, tallaId, campo, valor) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (!prenda) return;
+    
+    const talla = prenda.tallas.find(t => t.id === tallaId);
     if (!talla) return;
     
     talla[campo] = valor;
@@ -928,113 +1195,235 @@
       const precio = parseFloat(talla.precioUnitario) || 0;
       talla.subtotal = cantidad * precio;
       
-      const subtotalInput = document.getElementById(`subtotal-${id}`);
+      const subtotalInput = document.getElementById(`subtotal-${prendaId}-${tallaId}`);
       if (subtotalInput) {
         subtotalInput.value = talla.subtotal.toFixed(2);
       }
+      
+      calcularSubtotalPrenda(prendaId);
     }
-    
-    calcularTotalesTallas();
   }
 
-  function renderTablaTallas() {
-    const tbody = document.getElementById('tablaTallasBody');
-    if (!tbody) return;
+  // Calcular subtotal de prenda
+  function calcularSubtotalPrenda(prendaId) {
+    const prenda = prendasData.find(p => p.id === prendaId);
+    if (!prenda) return;
     
-    tbody.innerHTML = tallasData.map(talla => `
-      <tr>
-        <td>
-          <input 
-            type="text" 
-            value="${talla.talla || ''}" 
-            placeholder="Ej: M, 8, XL"
-            onchange="actualizarTalla(${talla.id}, 'talla', this.value)"
-          />
-        </td>
-        <td>
-          <input 
-            type="number" 
-            value="${talla.cantidad}" 
-            min="1"
-            onchange="actualizarTalla(${talla.id}, 'cantidad', this.value)"
-          />
-        </td>
-        <td>
-          <input 
-            type="number" 
-            value="${talla.precioUnitario}" 
-            min="0"
-            step="0.01"
-            placeholder="$0.00"
-            onchange="actualizarTalla(${talla.id}, 'precioUnitario', this.value)"
-          />
-        </td>
-        <td>
-          <input 
-            type="number" 
-            id="subtotal-${talla.id}"
-            value="${talla.subtotal.toFixed(2)}" 
-            readonly
-            style="background: #f1f5f9; cursor: not-allowed;"
-          />
-        </td>
-        <td style="text-align: center;">
-          <button 
-            type="button"
-            class="btn-eliminar-fila" 
-            onclick="eliminarFilaTalla(${talla.id})"
-            title="Eliminar"
-          >
-            🗑️
-          </button>
-        </td>
-      </tr>
-    `).join('');
-    
-    calcularTotalesTallas();
-  }
-
-  function calcularTotalesTallas() {
-    let totalPiezas = 0;
-    let totalPrecio = 0;
-    
-    tallasData.forEach(talla => {
-      totalPiezas += parseFloat(talla.cantidad) || 0;
-      totalPrecio += parseFloat(talla.subtotal) || 0;
+    let subtotal = 0;
+    prenda.tallas.forEach(talla => {
+      subtotal += parseFloat(talla.subtotal) || 0;
     });
     
-    const elemPiezas = document.getElementById('totalPiezas');
-    const elemPrecio = document.getElementById('totalPrecio');
-    const elemPrecioTotal = document.getElementById('precioTotal');
+    prenda.subtotalPrenda = subtotal;
     
-    if (elemPiezas) elemPiezas.textContent = totalPiezas;
-    if (elemPrecio) elemPrecio.textContent = '$' + totalPrecio.toFixed(2);
-    
-    // Actualizar precio total del pedido
-    if (elemPrecioTotal && totalPrecio > 0) {
-      elemPrecioTotal.value = totalPrecio.toFixed(2);
+    const subtotalElem = document.getElementById(`subtotalPrenda-${prendaId}`);
+    if (subtotalElem) {
+      subtotalElem.textContent = '$' + subtotal.toFixed(2);
     }
     
-    // Convertir a texto para el backend
-    convertirTallasATexto();
+    calcularTotalesGlobales();
   }
 
-  function convertirTallasATexto() {
-    const texto = tallasData
-      .filter(t => t.talla.trim() !== '')
-      .map(t => {
-        const cantidad = t.cantidad || 0;
-        const talla = t.talla || '';
-        const precio = parseFloat(t.precioUnitario) || 0;
-        const subtotal = parseFloat(t.subtotal) || 0;
+  // Calcular totales globales
+  function calcularTotalesGlobales() {
+    let totalPedido = 0;
+    let totalPiezas = 0;
+    
+    prendasData.forEach(prenda => {
+      totalPedido += prenda.subtotalPrenda || 0;
+      prenda.tallas.forEach(talla => {
+        totalPiezas += parseFloat(talla.cantidad) || 0;
+      });
+    });
+    
+    document.getElementById('totalPedidoGlobal').textContent = '$' + totalPedido.toFixed(2);
+    document.getElementById('totalPiezasGlobal').textContent = totalPiezas;
+    
+    const precioTotalInput = document.getElementById('precioTotal');
+    if (precioTotalInput && totalPedido > 0) {
+      precioTotalInput.value = totalPedido.toFixed(2);
+    }
+    
+    convertirPrendasATexto();
+  }
+
+  // Renderizar prendas con permisos por rol
+  function renderPrendas() {
+    const lista = document.getElementById('prendasLista');
+    const empty = document.getElementById('emptyPrendas');
+    const rol = usuarioActual ? usuarioActual.rol : 'admin';
+    const puedeEditar = (rol === 'admin' || rol === 'ventas');
+    const verPrecios = (rol === 'admin' || rol === 'ventas');
+    
+    if (prendasData.length === 0) {
+      lista.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    
+    empty.style.display = 'none';
+    
+    lista.innerHTML = prendasData.map(prenda => {
+      if (prenda.collapsed) {
+        return `
+          <div class="prenda-card collapsed" onclick="togglePrenda(${prenda.id})">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="margin: 0; font-size: 15px; color: #0b3a73;">
+                ${prenda.tipoPrenda || 'Prenda sin nombre'} 
+                <span style="color: #64748b; font-weight: normal; font-size: 13px;">
+                  (${prenda.tallas.length} talla${prenda.tallas.length !== 1 ? 's' : ''})
+                </span>
+              </h4>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                ${verPrecios ? `<span style="font-size: 16px; font-weight: 700; color: #0b3a73;">$${prenda.subtotalPrenda.toFixed(2)}</span>` : ''}
+                <span style="color: #64748b; font-size: 12px;">▼</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="prenda-card">
+          <div class="prenda-header" onclick="togglePrenda(${prenda.id})">
+            <h4>
+              Prenda #${prenda.id}
+              ${prenda.tipoPrenda ? `- ${prenda.tipoPrenda}` : ''}
+            </h4>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              ${verPrecios ? `<span class="prenda-subtotal" id="subtotalPrenda-${prenda.id}">$${prenda.subtotalPrenda.toFixed(2)}</span>` : ''}
+              <span style="color: #64748b; font-size: 12px;">▲</span>
+            </div>
+          </div>
+          
+          <div class="input-tipo-prenda">
+            <input 
+              type="text" 
+              id="tipoPrenda-${prenda.id}"
+              value="${prenda.tipoPrenda}" 
+              placeholder="Ej: Playera, Pants, Falda, Chamarra..."
+              onchange="actualizarTipoPrenda(${prenda.id}, this.value)"
+              onclick="event.stopPropagation()"
+              ${!puedeEditar ? 'readonly style="background: #f8fafc; cursor: default;"' : ''}
+            />
+          </div>
+          
+          <table class="tabla-tallas-prenda">
+            <thead>
+              <tr>
+                <th style="width: ${verPrecios ? '25%' : '35%'};">Talla</th>
+                <th style="width: ${verPrecios ? '20%' : '30%'};">Cantidad</th>
+                ${verPrecios ? '<th style="width: 25%;">Precio Unit.</th>' : ''}
+                ${verPrecios ? '<th style="width: 25%;">Subtotal</th>' : ''}
+                ${puedeEditar ? '<th style="width: 5%;"></th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${prenda.tallas.map(talla => `
+                <tr>
+                  <td>
+                    <input 
+                      type="text" 
+                      value="${talla.talla}" 
+                      placeholder="6, 8, M, L..."
+                      onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'talla', this.value)"
+                      onclick="event.stopPropagation()"
+                      ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      type="number" 
+                      value="${talla.cantidad}" 
+                      min="1"
+                      onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'cantidad', this.value)"
+                      onclick="event.stopPropagation()"
+                      ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                    />
+                  </td>
+                  ${verPrecios ? `
+                    <td>
+                      <input 
+                        type="number" 
+                        value="${talla.precioUnitario}" 
+                        min="0"
+                        step="0.01"
+                        placeholder="$0.00"
+                        onchange="actualizarTallaPrenda(${prenda.id}, ${talla.id}, 'precioUnitario', this.value)"
+                        onclick="event.stopPropagation()"
+                        ${!puedeEditar ? 'readonly style="background: #f8fafc;"' : ''}
+                      />
+                    </td>
+                    <td>
+                      <input 
+                        type="number" 
+                        id="subtotal-${prenda.id}-${talla.id}"
+                        value="${talla.subtotal.toFixed(2)}" 
+                        readonly
+                        style="background: #f8fafc;"
+                      />
+                    </td>
+                  ` : ''}
+                  ${puedeEditar ? `
+                    <td>
+                      <button 
+                        class="btn-icon" 
+                        onclick="event.stopPropagation(); eliminarTallaPrenda(${prenda.id}, ${talla.id})"
+                        title="Eliminar talla"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  ` : ''}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            ${puedeEditar ? `
+              <button 
+                class="btn-agregar-talla-prenda" 
+                onclick="event.stopPropagation(); agregarTallaPrenda(${prenda.id})"
+              >
+                ➕ Agregar Talla
+              </button>
+              
+              <button 
+                class="btn-eliminar-prenda" 
+                onclick="event.stopPropagation(); eliminarPrenda(${prenda.id})"
+              >
+                🗑️ Eliminar Prenda
+              </button>
+            ` : '<div></div>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    calcularTotalesGlobales();
+  }
+
+  // Convertir a formato texto para compatibilidad
+  function convertirPrendasATexto() {
+    const texto = prendasData
+      .filter(p => p.tipoPrenda.trim() !== '')
+      .map(prenda => {
+        const tallasTexto = prenda.tallas
+          .filter(t => t.talla.trim() !== '')
+          .map(t => {
+            const precio = parseFloat(t.precioUnitario) || 0;
+            if (precio > 0) {
+              return `  ${t.cantidad} pzas talla ${t.talla} @ $${precio.toFixed(2)} = $${t.subtotal.toFixed(2)}`;
+            } else {
+              return `  ${t.cantidad} pzas talla ${t.talla}`;
+            }
+          })
+          .join('\n');
         
-        if (precio > 0) {
-          return `${cantidad} pzas talla ${talla} @ $${precio.toFixed(2)} = $${subtotal.toFixed(2)}`;
-        } else {
-          return `${cantidad} pzas talla ${talla}`;
-        }
+        return `${prenda.tipoPrenda}:\n${tallasTexto}\nSubtotal: $${prenda.subtotalPrenda.toFixed(2)}`;
       })
-      .join('\n');
+      .join('\n\n');
     
     const textareaOculto = document.getElementById('tallasTexto');
     if (textareaOculto) {
@@ -1042,39 +1431,98 @@
     }
   }
 
-  function cargarTallasDesdeTexto(textoTallas) {
+  // Cargar prendas desde texto
+  function cargarPrendasDesdeTexto(textoTallas) {
     if (!textoTallas || textoTallas.trim() === '') {
-      tallasData = [];
-      agregarFilaTalla();
+      prendasData = [];
+      agregarNuevaPrenda();
       return;
     }
     
-    // Parsear el texto a la estructura de tallas
-    const lineas = textoTallas.split('\n');
-    tallasData = [];
+    // Intentar parsear el formato de prendas
+    prendasData = [];
+    const bloquesPrenda = textoTallas.split('\n\n');
     
-    lineas.forEach((linea, index) => {
-      const match = linea.match(/(\d+)\s*pzas?\s+talla\s+(\S+)/i);
-      if (match) {
-        tallasData.push({
-          id: index + 1,
-          talla: match[2],
-          cantidad: parseInt(match[1]) || 0,
-          precioUnitario: 0,
-          subtotal: 0
+    bloquesPrenda.forEach((bloque, idx) => {
+      const lineas = bloque.split('\n');
+      if (lineas.length === 0) return;
+      
+      const tipoPrenda = lineas[0].replace(':', '').trim();
+      const tallas = [];
+      
+      for (let i = 1; i < lineas.length; i++) {
+        const linea = lineas[i].trim();
+        if (linea.startsWith('Subtotal:')) continue;
+        
+        const match = linea.match(/(\d+)\s*pzas?\s+talla\s+(\S+)/i);
+        if (match) {
+          tallas.push({
+            id: i,
+            talla: match[2],
+            cantidad: parseInt(match[1]) || 0,
+            precioUnitario: 0,
+            subtotal: 0
+          });
+        }
+      }
+      
+      if (tallas.length > 0) {
+        prendasData.push({
+          id: idx + 1,
+          tipoPrenda: tipoPrenda,
+          tallas: tallas,
+          subtotalPrenda: 0,
+          collapsed: false,
+          tallaIdCounter: tallas.length + 1
         });
       }
     });
     
-    if (tallasData.length === 0) {
-      agregarFilaTalla();
+    if (prendasData.length === 0) {
+      agregarNuevaPrenda();
     } else {
-      tallaIdCounter = tallasData.length + 1;
-      renderTablaTallas();
+      prendaIdCounter = prendasData.length + 1;
+      renderPrendas();
     }
   }
 
-  // ========== FIN MEJORAS BONAPARTE ==========
+  // Obtener datos para guardar en DB
+  function obtenerDatosPrendas() {
+    return prendasData.map(prenda => ({
+      tipoPrenda: prenda.tipoPrenda,
+      tallas: prenda.tallas.map(t => ({
+        talla: t.talla,
+        cantidad: t.cantidad,
+        precioUnitario: t.precioUnitario,
+        subtotal: t.subtotal
+      })),
+      subtotal: prenda.subtotalPrenda
+    }));
+  }
+
+  // Aplicar permisos de visualización según rol
+  function aplicarPermisosPrendas() {
+    const rol = usuarioActual ? usuarioActual.rol : 'admin';
+    const puedeEditar = (rol === 'admin' || rol === 'ventas');
+    const verPrecios = (rol === 'admin' || rol === 'ventas');
+    
+    const btnAgregar = document.getElementById('btnAgregarPrenda');
+    if (btnAgregar) {
+      btnAgregar.style.display = puedeEditar ? 'flex' : 'none';
+    }
+    
+    const resumen = document.getElementById('resumenPedido');
+    if (resumen && !verPrecios) {
+      const totalPedido = resumen.querySelector('#totalPedidoGlobal');
+      if (totalPedido) {
+        totalPedido.closest('.resumen-pedido').querySelector('div').style.display = 'none';
+      }
+    }
+    
+    renderPrendas();
+  }
+
+  // ========== FIN SISTEMA DE PRENDAS MÚLTIPLES ==========
 
 
 
@@ -1190,7 +1638,7 @@
     document.getElementById("tallasTexto").value = p.tallasTexto || "";
     
     // MEJORA: Cargar tallas en tabla dinámica
-    cargarTallasDesdeTexto(pedido.tallasTexto || "");
+    cargarPrendasDesdeTexto(pedido.tallasTexto || "");
     
     // MEJORA: Cargar especificaciones de telas
     const especTelas = document.getElementById("especificacionesTelas");
@@ -1254,9 +1702,9 @@
     document.getElementById("imagenesLista").innerHTML = "";
     document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
     document.getElementById("infoExtra").textContent = "";
-    // Reiniciar tabla de tallas
-    tallasData = [];
-    agregarFilaTalla();
+    // Reiniciar prendas
+    prendasData = [];
+    agregarNuevaPrenda();
   }
 
   async function guardarPedido() {
@@ -1720,7 +2168,7 @@
 
   // Inicializar tabla de tallas al cargar la página
   window.addEventListener('DOMContentLoaded', () => {
-    agregarFilaTalla();
+    agregarNuevaPrenda();
   });
 
 </script>
