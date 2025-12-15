@@ -1433,6 +1433,9 @@
 
   // Cargar prendas desde texto
   function cargarPrendasDesdeTexto(textoTallas) {
+    // IMPORTANTE: Limpiar prendas anteriores primero
+    prendasData = [];
+    prendaIdCounter = 1;
     if (!textoTallas || textoTallas.trim() === '') {
       prendasData = [];
       agregarNuevaPrenda();
@@ -1572,6 +1575,10 @@
   }
 
   function logout() {
+    // Limpiar datos del pedido actual
+    prendasData = [];
+    prendaIdCounter = 1;
+    pedidoActual = null;
     authToken = null;
     usuarioActual = null;
     document.getElementById("appView").style.display = "none";
@@ -1623,6 +1630,9 @@
   }
 
   async function cargarPedido(id) {
+    // IMPORTANTE: Limpiar prendas antes de cargar el pedido
+    prendasData = [];
+    prendaIdCounter = 1;
     const p = pedidos.find(x => x.id === id);
     if (!p) return;
 
@@ -1678,6 +1688,15 @@
   }
 
   function nuevoPedido() {
+    // IMPORTANTE: Limpiar prendas del pedido anterior
+    prendasData = [];
+    prendaIdCounter = 1;
+    
+    const prendasLista = document.getElementById('prendasLista');
+    if (prendasLista) prendasLista.innerHTML = '';
+    
+    const emptyPrendas = document.getElementById('emptyPrendas');
+    if (emptyPrendas) emptyPrendas.style.display = 'block';
     document.getElementById("pedidoId").value = "";
     document.getElementById("clienteNombre").value = "";
     document.getElementById("clienteTelefono").value = "";
