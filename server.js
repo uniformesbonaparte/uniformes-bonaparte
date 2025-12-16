@@ -6,16 +6,24 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// IMPORTANTE: Servir archivos estáticos PRIMERO
-app.use(express.static(path.join(__dirname)));
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Supabase client
+// AGREGADO: Servir archivos estáticos (favicon, logo, manifest, etc.)
+app.use(express.static(path.join(__dirname)));
+
+// Supabase client (IGUAL QUE ANTES)
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+// Validación
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ ERROR: Variables de Supabase no configuradas');
+  console.error('Configura SUPABASE_URL y SUPABASE_ANON_KEY en Render');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Ruta principal
@@ -126,5 +134,5 @@ app.delete("/api/pedidos/:id", async (req, res) => {
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-  console.log(`📂 Sirviendo archivos estáticos desde: ${__dirname}`);
+  console.log(`📂 Sirviendo archivos estáticos`);
 });
