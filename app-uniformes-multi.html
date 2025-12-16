@@ -1445,8 +1445,7 @@
     prendaIdCounter = 1;
     if (!textoTallas || textoTallas.trim() === '') {
       prendasData = [];
-      console.log('  📭 Sin prendas en este pedido - dejando vacío');
-      renderPrendas();  // Renderizar vacío
+      agregarNuevaPrenda();
       return;
     }
     
@@ -2200,10 +2199,7 @@
 
   // Inicializar tabla de tallas al cargar la página
   window.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Página cargada - NO agregando prenda automática');
-    // NO agregamos prenda automáticamente
-    // Solo se agregará cuando el usuario haga click en "Nuevo Pedido"
-    // o "Agregar Prenda"
+    agregarNuevaPrenda();
   });
 
 </script>
