@@ -1244,10 +1244,7 @@
       precioTotalInput.value = totalPedido.toFixed(2);
     }
     
-    console.log('💾 GUARDAR PEDIDO');
-      console.log('  Prendas a guardar:', prendasData.length);
-      console.log('  Contenido:', prendasData.map(p => ({tipo: p.tipoPrenda, tallas: p.tallas.length})));
-      convertirPrendasATexto();
+                      convertirPrendasATexto();
       console.log('  Texto generado:', document.getElementById("tallasTexto").value.substring(0, 200));
   }
 
@@ -1437,15 +1434,12 @@
 
   // Cargar prendas desde texto
   function cargarPrendasDesdeTexto(textoTallas) {
-    console.log('📥 CARGAR PRENDAS DESDE TEXTO');
-    console.log('  Texto recibido:', textoTallas ? textoTallas.substring(0, 100) + '...' : 'vacío');
-    console.log('  Prendas antes de limpiar:', prendasData.length);
-    // IMPORTANTE: Limpiar prendas anteriores primero
+                // IMPORTANTE: Limpiar prendas anteriores primero
     prendasData = [];
     prendaIdCounter = 1;
     if (!textoTallas || textoTallas.trim() === '') {
       prendasData = [];
-      agregarNuevaPrenda();
+            renderPrendas();  // Renderizar vacío
       return;
     }
     
@@ -1637,9 +1631,7 @@
   }
 
   async function cargarPedido(id) {
-    console.log('📂 CARGAR PEDIDO - Limpiando antes de cargar...');
-    console.log('  Prendas antes de limpiar:', prendasData.length);
-    // IMPORTANTE: Limpiar prendas antes de cargar el pedido
+            // IMPORTANTE: Limpiar prendas antes de cargar el pedido
     prendasData = [];
     prendaIdCounter = 1;
     const p = pedidos.find(x => x.id === id);
@@ -1657,12 +1649,12 @@
     document.getElementById("tallasTexto").value = p.tallasTexto || "";
     
     // MEJORA: Cargar tallas en tabla dinámica
-    cargarPrendasDesdeTexto(pedido.tallasTexto || "");
+    cargarPrendasDesdeTexto(p.tallasTexto || "");
     
     // MEJORA: Cargar especificaciones de telas
     const especTelas = document.getElementById("especificacionesTelas");
     if (especTelas) {
-      especTelas.value = pedido.especificacionesTelas || "";
+      especTelas.value = p.especificacionesTelas || "";
     }
     document.getElementById("comprasNotas").value = p.comprasNotas || "";
     document.getElementById("corteNotas").value = p.corteNotas || "";
@@ -1697,14 +1689,10 @@
   }
 
   function nuevoPedido() {
-    console.log('🆕 NUEVO PEDIDO - Limpiando prendas...');
-    console.log('  Antes:', prendasData.length, 'prendas en memoria');
-    // IMPORTANTE: Limpiar prendas del pedido anterior
+            // IMPORTANTE: Limpiar prendas del pedido anterior
     prendasData = [];
     prendaIdCounter = 1;
-    console.log('  Después de limpiar:', prendasData.length, 'prendas');
-    
-    const prendasLista = document.getElementById('prendasLista');
+        const prendasLista = document.getElementById('prendasLista');
     if (prendasLista) prendasLista.innerHTML = '';
     
     const emptyPrendas = document.getElementById('emptyPrendas');
@@ -2199,7 +2187,9 @@
 
   // Inicializar tabla de tallas al cargar la página
   window.addEventListener('DOMContentLoaded', () => {
-    agregarNuevaPrenda();
+        // NO agregamos prenda automáticamente
+    // Solo se agregará cuando el usuario haga click en "Nuevo Pedido"
+    // o "Agregar Prenda"
   });
 
 </script>
