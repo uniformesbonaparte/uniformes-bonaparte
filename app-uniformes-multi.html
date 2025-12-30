@@ -1217,14 +1217,7 @@
     const talla = prenda.tallas.find(t => t.id === tallaId);
     if (!talla) return;
     
-    // Convertir a número si es cantidad o precio
-    if (campo === 'cantidad') {
-      talla[campo] = parseFloat(valor) || 0;
-    } else if (campo === 'precioUnitario') {
-      talla[campo] = parseFloat(valor) || 0;
-    } else {
-      talla[campo] = valor;
-    }
+    talla[campo] = valor;
     
     if (campo === 'cantidad' || campo === 'precioUnitario') {
       const cantidad = parseFloat(talla.cantidad) || 0;
