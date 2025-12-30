@@ -1257,6 +1257,11 @@
     
     document.getElementById('totalPedidoGlobal').textContent = '$' + totalPedido.toFixed(2);
     document.getElementById('totalPiezasGlobal').textContent = totalPiezas;
+
+    // ✅ Autollenar precioTotal con el total calculado de prendas (si el campo existe)
+    const precioTotalInput = document.getElementById('precioTotal');
+    if (precioTotalInput) precioTotalInput.value = totalPedido.toFixed(2);
+
     
     const precioTotalInput = document.getElementById('precioTotal');
     if (precioTotalInput && totalPedido > 0) {
@@ -1757,7 +1762,11 @@
       return;
     }
 
-    const id = document.getElementById("pedidoId").value;
+    
+    // ✅ Sincronizar tabla de prendas/tallas (incluye precios) a tallasTexto
+    convertirPrendasATexto();
+
+const id = document.getElementById("pedidoId").value;
     const payload = {
       clienteNombre: document.getElementById("clienteNombre").value.trim(),
       clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
