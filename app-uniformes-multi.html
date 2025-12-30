@@ -1091,7 +1091,6 @@
       const corteNotasEl = document.getElementById("corteNotas");
       const confeccionNotasEl = document.getElementById("confeccionNotas");
 
-      const corteNotasPermit = (rol === "corte" || rol === "admin" || rol === "ventas" || rol === "compras");
       const confeccionNotasPermit = (rol === "confeccion" || rol === "admin" || rol === "ventas" || rol === "compras");
 
       if (corteNotasEl) corteNotasEl.disabled = !corteNotasPermit;
@@ -1650,6 +1649,17 @@
   const okFinalizados = mostrarFinalizados ? true : !esFinalizado;
 
   return okTexto && okEstado && okFinalizados;
+
+    // ✅ Permisos: CORTE escribe "Especificaciones de Telas (CORTE → COMPRAS)" y NO edita "Comentarios Corte"
+    const especTelasEl = document.getElementById("especificacionesTelas");
+    const corteNotasEl = document.getElementById("corteNotas");
+
+    const telasPermit = (rol === "corte" || rol === "admin" || rol === "ventas");
+    const corteNotasPermit2 = (rol === "admin" || rol === "ventas");
+
+    if (especTelasEl) especTelasEl.disabled = !telasPermit;
+    if (corteNotasEl) corteNotasEl.disabled = !corteNotasPermit2;
+
 });
 
     for (const p of lista) {
@@ -1784,6 +1794,7 @@ const id = document.getElementById("pedidoId").value;
       estado: document.getElementById("estado").value,
       tallasTexto: document.getElementById("tallasTexto").value.trim(),
       comprasNotas: document.getElementById("comprasNotas").value.trim(),
+      especificacionesTelas: (document.getElementById("especificacionesTelas")?.value || "").trim(),
       corteNotas: document.getElementById("corteNotas").value.trim(),
       confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
       precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
