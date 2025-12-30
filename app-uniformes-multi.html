@@ -748,12 +748,6 @@
                   <option value="listo">Listo</option>
                   <option value="entregado">Entregado</option>
                 </select>
-<div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
-  <input id="mostrarFinalizados" type="checkbox" onchange="renderPedidos()">
-  <label for="mostrarFinalizados" style="margin:0; font-size:11px; color:#374151;">
-    Mostrar entregados/terminados
-  </label>
-</div>
               </div>
             </div>
             <table>
@@ -1086,16 +1080,6 @@
           el.disabled = !canEdit && el.tagName !== "IMG";
         }
       });
-
-      // ✅ Permisos finos para CORTE / CONFECCIÓN (solo sus comentarios)
-      const corteNotasEl = document.getElementById("corteNotas");
-      const confeccionNotasEl = document.getElementById("confeccionNotas");
-
-      const confeccionNotasPermit = (rol === "confeccion" || rol === "admin" || rol === "ventas" || rol === "compras");
-
-      if (corteNotasEl) corteNotasEl.disabled = !corteNotasPermit;
-      if (confeccionNotasEl) confeccionNotasEl.disabled = !confeccionNotasPermit;
-
 
       const btnGuardar = document.getElementById("btnGuardarPedido");
       const btnLimpiar = document.getElementById("btnLimpiarPedido");
@@ -1635,32 +1619,15 @@
     let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
 
     lista = lista.filter(p => {
-  let okTexto = true;
-  if (filtroTexto) {
-    const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
-    okTexto = t.includes(filtroTexto);
-  }
-
-  let okEstado = true;
-  if (filtroEstado) okEstado = p.estado === filtroEstado;
-
-  const mostrarFinalizados = document.getElementById("mostrarFinalizados")?.checked;
-  const esFinalizado = ["entregado", "listo", "terminado"].includes((p.estado || "").toLowerCase());
-  const okFinalizados = mostrarFinalizados ? true : !esFinalizado;
-
-  return okTexto && okEstado && okFinalizados;
-
-    // ✅ Permisos: CORTE escribe "Especificaciones de Telas (CORTE → COMPRAS)" y NO edita "Comentarios Corte"
-    const especTelasEl = document.getElementById("especificacionesTelas");
-    const corteNotasEl = document.getElementById("corteNotas");
-
-    const telasPermit = (rol === "corte" || rol === "admin" || rol === "ventas");
-    const corteNotasPermit2 = (rol === "admin" || rol === "ventas");
-
-    if (especTelasEl) especTelasEl.disabled = !telasPermit;
-    if (corteNotasEl) corteNotasEl.disabled = !corteNotasPermit2;
-
-});
+      let okTexto = true;
+      if (filtroTexto) {
+        const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
+        okTexto = t.includes(filtroTexto);
+      }
+      let okEstado = true;
+      if (filtroEstado) okEstado = p.estado === filtroEstado;
+      return okTexto && okEstado;
+    });
 
     for (const p of lista) {
       const tr = document.createElement("tr");
@@ -1778,11 +1745,7 @@
       return;
     }
 
-    
-
-    // ✅ Sincroniza tabla prendas/tallas (incluye precios) antes de guardar
-    if (typeof convertirPrendasATexto === 'function') convertirPrendasATexto();
-const id = document.getElementById("pedidoId").value;
+    const id = document.getElementById("pedidoId").value;
     const payload = {
       clienteNombre: document.getElementById("clienteNombre").value.trim(),
       clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
@@ -1794,7 +1757,6 @@ const id = document.getElementById("pedidoId").value;
       estado: document.getElementById("estado").value,
       tallasTexto: document.getElementById("tallasTexto").value.trim(),
       comprasNotas: document.getElementById("comprasNotas").value.trim(),
-      especificacionesTelas: (document.getElementById("especificacionesTelas")?.value || "").trim(),
       corteNotas: document.getElementById("corteNotas").value.trim(),
       confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
       precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
