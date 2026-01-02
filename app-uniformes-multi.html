@@ -748,6 +748,12 @@
                   <option value="listo">Listo</option>
                   <option value="entregado">Entregado</option>
                 </select>
+<div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+  <input id="mostrarFinalizados" type="checkbox" onchange="renderPedidos()">
+  <label for="mostrarFinalizados" style="margin:0; font-size:11px; color:#374151;">
+    Mostrar entregados/terminados
+  </label>
+</div>
               </div>
             </div>
             <table>
@@ -1619,15 +1625,21 @@
     let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
 
     lista = lista.filter(p => {
-      let okTexto = true;
-      if (filtroTexto) {
-        const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
-        okTexto = t.includes(filtroTexto);
-      }
-      let okEstado = true;
-      if (filtroEstado) okEstado = p.estado === filtroEstado;
-      return okTexto && okEstado;
-    });
+  let okTexto = true;
+  if (filtroTexto) {
+    const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
+    okTexto = t.includes(filtroTexto);
+  }
+
+  let okEstado = true;
+  if (filtroEstado) okEstado = p.estado === filtroEstado;
+
+  const mostrarFinalizados = document.getElementById("mostrarFinalizados")?.checked;
+  const esFinalizado = ["entregado", "listo", "terminado"].includes((p.estado || "").toLowerCase());
+  const okFinalizados = mostrarFinalizados ? true : !esFinalizado;
+
+  return okTexto && okEstado && okFinalizados;
+});
 
     for (const p of lista) {
       const tr = document.createElement("tr");
