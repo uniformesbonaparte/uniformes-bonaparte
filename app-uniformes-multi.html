@@ -10,6 +10,8 @@
       --azul: #0b3a73;
       --azul-claro: #e0ecff;
       --rojo: #e4272b;
+      --amarillo: #fbbf24;
+      --naranja: #f97316;
       --gris-fondo: #f3f4f6;
       --gris-card: #ffffff;
       --gris-borde: #d1d5db;
@@ -297,6 +299,220 @@
     .s-confeccion { background: #f3e8ff; }
     .s-listo { background: #fef9c3; }
     .s-entregado { background: #bbf7d0; }
+
+    /* ===== SISTEMA DE ALERTAS DE FECHAS ===== */
+    
+    /* Badge de alertas en el header */
+    .alertas-badge {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+      animation: pulso 2s infinite;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    @keyframes pulso {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Filas con alerta de fecha */
+    tr.alerta-vencido {
+      background: linear-gradient(90deg, #fee2e2 0%, #fecaca 100%) !important;
+      border-left: 4px solid #dc2626;
+    }
+
+    tr.alerta-urgente {
+      background: linear-gradient(90deg, #fed7aa 0%, #fdba74 100%) !important;
+      border-left: 4px solid #f97316;
+    }
+
+    tr.alerta-proxima {
+      background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%) !important;
+      border-left: 4px solid #f59e0b;
+    }
+
+    /* Indicador de alerta en la fecha */
+    .fecha-alerta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
+    .fecha-alerta::before {
+      content: "⚠️";
+      font-size: 14px;
+    }
+
+    .fecha-vencida::before {
+      content: "🔴";
+    }
+
+    .fecha-urgente::before {
+      content: "🟠";
+    }
+
+    /* Panel de alertas */
+    .alertas-panel {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      border: 2px solid #fbbf24;
+      display: none;
+    }
+
+    .alertas-panel h3 {
+      margin: 0 0 12px;
+      color: #dc2626;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+    }
+
+    .alerta-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border-left: 4px solid;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .alerta-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .alerta-vencida-item {
+      background: #fee2e2;
+      border-color: #dc2626;
+    }
+
+    .alerta-urgente-item {
+      background: #fed7aa;
+      border-color: #f97316;
+    }
+
+    .alerta-proxima-item {
+      background: #fef3c7;
+      border-color: #f59e0b;
+    }
+
+    .alerta-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .alerta-item-folio {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .alerta-item-dias {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.1);
+    }
+
+    .alerta-item-info {
+      font-size: 12px;
+      color: #374151;
+    }
+
+    /* Modal de alertas */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: #dc2626;
+    }
+
+    .modal-cerrar {
+      cursor: pointer;
+      font-size: 28px;
+      color: #9ca3af;
+      line-height: 1;
+    }
+
+    .modal-cerrar:hover {
+      color: #374151;
+    }
+
+    .stats-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: white;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stats-badge.danger {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .stats-badge.warning {
+      background: #fef3c7;
+      border-color: #fde047;
+      color: #92400e;
+    }
+    /* ===== FIN SISTEMA DE ALERTAS ===== */
+
 
     #loginView {
       max-width: 400px;
@@ -721,12 +937,31 @@
         </div>
       </div>
       <div class="top-right">
+        <div id="alertasBadge" class="alertas-badge" onclick="mostrarModalAlertas()">
+          <span>⚠️</span>
+          <span id="alertasContador">0</span>
+          <span>alertas</span>
+        </div>
         <span id="userInfo"></span>
         <button class="btn secondary" onclick="logout()">Salir</button>
       </div>
     </header>
 
+    <!-- Modal de alertas -->
+    <div class="modal-overlay" id="modalAlertas">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>⚠️ Pedidos que requieren atención</h2>
+          <span class="modal-cerrar" onclick="cerrarModalAlertas()">×</span>
+        </div>
+        <div id="modalAlertasContenido"></div>
+      </div>
+    </div>
+
     <main>
+      <!-- Panel de alertas (visible cuando hay alertas) -->
+      <div id="panelAlertas" class="alertas-panel"></div>
+
       <div class="grid">
         <!-- LISTA DE PEDIDOS -->
         <section class="card">
@@ -748,12 +983,6 @@
                   <option value="listo">Listo</option>
                   <option value="entregado">Entregado</option>
                 </select>
-<div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
-  <input id="mostrarFinalizados" type="checkbox" onchange="renderPedidos()">
-  <label for="mostrarFinalizados" style="margin:0; font-size:11px; color:#374151;">
-    Mostrar entregados/terminados
-  </label>
-</div>
               </div>
             </div>
             <table>
@@ -1017,6 +1246,7 @@
   let usuarioActual = null;
   let pedidos = [];
   let usuarios = [];
+  let alertasActivas = []; // Variable para el sistema de alertas
 
   function statusPill(estado) {
     const map = {
@@ -1612,9 +1842,194 @@
     });
     if (!res.ok) return;
     pedidos = await res.json();
+    verificarAlertas(); // Verificar alertas después de cargar pedidos
     renderPedidos();
     actualizarResumen();
   }
+
+  // ==================== SISTEMA DE ALERTAS DE FECHAS ====================
+  function calcularDiasHastaEntrega(fechaEntrega) {
+    if (!fechaEntrega) return null;
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const fecha = new Date(fechaEntrega + 'T00:00:00');
+    
+    const diffTime = fecha - hoy;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  }
+
+  function obtenerPrioridadAlerta(dias) {
+    if (dias < 0) return 'vencida'; // Ya pasó la fecha
+    if (dias <= 2) return 'urgente'; // 2 días o menos
+    if (dias <= 5) return 'proxima'; // 5 días o menos
+    return null; // Sin alerta
+  }
+
+  function verificarAlertas() {
+    alertasActivas = [];
+    
+    for (const pedido of pedidos) {
+      // Solo alertar pedidos que no están entregados
+      if (pedido.estado === 'entregado') continue;
+      
+      const dias = calcularDiasHastaEntrega(pedido.fechaEntrega);
+      if (dias === null) continue;
+      
+      const prioridad = obtenerPrioridadAlerta(dias);
+      if (prioridad) {
+        alertasActivas.push({
+          pedido,
+          dias,
+          prioridad
+        });
+      }
+    }
+    
+    // Ordenar por urgencia
+    alertasActivas.sort((a, b) => {
+      const orden = { vencida: 0, urgente: 1, proxima: 2 };
+      return orden[a.prioridad] - orden[b.prioridad] || a.dias - b.dias;
+    });
+    
+    actualizarBadgeAlertas();
+    actualizarPanelAlertas();
+  }
+
+  function actualizarBadgeAlertas() {
+    const badge = document.getElementById('alertasBadge');
+    const contador = document.getElementById('alertasContador');
+    
+    if (alertasActivas.length > 0) {
+      badge.style.display = 'flex';
+      contador.textContent = alertasActivas.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function actualizarPanelAlertas() {
+    const panel = document.getElementById('panelAlertas');
+    
+    if (alertasActivas.length === 0) {
+      panel.style.display = 'none';
+      return;
+    }
+    
+    const alertasMostrar = alertasActivas.slice(0, 3);
+    
+    let html = `
+      <h3>
+        ⚠️ Pedidos que requieren atención urgente
+        <span class="stats-badge danger">${alertasActivas.length} total</span>
+      </h3>
+      <div>
+    `;
+    
+    for (const alerta of alertasMostrar) {
+      const { pedido, dias, prioridad } = alerta;
+      const folio = pedido.folio || `PED-${pedido.id}`;
+      
+      let diasTexto = '';
+      let claseItem = '';
+      
+      if (prioridad === 'vencida') {
+        diasTexto = `Vencido hace ${Math.abs(dias)} día${Math.abs(dias) !== 1 ? 's' : ''}`;
+        claseItem = 'alerta-vencida-item';
+      } else if (prioridad === 'urgente') {
+        diasTexto = `${dias} día${dias !== 1 ? 's' : ''} restante${dias !== 1 ? 's' : ''}`;
+        claseItem = 'alerta-urgente-item';
+      } else {
+        diasTexto = `${dias} días restantes`;
+        claseItem = 'alerta-proxima-item';
+      }
+      
+      html += `
+        <div class="alerta-item ${claseItem}" onclick="cargarPedido(${pedido.id})">
+          <div class="alerta-item-header">
+            <span class="alerta-item-folio">${folio}</span>
+            <span class="alerta-item-dias">${diasTexto}</span>
+          </div>
+          <div class="alerta-item-info">
+            <strong>${pedido.clienteNombre || 'Sin nombre'}</strong> - ${pedido.clienteEscuela || 'Sin escuela'}<br>
+            Entrega: ${pedido.fechaEntrega || 'Sin fecha'} | Estado: ${pedido.estado || 'nuevo'}
+          </div>
+        </div>
+      `;
+    }
+    
+    if (alertasActivas.length > 3) {
+      html += `
+        <div style="text-align: center; margin-top: 8px;">
+          <button class="btn secondary" onclick="mostrarModalAlertas()" style="margin-top: 0;">
+            Ver todas las ${alertasActivas.length} alertas
+          </button>
+        </div>
+      `;
+    }
+    
+    html += `</div>`;
+    
+    panel.innerHTML = html;
+    panel.style.display = 'block';
+  }
+
+  function mostrarModalAlertas() {
+    const modal = document.getElementById('modalAlertas');
+    const contenido = document.getElementById('modalAlertasContenido');
+    
+    if (alertasActivas.length === 0) {
+      contenido.innerHTML = '<p style="text-align: center; color: #6b7280;">No hay alertas en este momento 😊</p>';
+    } else {
+      let html = '';
+      
+      for (const alerta of alertasActivas) {
+        const { pedido, dias, prioridad } = alerta;
+        const folio = pedido.folio || `PED-${pedido.id}`;
+        
+        let diasTexto = '';
+        let claseItem = '';
+        
+        if (prioridad === 'vencida') {
+          diasTexto = `🔴 Vencido hace ${Math.abs(dias)} día${Math.abs(dias) !== 1 ? 's' : ''}`;
+          claseItem = 'alerta-vencida-item';
+        } else if (prioridad === 'urgente') {
+          diasTexto = `🟠 ${dias} día${dias !== 1 ? 's' : ''} restante${dias !== 1 ? 's' : ''}`;
+          claseItem = 'alerta-urgente-item';
+        } else {
+          diasTexto = `🟡 ${dias} días restantes`;
+          claseItem = 'alerta-proxima-item';
+        }
+        
+        html += `
+          <div class="alerta-item ${claseItem}" onclick="cargarPedido(${pedido.id}); cerrarModalAlertas();">
+            <div class="alerta-item-header">
+              <span class="alerta-item-folio">${folio}</span>
+              <span class="alerta-item-dias">${diasTexto}</span>
+            </div>
+            <div class="alerta-item-info">
+              <strong>${pedido.clienteNombre || 'Sin nombre'}</strong><br>
+              Escuela: ${pedido.clienteEscuela || 'Sin escuela'}<br>
+              Entrega: ${pedido.fechaEntrega || 'Sin fecha'} | Estado: ${pedido.estado || 'nuevo'}<br>
+              Total: $${pedido.precioTotal || '0.00'}
+            </div>
+          </div>
+        `;
+      }
+      
+      contenido.innerHTML = html;
+    }
+    
+    modal.classList.add('active');
+  }
+
+  function cerrarModalAlertas() {
+    document.getElementById('modalAlertas').classList.remove('active');
+  }
+  // ==================== FIN SISTEMA DE ALERTAS ====================
 
   function renderPedidos() {
     const tbody = document.getElementById("tablaPedidosBody");
@@ -1625,30 +2040,64 @@
     let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
 
     lista = lista.filter(p => {
-  let okTexto = true;
-  if (filtroTexto) {
-    const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
-    okTexto = t.includes(filtroTexto);
-  }
-
-  let okEstado = true;
-  if (filtroEstado) okEstado = p.estado === filtroEstado;
-
-  const mostrarFinalizados = document.getElementById("mostrarFinalizados")?.checked;
-  const esFinalizado = ["entregado", "listo", "terminado"].includes((p.estado || "").toLowerCase());
-  const okFinalizados = mostrarFinalizados ? true : !esFinalizado;
-
-  return okTexto && okEstado && okFinalizados;
-});
+      let okTexto = true;
+      if (filtroTexto) {
+        const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
+        okTexto = t.includes(filtroTexto);
+      }
+      let okEstado = true;
+      if (filtroEstado) okEstado = p.estado === filtroEstado;
+      return okTexto && okEstado;
+    });
 
     for (const p of lista) {
       const tr = document.createElement("tr");
       tr.onclick = () => cargarPedido(p.id);
+      
+      // Verificar si tiene alerta
+      const alerta = alertasActivas.find(a => a.pedido.id === p.id);
+      let fechaHTML = p.fechaEntrega || "";
+      
+      if (alerta) {
+        const { dias, prioridad } = alerta;
+        
+        // Agregar clase de alerta a la fila
+        if (prioridad === 'vencida') {
+          tr.classList.add('alerta-vencido');
+        } else if (prioridad === 'urgente') {
+          tr.classList.add('alerta-urgente');
+        } else {
+          tr.classList.add('alerta-proxima');
+        }
+        
+        // Formatear la fecha con indicador visual
+        let diasTexto = '';
+        let claseTexto = '';
+        
+        if (prioridad === 'vencida') {
+          diasTexto = `Vencido (${Math.abs(dias)}d)`;
+          claseTexto = 'fecha-vencida';
+        } else if (prioridad === 'urgente') {
+          diasTexto = `${dias} día${dias !== 1 ? 's' : ''}`;
+          claseTexto = 'fecha-urgente';
+        } else {
+          diasTexto = `${dias} días`;
+          claseTexto = 'fecha-alerta';
+        }
+        
+        fechaHTML = `
+          <span class="fecha-alerta ${claseTexto}">
+            ${p.fechaEntrega}<br>
+            <small style="font-size: 10px;">${diasTexto}</small>
+          </span>
+        `;
+      }
+      
       tr.innerHTML = `
         <td>${p.folio || "-"}</td>
         <td>${p.clienteNombre || ""}</td>
         <td>${p.clienteEscuela || ""}</td>
-        <td>${p.fechaEntrega || ""}</td>
+        <td>${fechaHTML}</td>
         <td>${statusPill(p.estado)}</td>
       `;
       tbody.appendChild(tr);
@@ -2216,6 +2665,22 @@
     // Solo se agregará cuando el usuario haga click en "Nuevo Pedido"
     // o "Agregar Prenda"
   });
+
+  // ==================== INICIALIZACIÓN SISTEMA DE ALERTAS ====================
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('modalAlertas').addEventListener('click', function(e) {
+    if (e.target === this) {
+      cerrarModalAlertas();
+    }
+  });
+
+  // Verificar alertas periódicamente (cada 5 minutos)
+  setInterval(() => {
+    if (authToken && pedidos.length > 0) {
+      verificarAlertas();
+    }
+  }, 5 * 60 * 1000);
+  // ==================== FIN INICIALIZACIÓN ====================
 
 </script>
 
