@@ -142,6 +142,8 @@ function mapPedidoFromDb(row) {
     condicionesCliente: row.condiciones_cliente,
     comprasDetalle: row.compras_detalle,
     imagenUrl: row.imagen_url,
+    prendas: row.prendas, // ← NUEVO: Array de prendas con precios (JSON)
+    notas: row.notas,     // ← NUEVO: Notas internas del equipo (JSON)
     creadoEn: row.creado_en,
     actualizadoEn: row.actualizado_en,
   };
@@ -170,6 +172,8 @@ function mapPedidoToDb(body, extra = {}) {
     condiciones_cliente: body.condicionesCliente,
     compras_detalle: body.comprasDetalle,
     imagen_url: body.imagenUrl,
+    prendas: body.prendas,  // ← NUEVO: Array de prendas con precios (JSON)
+    notas: body.notas,      // ← NUEVO: Notas internas del equipo (JSON)
     ...extra,
   };
 }
@@ -335,6 +339,8 @@ app.put("/api/pedidos/:id", auth, async (req, res) => {
       body.condicionesCliente ?? original.condicionesCliente,
     comprasDetalle: body.comprasDetalle ?? original.comprasDetalle,
     imagenUrl: body.imagenUrl ?? original.imagenUrl,
+    prendas: body.prendas ?? original.prendas,  // ← NUEVO: Array de prendas con precios
+    notas: body.notas ?? original.notas,        // ← NUEVO: Notas internas del equipo
   };
 
   const payload = mapPedidoToDb(merged, {
