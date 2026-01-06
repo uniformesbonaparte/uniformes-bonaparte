@@ -2939,8 +2939,34 @@
     document.getElementById("estado").value = p.estado || "nuevo";
     document.getElementById("tallasTexto").value = p.tallasTexto || "";
     
-    // MEJORA: Cargar tallas en tabla dinámica
-    cargarPrendasDesdeTexto(p.tallasTexto || "");
+    // MEJORA: Cargar prendas con precios desde JSON si existe, sino desde texto
+    if (p.prendas) {
+      try {
+        const prendasGuardadas = typeof p.prendas === 'string' ? JSON.parse(p.prendas) : p.prendas;
+        prendasData = prendasGuardadas.map((prenda, idx) => ({
+          id: idx + 1,
+          tipoPrenda: prenda.tipoPrenda || '',
+          tallas: prenda.tallas.map((t, tidx) => ({
+            id: tidx + 1,
+            talla: t.talla || '',
+            cantidad: parseInt(t.cantidad) || 0,
+            precioUnitario: parseFloat(t.precioUnitario) || 0,
+            subtotal: parseFloat(t.subtotal) || 0
+          })),
+          subtotalPrenda: parseFloat(prenda.subtotal) || 0,
+          collapsed: true,
+          tallaIdCounter: prenda.tallas.length + 1
+        }));
+        prendaIdCounter = prendasData.length + 1;
+        renderPrendas();
+      } catch (e) {
+        console.error('Error al cargar prendas desde JSON:', e);
+        cargarPrendasDesdeTexto(p.tallasTexto || "");
+      }
+    } else {
+      // Fallback: cargar desde texto plano
+      cargarPrendasDesdeTexto(p.tallasTexto || "");
+    }
     
     // MEJORA: Cargar especificaciones de telas
     const especTelas = document.getElementById("especificacionesTelas");
@@ -3032,6 +3058,10 @@
     }
 
     const id = document.getElementById("pedidoId").value;
+    
+    // Obtener datos de prendas con precios
+    const prendasConPrecios = obtenerDatosPrendas();
+    
     const payload = {
       clienteNombre: document.getElementById("clienteNombre").value.trim(),
       clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
@@ -3051,7 +3081,9 @@
       gastosCompras: parseFloat(document.getElementById("gastosCompras").value || "0"),
       condicionesCliente: document.getElementById("condicionesCliente").value.trim(),
       comprasDetalle: document.getElementById("comprasDetalle").value.trim(),
-      imagenUrl: document.getElementById("imagenUrl").value || null
+      imagenUrl: document.getElementById("imagenUrl").value || null,
+      // IMPORTANTE: Incluir prendas con precios
+      prendas: JSON.stringify(prendasConPrecios)
     };
 
     const url = API_BASE + "/pedidos" + (id ? "/" + id : "");
