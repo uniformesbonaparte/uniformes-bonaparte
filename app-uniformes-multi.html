@@ -643,6 +643,307 @@
     }
     /* ===== FIN SISTEMA DE ALERTAS ===== */
 
+    /* ===== VISTA DE CALENDARIO ===== */
+    .vista-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 4px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 999px;
+      width: fit-content;
+    }
+
+    .vista-btn {
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .vista-btn.active {
+      background: var(--azul);
+      color: white;
+    }
+
+    .calendario {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .calendario-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendario-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .calendario-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .calendario-nav button {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .calendario-nav button:hover {
+      background: #f3f4f6;
+    }
+
+    .calendario-dias {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .calendario-dia-nombre {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      padding: 8px 4px;
+      text-transform: uppercase;
+    }
+
+    .calendario-dia {
+      min-height: 80px;
+      padding: 6px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .calendario-dia:hover {
+      border-color: var(--azul);
+      box-shadow: 0 4px 12px rgba(11,58,115,0.15);
+    }
+
+    .calendario-dia.otro-mes {
+      background: #f9fafb;
+      opacity: 0.5;
+    }
+
+    .calendario-dia.hoy {
+      background: #e0ecff;
+      border-color: var(--azul);
+    }
+
+    .calendario-dia-numero {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .calendario-dia-pedidos {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .calendario-pedido-mini {
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .calendario-pedido-mini:hover {
+      transform: scale(1.05);
+    }
+
+    .calendario-pedido-mini.s-nuevo { background: #dcfce7; }
+    .calendario-pedido-mini.s-compras { background: #dbeafe; }
+    .calendario-pedido-mini.s-corte { background: #fee2e2; }
+    .calendario-pedido-mini.s-confeccion { background: #f3e8ff; }
+    .calendario-pedido-mini.s-listo { background: #fef9c3; }
+    .calendario-pedido-mini.s-entregado { background: #bbf7d0; }
+
+    @media (max-width: 768px) {
+      .calendario-dia {
+        min-height: 60px;
+        padding: 4px;
+      }
+      
+      .calendario-dia-numero {
+        font-size: 10px;
+      }
+      
+      .calendario-pedido-mini {
+        font-size: 8px;
+        padding: 1px 3px;
+      }
+    }
+    /* ===== FIN VISTA DE CALENDARIO ===== */
+
+    /* ===== CAMBIO RÁPIDO DE ESTADO ===== */
+    .estado-dropdown {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      appearance: none;
+      background: white;
+      font-weight: 500;
+    }
+
+    .estado-dropdown:hover {
+      border-color: var(--azul);
+      box-shadow: 0 2px 8px rgba(11,58,115,0.2);
+    }
+
+    .estado-dropdown:focus {
+      outline: none;
+      border-color: var(--azul);
+    }
+
+    td .estado-dropdown {
+      width: 100%;
+    }
+    /* ===== FIN CAMBIO RÁPIDO DE ESTADO ===== */
+
+    /* ===== NOTAS INTERNAS ===== */
+    .notas-seccion {
+      margin-top: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .notas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .notas-header h3 {
+      margin: 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notas-contador {
+      background: var(--azul);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .notas-lista {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+
+    .nota-item {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--azul);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .nota-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .nota-autor {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--azul);
+    }
+
+    .nota-fecha {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .nota-texto {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .nota-form {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .nota-form textarea {
+      flex: 1;
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    .nota-form button {
+      flex-shrink: 0;
+    }
+
+    .sin-notas {
+      text-align: center;
+      padding: 24px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      .notas-seccion {
+        padding: 12px;
+      }
+      
+      .nota-item {
+        padding: 10px;
+      }
+      
+      .nota-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .nota-form button {
+        width: 100%;
+      }
+    }
+    /* ===== FIN NOTAS INTERNAS ===== */
+
 
 
     #loginView {
@@ -1113,46 +1414,86 @@
         <section class="card">
           <div class="card-inner">
             <h2>Pedidos</h2>
-            <div class="row" style="margin-bottom:4px;">
-              <div>
-                <label for="filtroTexto">Buscar</label>
-                <input id="filtroTexto" type="text" placeholder="Cliente o escuela" oninput="renderPedidos()" />
+            
+            <!-- Toggle Vista Lista / Calendario -->
+            <div class="vista-toggle">
+              <button class="vista-btn active" onclick="cambiarVista('lista')" id="btnVistaLista">
+                📋 Lista
+              </button>
+              <button class="vista-btn" onclick="cambiarVista('calendario')" id="btnVistaCalendario">
+                📅 Calendario
+              </button>
+            </div>
+
+            <!-- VISTA LISTA -->
+            <div id="vistaLista">
+              <div class="row" style="margin-bottom:4px;">
+                <div>
+                  <label for="filtroTexto">Buscar</label>
+                  <input id="filtroTexto" type="text" placeholder="Cliente o escuela" oninput="renderPedidos()" />
+                </div>
+                <div>
+                  <label for="filtroEstado">Estado</label>
+                  <select id="filtroEstado" onchange="renderPedidos()">
+                    <option value="">Todos</option>
+                    <option value="nuevo">Nuevo</option>
+                    <option value="compras">Compras</option>
+                    <option value="corte">Corte</option>
+                    <option value="confeccion">Confección</option>
+                    <option value="listo">Listo</option>
+                    <option value="entregado">Entregado</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label for="filtroEstado">Estado</label>
-                <select id="filtroEstado" onchange="renderPedidos()">
-                  <option value="">Todos</option>
-                  <option value="nuevo">Nuevo</option>
-                  <option value="compras">Compras</option>
-                  <option value="corte">Corte</option>
-                  <option value="confeccion">Confección</option>
-                  <option value="listo">Listo</option>
-                  <option value="entregado">Entregado</option>
-                </select>
+              <div style="margin-bottom: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; text-transform: none;">
+                  <input type="checkbox" id="ocultarEntregados" onchange="renderPedidos()" style="width: auto; cursor: pointer;" />
+                  <span>Ocultar pedidos entregados</span>
+                </label>
+              </div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Folio</th>
+                      <th>Cliente</th>
+                      <th>Escuela</th>
+                      <th>Entrega</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaPedidosBody"></tbody>
+                </table>
+              </div>
+              <div class="small-text">Haz clic en un pedido para editarlo.</div>
+              <button class="btn" style="margin-top:6px;" id="btnNuevoPedido" onclick="nuevoPedido()">Nuevo pedido</button>
+            </div>
+
+            <!-- VISTA CALENDARIO -->
+            <div id="vistaCalendario" style="display: none;">
+              <div class="calendario">
+                <div class="calendario-header">
+                  <h3 id="calendarioMesAno">Enero 2026</h3>
+                  <div class="calendario-nav">
+                    <button onclick="cambiarMesCalendario(-1)">‹ Anterior</button>
+                    <button onclick="irMesActualCalendario()">Hoy</button>
+                    <button onclick="cambiarMesCalendario(1)">Siguiente ›</button>
+                  </div>
+                </div>
+                <div class="calendario-dias">
+                  <div class="calendario-dia-nombre">Dom</div>
+                  <div class="calendario-dia-nombre">Lun</div>
+                  <div class="calendario-dia-nombre">Mar</div>
+                  <div class="calendario-dia-nombre">Mié</div>
+                  <div class="calendario-dia-nombre">Jue</div>
+                  <div class="calendario-dia-nombre">Vie</div>
+                  <div class="calendario-dia-nombre">Sáb</div>
+                </div>
+                <div id="calendarioDias" class="calendario-dias">
+                  <!-- Los días se generan dinámicamente -->
+                </div>
               </div>
             </div>
-            <div style="margin-bottom: 8px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; text-transform: none;">
-                <input type="checkbox" id="ocultarEntregados" onchange="renderPedidos()" style="width: auto; cursor: pointer;" />
-                <span>Ocultar pedidos entregados</span>
-              </label>
-            </div>
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Folio</th>
-                    <th>Cliente</th>
-                    <th>Escuela</th>
-                    <th>Entrega</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody id="tablaPedidosBody"></tbody>
-              </table>
-            </div>
-            <div class="small-text">Haz clic en un pedido para editarlo.</div>
-            <button class="btn" style="margin-top:6px;" id="btnNuevoPedido" onclick="nuevoPedido()">Nuevo pedido</button>
           </div>
         </section>
 
@@ -1322,6 +1663,23 @@
             </div>
             <label>Galería de imágenes</label>
             <div id="imagenesLista"></div>
+
+            <!-- NOTAS INTERNAS DEL EQUIPO -->
+            <div class="notas-seccion" id="notasSeccion" style="display: none;">
+              <div class="notas-header">
+                <h3>
+                  💬 Notas internas del equipo
+                  <span class="notas-contador" id="notasContador">0</span>
+                </h3>
+              </div>
+              <div class="notas-lista" id="notasLista">
+                <div class="sin-notas">No hay notas todavía. Agrega la primera nota para el equipo.</div>
+              </div>
+              <div class="nota-form">
+                <textarea id="nuevaNota" placeholder="Escribe una nota para el equipo... (ej: Cliente pidió cambio urgente de talla)"></textarea>
+                <button class="btn" onclick="agregarNota()">➕ Agregar nota</button>
+              </div>
+            </div>
 
             <div class="small-text" id="infoExtra" style="margin-top:6px;"></div>
 
@@ -2187,6 +2545,290 @@
   }
   // ==================== FIN SISTEMA DE ALERTAS ====================
 
+  // ==================== VISTA DE CALENDARIO ====================
+  let vistaActual = 'lista'; // 'lista' o 'calendario'
+  let mesCalendarioActual = new Date();
+
+  function cambiarVista(vista) {
+    vistaActual = vista;
+    
+    // Actualizar botones
+    document.getElementById('btnVistaLista').classList.toggle('active', vista === 'lista');
+    document.getElementById('btnVistaCalendario').classList.toggle('active', vista === 'calendario');
+    
+    // Mostrar/ocultar vistas
+    document.getElementById('vistaLista').style.display = vista === 'lista' ? 'block' : 'none';
+    document.getElementById('vistaCalendario').style.display = vista === 'calendario' ? 'block' : 'none';
+    
+    if (vista === 'calendario') {
+      renderCalendario();
+    }
+  }
+
+  function renderCalendario() {
+    const ano = mesCalendarioActual.getFullYear();
+    const mes = mesCalendarioActual.getMonth();
+    
+    // Actualizar título
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    document.getElementById('calendarioMesAno').textContent = `${meses[mes]} ${ano}`;
+    
+    // Obtener primer y último día del mes
+    const primerDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const diasEnMes = ultimoDia.getDate();
+    const primerDiaSemana = primerDia.getDay(); // 0 = domingo
+    
+    // Obtener días del mes anterior
+    const mesAnterior = new Date(ano, mes, 0);
+    const diasMesAnterior = mesAnterior.getDate();
+    
+    const container = document.getElementById('calendarioDias');
+    container.innerHTML = '';
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    // Días del mes anterior
+    for (let i = primerDiaSemana - 1; i >= 0; i--) {
+      const dia = diasMesAnterior - i;
+      const diaDiv = crearDiaCalendario(dia, mes - 1, ano, true);
+      container.appendChild(diaDiv);
+    }
+    
+    // Días del mes actual
+    for (let dia = 1; dia <= diasEnMes; dia++) {
+      const fecha = new Date(ano, mes, dia);
+      fecha.setHours(0, 0, 0, 0);
+      const esHoy = fecha.getTime() === hoy.getTime();
+      const diaDiv = crearDiaCalendario(dia, mes, ano, false, esHoy);
+      container.appendChild(diaDiv);
+    }
+    
+    // Días del mes siguiente para completar la cuadrícula
+    const diasMostrados = primerDiaSemana + diasEnMes;
+    const diasFaltantes = diasMostrados % 7 === 0 ? 0 : 7 - (diasMostrados % 7);
+    for (let dia = 1; dia <= diasFaltantes; dia++) {
+      const diaDiv = crearDiaCalendario(dia, mes + 1, ano, true);
+      container.appendChild(diaDiv);
+    }
+  }
+
+  function crearDiaCalendario(dia, mes, ano, otroMes, esHoy = false) {
+    const diaDiv = document.createElement('div');
+    diaDiv.className = 'calendario-dia';
+    if (otroMes) diaDiv.classList.add('otro-mes');
+    if (esHoy) diaDiv.classList.add('hoy');
+    
+    // Formatear fecha para comparar
+    const fechaStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    
+    // Buscar pedidos de este día
+    const pedidosDia = pedidos.filter(p => p.fechaEntrega === fechaStr);
+    
+    diaDiv.innerHTML = `
+      <div class="calendario-dia-numero">${dia}</div>
+      <div class="calendario-dia-pedidos">
+        ${pedidosDia.map(p => {
+          const estadoClass = 's-' + (p.estado || 'nuevo').toLowerCase().replace(/ /g, '-');
+          const folio = p.folio || ('PED-' + p.id);
+          return `<div class="calendario-pedido-mini ${estadoClass}" 
+                       onclick="cargarPedido(${p.id}); cambiarVista('lista');"
+                       title="${p.clienteNombre || 'Sin nombre'} - ${p.clienteEscuela || ''}">
+                    ${folio}
+                  </div>`;
+        }).join('')}
+      </div>
+    `;
+    
+    return diaDiv;
+  }
+
+  function cambiarMesCalendario(offset) {
+    mesCalendarioActual.setMonth(mesCalendarioActual.getMonth() + offset);
+    renderCalendario();
+  }
+
+  function irMesActualCalendario() {
+    mesCalendarioActual = new Date();
+    renderCalendario();
+  }
+  // ==================== FIN VISTA DE CALENDARIO ====================
+
+  // ==================== CAMBIO RÁPIDO DE ESTADO ====================
+  async function cambiarEstadoRapido(pedidoId, nuevoEstado) {
+    if (!authToken) {
+      mostrarNotificacion("Debes iniciar sesión", "info");
+      return;
+    }
+    
+    try {
+      const res = await fetch(API_BASE + "/pedidos/" + pedidoId, {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + authToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ estado: nuevoEstado })
+      });
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        mostrarNotificacion(data.error || "Error al cambiar estado", "error");
+        return;
+      }
+      
+      // Actualizar localmente
+      const pedido = pedidos.find(p => p.id === pedidoId);
+      if (pedido) {
+        pedido.estado = nuevoEstado;
+      }
+      
+      // Refrescar vista
+      verificarAlertas();
+      renderPedidos();
+      
+      // Si el calendario está activo, actualizarlo también
+      if (vistaActual === 'calendario') {
+        renderCalendario();
+      }
+      
+      mostrarNotificacion("Estado actualizado correctamente", "success");
+    } catch (err) {
+      mostrarNotificacion("Error de conexión", "error");
+    }
+  }
+  // ==================== FIN CAMBIO RÁPIDO DE ESTADO ====================
+
+  // ==================== NOTAS INTERNAS ====================
+  let notasActuales = [];
+
+  function cargarNotas(pedidoId) {
+    const pedido = pedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
+    
+    // Las notas se guardan en el campo 'notas' del pedido como JSON
+    try {
+      notasActuales = pedido.notas ? JSON.parse(pedido.notas) : [];
+    } catch (e) {
+      notasActuales = [];
+    }
+    
+    renderNotas();
+    
+    // Mostrar la sección de notas solo si hay un pedido cargado
+    document.getElementById('notasSeccion').style.display = pedidoId ? 'block' : 'none';
+  }
+
+  function renderNotas() {
+    const lista = document.getElementById('notasLista');
+    const contador = document.getElementById('notasContador');
+    
+    contador.textContent = notasActuales.length;
+    
+    if (notasActuales.length === 0) {
+      lista.innerHTML = '<div class="sin-notas">No hay notas todavía. Agrega la primera nota para el equipo.</div>';
+      return;
+    }
+    
+    // Ordenar por fecha (más reciente primero)
+    const notasOrdenadas = [...notasActuales].sort((a, b) => 
+      new Date(b.fecha) - new Date(a.fecha)
+    );
+    
+    lista.innerHTML = notasOrdenadas.map(nota => `
+      <div class="nota-item">
+        <div class="nota-header">
+          <span class="nota-autor">${nota.autor || 'Usuario'}</span>
+          <span class="nota-fecha">${formatearFechaNota(nota.fecha)}</span>
+        </div>
+        <div class="nota-texto">${escapeHtml(nota.texto)}</div>
+      </div>
+    `).join('');
+  }
+
+  async function agregarNota() {
+    const pedidoId = document.getElementById('pedidoId').value;
+    if (!pedidoId) {
+      mostrarNotificacion("Debes cargar un pedido primero", "info");
+      return;
+    }
+    
+    const textoNota = document.getElementById('nuevaNota').value.trim();
+    if (!textoNota) {
+      mostrarNotificacion("Escribe algo en la nota", "info");
+      return;
+    }
+    
+    const nuevaNota = {
+      texto: textoNota,
+      autor: usuarioActual ? usuarioActual.nombre : 'Usuario',
+      fecha: new Date().toISOString()
+    };
+    
+    notasActuales.push(nuevaNota);
+    
+    // Guardar en el servidor
+    try {
+      const res = await fetch(API_BASE + "/pedidos/" + pedidoId, {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + authToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ notas: JSON.stringify(notasActuales) })
+      });
+      
+      if (!res.ok) {
+        throw new Error("Error al guardar nota");
+      }
+      
+      // Actualizar localmente
+      const pedido = pedidos.find(p => p.id == pedidoId);
+      if (pedido) {
+        pedido.notas = JSON.stringify(notasActuales);
+      }
+      
+      // Limpiar campo y renderizar
+      document.getElementById('nuevaNota').value = '';
+      renderNotas();
+      mostrarNotificacion("Nota agregada correctamente", "success");
+    } catch (err) {
+      notasActuales.pop(); // Revertir si falla
+      mostrarNotificacion("Error al guardar la nota", "error");
+    }
+  }
+
+  function formatearFechaNota(fechaISO) {
+    const fecha = new Date(fechaISO);
+    const ahora = new Date();
+    const diffMs = ahora - fecha;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Hace un momento';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+    if (diffDays < 7) return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+    
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const ano = fecha.getFullYear();
+    const hora = String(fecha.getHours()).padStart(2, '0');
+    const min = String(fecha.getMinutes()).padStart(2, '0');
+    
+    return `${dia}/${mes}/${ano} ${hora}:${min}`;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  // ==================== FIN NOTAS INTERNAS ====================
+
   function renderPedidos() {
     const tbody = document.getElementById("tablaPedidosBody");
     tbody.innerHTML = "";
@@ -2262,7 +2904,18 @@
         <td>${p.clienteNombre || ""}</td>
         <td>${p.clienteEscuela || ""}</td>
         <td>${fechaHTML}</td>
-        <td>${statusPill(p.estado)}</td>
+        <td onclick="event.stopPropagation();">
+          <select class="estado-dropdown" value="${p.estado || 'nuevo'}" 
+                  onchange="cambiarEstadoRapido(${p.id}, this.value)" 
+                  onclick="event.stopPropagation();">
+            <option value="nuevo" ${p.estado === 'nuevo' ? 'selected' : ''}>Nuevo</option>
+            <option value="compras" ${p.estado === 'compras' ? 'selected' : ''}>Compras</option>
+            <option value="corte" ${p.estado === 'corte' ? 'selected' : ''}>Corte</option>
+            <option value="confeccion" ${p.estado === 'confeccion' ? 'selected' : ''}>Confección</option>
+            <option value="listo" ${p.estado === 'listo' ? 'selected' : ''}>Listo</option>
+            <option value="entregado" ${p.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
+          </select>
+        </td>
       `;
       tbody.appendChild(tr);
     }
@@ -2324,6 +2977,9 @@
       "ID: " + p.id + " · Estado: " + p.estado;
 
     await cargarImagenes(id);
+    
+    // Cargar notas internas
+    cargarNotas(id);
   }
 
   function nuevoPedido() {
@@ -2355,6 +3011,11 @@
     document.getElementById("condicionesCliente").value = "";
     document.getElementById("comprasDetalle").value = "";
     document.getElementById("imagenUrl").value = "";
+    
+    // Limpiar notas
+    notasActuales = [];
+    document.getElementById('notasSeccion').style.display = 'none';
+    document.getElementById('nuevaNota').value = "";
     document.getElementById("imagenPreview").style.display = "none";
     document.getElementById("imagenesLista").innerHTML = "";
     document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
