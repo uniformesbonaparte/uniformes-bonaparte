@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Área de Confección · Bonaparte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-light: #a78bfa;
+      --primary-dark: #6d28d9;
+      --accent: #10b981;
+      --accent-light: #34d399;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow: 0 4px 12px rgba(124,58,237,0.15);
+      --shadow-lg: 0 10px 40px rgba(124,58,237,0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* ========== HEADER ========== */
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .btn-logout {
+      padding: 8px 16px;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    /* ========== CONTAINER ========== */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ========== DASHBOARD ========== */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--primary);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card.active .stat-label,
+    .stat-card.active .stat-value {
+      color: white;
+    }
+
+    .stat-card.accent {
+      border-left-color: var(--accent);
+    }
+
+    .stat-card.success {
+      border-left-color: var(--success);
+    }
+
+    .stat-card.warning {
+      border-left-color: var(--warning);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .stat-icon {
+      font-size: 28px;
+      opacity: 0.9;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card.active .stat-label {
+      color: white;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .stat-card.active .stat-value {
+      color: white;
+    }
+
+    /* ========== FILTERS ========== */
+    .filters {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filter-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-input, .filter-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    /* ========== PEDIDOS LISTA ========== */
+    .pedidos-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .pedido-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border-left: 4px solid var(--primary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pedido-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .pedido-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .pedido-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .pedido-card.urgente {
+      border-left-color: var(--danger);
+    }
+
+    .pedido-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .pedido-info {
+      flex: 1;
+    }
+
+    .pedido-folio {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .pedido-cliente {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .pedido-escuela {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .pedido-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pedido-badge.urgente {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .pedido-badge.normal {
+      background: #f3e8ff;
+      color: var(--primary);
+    }
+
+    .pedido-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px solid var(--bg-main);
+    }
+
+    .pedido-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ========== MODAL ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 40px;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 2px solid var(--bg-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-radius: var(--radius) var(--radius) 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .btn-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 24px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    /* ========== INFO SECTION ========== */
+    .info-section {
+      background: var(--bg-main);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ========== INFO DE CORTE ========== */
+    .info-corte-section {
+      background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .info-corte-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-corte-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .info-corte-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-corte-label {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-corte-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    /* ========== ACORDEÓN DE PRENDAS ========== */
+    .prendas-acordeon {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .prenda-item {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .prenda-item.completado {
+      border-color: var(--success);
+      background: #f0fdf4;
+    }
+
+    .prenda-header {
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .prenda-header:hover {
+      background: var(--bg-main);
+    }
+
+    .prenda-item.completado .prenda-header {
+      background: #dcfce7;
+    }
+
+    .prenda-item.completado .prenda-header:hover {
+      background: #bbf7d0;
+    }
+
+    .prenda-info-left {
+      flex: 1;
+    }
+
+    .prenda-nombre {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prenda-status-icon {
+      font-size: 24px;
+    }
+
+    .prenda-tallas {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+
+    .prenda-total-piezas {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .prenda-resumen-confeccion {
+      font-size: 13px;
+      color: var(--success);
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .prenda-expand-icon {
+      font-size: 24px;
+      color: var(--text-light);
+      transition: transform 0.3s ease;
+    }
+
+    .prenda-item.expanded .prenda-expand-icon {
+      transform: rotate(180deg);
+    }
+
+    .prenda-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .prenda-item.expanded .prenda-body {
+      max-height: 2000px;
+    }
+
+    .prenda-form {
+      padding: 24px;
+      border-top: 2px solid var(--border);
+      background: white;
+    }
+
+    /* ========== FORM ========== */
+    .form-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--bg-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-label.required::after {
+      content: ' *';
+      color: var(--danger);
+    }
+
+    .form-input, .form-textarea, .form-select {
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      background: white;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: var(--text-light);
+      font-style: italic;
+    }
+
+    /* ========== ACCESORIOS CHECKBOXES ========== */
+    .accesorios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .accesorio-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: var(--bg-main);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .accesorio-item:hover {
+      background: var(--border);
+      border-color: var(--primary);
+    }
+
+    .accesorio-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .accesorio-label {
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    /* ========== BUTTONS ========== */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-main);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-success:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-volver {
+      background: var(--bg-main);
+      color: var(--text);
+      flex: 0 0 auto;
+      min-width: 120px;
+    }
+
+    .btn-volver:hover {
+      background: var(--border);
+    }
+
+    .btn-finalizar {
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+    }
+
+    .btn-finalizar:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-finalizar:disabled {
+      background: #d1d5db;
+    }
+
+    /* ========== PROGRESS ========== */
+    .progress-bar-container {
+      background: var(--bg-main);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success) 0%, #34d399 100%);
+      transition: width 0.5s ease;
+      border-radius: 20px;
+    }
+
+    /* ========== IMAGENES ========== */
+    .imagen-item {
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid var(--border);
+    }
+
+    .imagen-item:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow);
+      border-color: var(--primary);
+    }
+
+    .imagen-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* ========== NOTIFICACION ========== */
+    .notificacion {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      background: var(--success);
+      color: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      animation: slideInRight 0.3s ease;
+      display: none;
+      max-width: 400px;
+    }
+
+    .notificacion.show {
+      display: block;
+    }
+
+    .notificacion.error {
+      background: var(--danger);
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 16px;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .filter-group {
+        width: 100%;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .brand-title {
+        font-size: 18px;
+      }
+
+      .brand-subtitle {
+        font-size: 11px;
+      }
+
+      .accesorios-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ========== LOGIN VIEW ========== */
+    #loginView {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 48px;
+      box-shadow: var(--shadow-lg);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .login-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      font-size: 16px;
+      color: var(--text-light);
+      margin-bottom: 32px;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #appView {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== LOGIN VIEW ========== -->
+  <div id="loginView">
+    <div class="login-card">
+      <div class="login-icon">🧵</div>
+      <h1 class="login-title">Área de Confección</h1>
+      <p class="login-subtitle">Bonaparte Uniformes</p>
+      <form class="login-form" onsubmit="login(event)">
+        <div class="form-group">
+          <input type="email" id="loginEmail" class="form-input" placeholder="Correo electrónico" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="loginPassword" class="form-input" placeholder="Contraseña" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== APP VIEW ========== -->
+  <div id="appView">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🧵</div>
+        <div class="brand-text">
+          <div class="brand-title">Área de Confección</div>
+          <div class="brand-subtitle">Bonaparte Uniformes</div>
+        </div>
+      </div>
+      <div class="user-section">
+        <span class="user-name" id="userName"></span>
+        <button class="btn-logout" onclick="logout()">Salir</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- DASHBOARD CLICKEABLE -->
+      <div class="dashboard">
+        <div class="stat-card" id="statCardPendientes" onclick="filtrarPor('pendientes')">
+          <div class="stat-header">
+            <div class="stat-icon">📋</div>
+            <span class="stat-label">Pendientes</span>
+          </div>
+          <div class="stat-value" id="statPendientes">0</div>
+        </div>
+        <div class="stat-card accent" id="statCardHoy" onclick="filtrarPor('hoy')">
+          <div class="stat-header">
+            <div class="stat-icon">🧵</div>
+            <span class="stat-label">Terminadas Hoy</span>
+          </div>
+          <div class="stat-value" id="statHoy">0</div>
+        </div>
+        <div class="stat-card success" id="statCardMes" onclick="filtrarPor('mes')">
+          <div class="stat-header">
+            <div class="stat-icon">✅</div>
+            <span class="stat-label">Total Mes</span>
+          </div>
+          <div class="stat-value" id="statMes">0</div>
+        </div>
+        <div class="stat-card warning" id="statCardUrgentes" onclick="filtrarPor('urgentes')">
+          <div class="stat-header">
+            <div class="stat-icon">⚠️</div>
+            <span class="stat-label">Urgentes</span>
+          </div>
+          <div class="stat-value" id="statUrgentes">0</div>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filters">
+        <div class="filter-group">
+          <label class="filter-label">🔍 Buscar</label>
+          <input type="text" class="filter-input" id="filtroTexto" placeholder="Cliente, folio, escuela..." onkeyup="aplicarFiltros()">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">📆 Urgencia</label>
+          <select class="filter-select" id="filtroUrgencia" onchange="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option value="urgente">Urgentes (≤3 días)</option>
+            <option value="normal">Normal</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PEDIDOS -->
+      <div class="pedidos-grid" id="pedidosLista"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PEDIDO CON ACORDEÓN -->
+  <div id="modalPedido" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Registrar Confección por Prenda</h2>
+        <button class="btn-close" onclick="cerrarModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- INFO DEL PEDIDO -->
+        <div class="info-section">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Folio</span>
+              <span class="info-value" id="infoFolio">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Cliente</span>
+              <span class="info-value" id="infoCliente">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Escuela</span>
+              <span class="info-value" id="infoEscuela">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Teléfono</span>
+              <span class="info-value" id="infoTelefono">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo de Prenda</span>
+              <span class="info-value" id="infoPrendaTipo">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha Entrega</span>
+              <span class="info-value" id="infoFechaEntrega">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMAGENES DE REFERENCIA -->
+        <div class="info-section" id="imagenesSection" style="display:none;">
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 16px;">
+            📸 Imágenes de Referencia
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px;" id="imagenesGrid"></div>
+        </div>
+
+        <!-- NOTAS DE CONFECCIÓN -->
+        <div class="info-section" id="notasConfeccionSection" style="display:none; background: linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%); border-left: 4px solid #10b981;">
+          <h3 style="font-size: 16px; font-weight: 700; color: #059669; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            📝 Notas para Confección
+          </h3>
+          <div id="notasConfeccionTexto" style="font-size: 14px; color: #065f46; line-height: 1.6; white-space: pre-wrap;"></div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="progress-bar-container">
+          <div class="progress-label">
+            <span>Progreso de Confección</span>
+            <span id="progressText">0 de 0 prendas</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- ACORDEÓN DE PRENDAS -->
+        <div class="prendas-acordeon" id="prendasAcordeon"></div>
+
+        <!-- BOTONES FINALES -->
+        <div class="btn-group">
+          <button class="btn btn-volver" onclick="cerrarModal()">🔙 Volver a Lista</button>
+          <button class="btn btn-finalizar" id="btnFinalizar" onclick="finalizarConfeccion()" disabled>
+            ✅ Marcar Pedido como LISTO
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACION -->
+  <div id="notificacion" class="notificacion"></div>
+
+  <script>
+    // ========== CONFIGURACIÓN ==========
+    const API_BASE = window.location.origin + '/api';
+    let authToken = localStorage.getItem('authToken');
+    let currentUser = null;
+    let pedidos = [];
+    let pedidosFiltrados = [];
+    let pedidoActual = null;
+    let confeccionDatos = {}; // { prendaId: { piezasRecibidas, piezasTerminadas, ... } }
+    let filtroActivo = null; // null, 'pendientes', 'hoy', 'mes', 'urgentes'
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      if (authToken) {
+        verificarSesion();
+      }
+    });
+
+    // ========== AUTENTICACIÓN ==========
+    async function login(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        
+        if (!res.ok) {
+          mostrarNotificacion('Credenciales incorrectas', 'error');
+          return;
+        }
+
+        // TEMPORAL: Verificación de rol desactivada para pruebas
+        // if (data.rol !== 'confeccion') {
+        //   mostrarNotificacion('Esta área es solo para personal de Confección', 'error');
+        //   return;
+        // }
+
+        authToken = data.token;
+        currentUser = data;
+        localStorage.setItem('authToken', authToken);
+        
+        mostrarApp();
+      } catch (err) {
+        console.error('Error en login:', err);
+        mostrarNotificacion('Error al iniciar sesión', 'error');
+      }
+    }
+
+    function verificarSesion() {
+      mostrarApp();
+    }
+
+    function mostrarApp() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('appView').style.display = 'block';
+      document.getElementById('userName').textContent = currentUser?.nombre || 'Usuario';
+      cargarPedidos();
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('usuarioActual');
+      authToken = null;
+      currentUser = null;
+      // Redirigir al login general
+      window.location.href = '/app-uniformes-multi.html';
+    }
+
+    // ========== CARGAR PEDIDOS ==========
+    async function cargarPedidos() {
+      try {
+        const res = await fetch(`${API_BASE}/pedidos`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!res.ok) throw new Error('Error al cargar pedidos');
+
+        const data = await res.json();
+        
+        // Filtrar solo pedidos en estado "confeccion"
+        pedidos = data.filter(p => p.estado === 'confeccion');
+        pedidosFiltrados = [...pedidos];
+        
+        actualizarEstadisticas();
+        aplicarFiltros();
+      } catch (err) {
+        console.error('Error cargando pedidos:', err);
+        mostrarNotificacion('Error al cargar pedidos', 'error');
+      }
+    }
+
+    // ========== ESTADÍSTICAS ==========
+    function actualizarEstadisticas() {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      const pendientes = pedidos.length;
+      const terminadasHoy = 0; // TODO: Implementar con datos reales
+      const totalMes = 0; // TODO: Implementar con datos reales
+      
+      const tresDias = new Date(hoy);
+      tresDias.setDate(tresDias.getDate() + 3);
+      const urgentes = pedidos.filter(p => {
+        const fechaEntrega = new Date(p.fechaEntrega);
+        return fechaEntrega <= tresDias;
+      }).length;
+
+      document.getElementById('statPendientes').textContent = pendientes;
+      document.getElementById('statHoy').textContent = terminadasHoy;
+      document.getElementById('statMes').textContent = totalMes;
+      document.getElementById('statUrgentes').textContent = urgentes;
+    }
+
+    // ========== FILTRAR POR DASHBOARD ==========
+    function filtrarPor(tipo) {
+      // Remover clase active de todos
+      document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
+      
+      // Si es el mismo filtro, desactivar
+      if (filtroActivo === tipo) {
+        filtroActivo = null;
+      } else {
+        filtroActivo = tipo;
+        document.getElementById(`statCard${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
+      }
+      
+      aplicarFiltros();
+    }
+
+    // ========== FILTROS ==========
+    function aplicarFiltros() {
+      const texto = document.getElementById('filtroTexto').value.toLowerCase();
+      const urgencia = document.getElementById('filtroUrgencia').value;
+
+      pedidosFiltrados = pedidos.filter(p => {
+        // Filtro de texto
+        const matchTexto = !texto || 
+          p.folio?.toLowerCase().includes(texto) ||
+          p.clienteNombre?.toLowerCase().includes(texto) ||
+          p.clienteEscuela?.toLowerCase().includes(texto);
+
+        // Filtro de urgencia
+        let matchUrgencia = true;
+        if (urgencia) {
+          const esUrgente = calcularDiasRestantes(p.fechaEntrega) <= 3;
+          matchUrgencia = urgencia === 'urgente' ? esUrgente : !esUrgente;
+        }
+
+        // Filtro del dashboard
+        let matchDashboard = true;
+        if (filtroActivo === 'pendientes') {
+          matchDashboard = true; // Todos los de confección son pendientes
+        } else if (filtroActivo === 'hoy') {
+          // TODO: Filtrar por terminados hoy
+          matchDashboard = false;
+        } else if (filtroActivo === 'mes') {
+          // TODO: Filtrar por terminados este mes
+          matchDashboard = false;
+        } else if (filtroActivo === 'urgentes') {
+          matchDashboard = calcularDiasRestantes(p.fechaEntrega) <= 3;
+        }
+
+        return matchTexto && matchUrgencia && matchDashboard;
+      });
+
+      renderPedidos();
+    }
+
+    // ========== RENDER PEDIDOS ==========
+    function renderPedidos() {
+      const container = document.getElementById('pedidosLista');
+      
+      if (pedidosFiltrados.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🧵</div>
+            <div class="empty-state-text">No hay pedidos en confección</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = pedidosFiltrados.map(p => {
+        const diasRestantes = calcularDiasRestantes(p.fechaEntrega);
+        const esUrgente = diasRestantes <= 3;
+        
+        return `
+          <div class="pedido-card ${esUrgente ? 'urgente' : ''}" onclick="abrirPedido(${p.id})">
+            <div class="pedido-header">
+              <div class="pedido-info">
+                <div class="pedido-folio">${p.folio || 'Sin folio'}</div>
+                <div class="pedido-cliente">${p.clienteNombre || 'Sin nombre'}</div>
+                <div class="pedido-escuela">${p.clienteEscuela || 'Sin escuela'}</div>
+              </div>
+              <span class="pedido-badge ${esUrgente ? 'urgente' : 'normal'}">
+                ${esUrgente ? '🔴 URGENTE' : '🟣 NORMAL'}
+              </span>
+            </div>
+            <div class="pedido-details">
+              <div class="pedido-detail">
+                <span class="detail-label">Tipo</span>
+                <span class="detail-value">${p.prendaTipo || '-'}</span>
+              </div>
+              <div class="pedido-detail">
+                <span class="detail-label">Entrega</span>
+                <span class="detail-value">${formatearFecha(p.fechaEntrega)}</span>
+              </div>
+              <div class="pedido-detail">
+                <span class="detail-label">Días Restantes</span>
+                <span class="detail-value">${diasRestantes} días</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ========== ABRIR PEDIDO (MODAL CON ACORDEÓN) ==========
+    async function abrirPedido(id) {
+      const pedido = pedidos.find(p => p.id === id);
+      if (!pedido) return;
+
+      pedidoActual = pedido;
+      confeccionDatos = {};
+
+      // Llenar información
+      document.getElementById('infoFolio').textContent = pedido.folio || '-';
+      document.getElementById('infoCliente').textContent = pedido.clienteNombre || '-';
+      document.getElementById('infoEscuela').textContent = pedido.clienteEscuela || '-';
+      document.getElementById('infoTelefono').textContent = pedido.clienteTelefono || '-';
+      document.getElementById('infoPrendaTipo').textContent = pedido.prendaTipo || '-';
+      document.getElementById('infoFechaEntrega').textContent = formatearFecha(pedido.fechaEntrega);
+
+      // Mostrar notas de confección si existen
+      if (pedido.confeccionNotas && pedido.confeccionNotas.trim()) {
+        document.getElementById('notasConfeccionSection').style.display = 'block';
+        document.getElementById('notasConfeccionTexto').textContent = pedido.confeccionNotas;
+      } else {
+        document.getElementById('notasConfeccionSection').style.display = 'none';
+      }
+
+      // Parsear prendas
+      let prendas = [];
+      try {
+        if (pedido.prendas) {
+          prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
+        }
+      } catch (e) {
+        console.error('Error parseando prendas:', e);
+      }
+
+      // Parsear datos de corte
+      let corteDatos = null;
+      try {
+        if (pedido.corteDatos) {
+          corteDatos = typeof pedido.corteDatos === 'string' ? JSON.parse(pedido.corteDatos) : pedido.corteDatos;
+        }
+      } catch (e) {
+        console.error('Error parseando corteDatos:', e);
+      }
+
+      // Si no hay prendas, mostrar mensaje
+      if (!prendas || prendas.length === 0) {
+        document.getElementById('prendasAcordeon').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">Este pedido no tiene prendas registradas</div>
+          </div>
+        `;
+        document.getElementById('progressText').textContent = '0 de 0 prendas';
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('modalPedido').classList.add('active');
+        return;
+      }
+
+      // Render acordeón
+      renderAcordeon(prendas, corteDatos);
+      actualizarProgreso();
+
+      // Cargar imágenes
+      await cargarImagenes(pedidoActual.id);
+
+      // Mostrar modal
+      document.getElementById('modalPedido').classList.add('active');
+    }
+
+    // ========== RENDER ACORDEÓN DE PRENDAS ==========
+    function renderAcordeon(prendas, corteDatos) {
+      const container = document.getElementById('prendasAcordeon');
+      
+      container.innerHTML = prendas.map((prenda, index) => {
+        const prendaId = prenda.id || index + 1;
+        const completado = confeccionDatos[prendaId]?.completado || false;
+        
+        // Calcular total de piezas
+        const totalPiezas = prenda.tallas.reduce((sum, t) => sum + (parseInt(t.cantidad) || 0), 0);
+        
+        // Formato de tallas
+        const tallasTexto = prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ');
+        
+        // Buscar datos de corte para esta prenda
+        const corte = corteDatos?.prendas?.find(c => c.prendaId === prendaId);
+        
+        return `
+          <div class="prenda-item ${completado ? 'completado' : ''}" id="prenda-${prendaId}">
+            <div class="prenda-header" onclick="togglePrenda(${prendaId})">
+              <div class="prenda-info-left">
+                <div class="prenda-nombre">
+                  <span class="prenda-status-icon">${completado ? '✅' : '⚪'}</span>
+                  ${prenda.tipoPrenda || 'Prenda sin nombre'}
+                </div>
+                <div class="prenda-tallas">Tallas: ${tallasTexto}</div>
+                <div class="prenda-total-piezas">Total: ${totalPiezas} piezas</div>
+                ${completado ? `
+                  <div class="prenda-resumen-confeccion">
+                    🧵 Recibidas: ${confeccionDatos[prendaId].piezasRecibidas} • 
+                    Terminadas: ${confeccionDatos[prendaId].piezasTerminadas}
+                  </div>
+                ` : ''}
+              </div>
+              <span class="prenda-expand-icon">▼</span>
+            </div>
+            <div class="prenda-body">
+              <form class="prenda-form" onsubmit="guardarConfeccionPrenda(event, ${prendaId}, ${totalPiezas})">
+                
+                ${corte ? `
+                  <!-- INFO DE CORTE -->
+                  <div class="info-corte-section">
+                    <div class="info-corte-title">✂️ Datos del Corte</div>
+                    <div class="info-corte-grid">
+                      <div class="info-corte-item">
+                        <span class="info-corte-label">Tela</span>
+                        <span class="info-corte-value">${corte.tipoTela || '-'}</span>
+                      </div>
+                      <div class="info-corte-item">
+                        <span class="info-corte-label">Color</span>
+                        <span class="info-corte-value">${corte.color || '-'}</span>
+                      </div>
+                      <div class="info-corte-item">
+                        <span class="info-corte-label">Cantidad (kg)</span>
+                        <span class="info-corte-value">${corte.cantidadKg || 0} kg</span>
+                      </div>
+                      <div class="info-corte-item">
+                        <span class="info-corte-label">Cantidad (m)</span>
+                        <span class="info-corte-value">${corte.cantidadMetros || 0} m</span>
+                      </div>
+                      <div class="info-corte-item">
+                        <span class="info-corte-label">Piezas Cortadas</span>
+                        <span class="info-corte-value">${corte.piezasCortadas || 0}</span>
+                      </div>
+                    </div>
+                    ${corte.observaciones ? `
+                      <div style="margin-top: 12px; font-size: 12px; color: #64748b;">
+                        <strong>Obs:</strong> ${corte.observaciones}
+                      </div>
+                    ` : ''}
+                  </div>
+                ` : ''}
+                
+                <div class="form-section-title">🧵 Datos de Confección</div>
+                
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label required">Piezas Recibidas de Corte</label>
+                    <input type="number" class="form-input" id="piezasRecibidas-${prendaId}" 
+                           placeholder="${corte?.piezasCortadas || totalPiezas}" 
+                           value="${confeccionDatos[prendaId]?.piezasRecibidas || corte?.piezasCortadas || totalPiezas}" required>
+                    <span class="form-help">De corte: ${corte?.piezasCortadas || totalPiezas} piezas</span>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="form-label required">Piezas Terminadas</label>
+                    <input type="number" class="form-input" id="piezasTerminadas-${prendaId}" 
+                           placeholder="0" 
+                           value="${confeccionDatos[prendaId]?.piezasTerminadas || ''}" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Accesorios Utilizados</label>
+                  <div class="accesorios-grid">
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-botones-${prendaId}" value="Botones">
+                      <label class="accesorio-label" for="acc-botones-${prendaId}">Botones</label>
+                    </div>
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-zipper-${prendaId}" value="Zipper">
+                      <label class="accesorio-label" for="acc-zipper-${prendaId}">Zipper</label>
+                    </div>
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-elastico-${prendaId}" value="Elástico">
+                      <label class="accesorio-label" for="acc-elastico-${prendaId}">Elástico</label>
+                    </div>
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-velcro-${prendaId}" value="Velcro">
+                      <label class="accesorio-label" for="acc-velcro-${prendaId}">Velcro</label>
+                    </div>
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-broche-${prendaId}" value="Broche">
+                      <label class="accesorio-label" for="acc-broche-${prendaId}">Broche</label>
+                    </div>
+                    <div class="accesorio-item">
+                      <input type="checkbox" id="acc-etiquetas-${prendaId}" value="Etiquetas">
+                      <label class="accesorio-label" for="acc-etiquetas-${prendaId}">Etiquetas</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Observaciones / Problemas</label>
+                  <textarea class="form-textarea" id="observaciones-${prendaId}" 
+                            placeholder="Notas sobre la confección de esta prenda, piezas con defecto, etc...">${confeccionDatos[prendaId]?.observaciones || ''}</textarea>
+                </div>
+
+                <div class="btn-group">
+                  <button type="button" class="btn btn-secondary" onclick="togglePrenda(${prendaId})">Cerrar</button>
+                  <button type="submit" class="btn btn-success">💾 Guardar Confección</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ========== TOGGLE PRENDA (EXPANDIR/COLAPSAR) ==========
+    function togglePrenda(prendaId) {
+      const prenda = document.getElementById(`prenda-${prendaId}`);
+      if (!prenda) return;
+      
+      prenda.classList.toggle('expanded');
+    }
+
+    // ========== GUARDAR CONFECCIÓN DE UNA PRENDA ==========
+    function guardarConfeccionPrenda(event, prendaId, totalPiezas) {
+      event.preventDefault();
+
+      const piezasRecibidas = parseInt(document.getElementById(`piezasRecibidas-${prendaId}`).value);
+      const piezasTerminadas = parseInt(document.getElementById(`piezasTerminadas-${prendaId}`).value);
+      const observaciones = document.getElementById(`observaciones-${prendaId}`).value;
+
+      // Obtener accesorios seleccionados
+      const accesorios = [];
+      ['botones', 'zipper', 'elastico', 'velcro', 'broche', 'etiquetas'].forEach(acc => {
+        const checkbox = document.getElementById(`acc-${acc}-${prendaId}`);
+        if (checkbox && checkbox.checked) {
+          accesorios.push(checkbox.value);
+        }
+      });
+
+      // Validar que piezas terminadas no sean más que las recibidas
+      if (piezasTerminadas > piezasRecibidas) {
+        mostrarNotificacion('Las piezas terminadas no pueden ser más que las recibidas', 'error');
+        return;
+      }
+
+      // Guardar en memoria
+      confeccionDatos[prendaId] = {
+        piezasRecibidas,
+        piezasTerminadas,
+        accesorios: accesorios.join(', '),
+        observaciones,
+        completado: true,
+        fecha: new Date().toISOString()
+      };
+
+      // Actualizar UI
+      const prenda = document.getElementById(`prenda-${prendaId}`);
+      prenda.classList.add('completado');
+      prenda.classList.remove('expanded');
+
+      // Re-render para mostrar el resumen
+      let prendas = [];
+      let corteDatos = null;
+      try {
+        if (pedidoActual.prendas) {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        }
+        if (pedidoActual.corteDatos) {
+          corteDatos = typeof pedidoActual.corteDatos === 'string' ? JSON.parse(pedidoActual.corteDatos) : pedidoActual.corteDatos;
+        }
+      } catch (e) {}
+      
+      renderAcordeon(prendas, corteDatos);
+      actualizarProgreso();
+
+      mostrarNotificacion('✅ Confección de prenda guardada', 'success');
+    }
+
+    // ========== ACTUALIZAR PROGRESO ==========
+    function actualizarProgreso() {
+      let prendas = [];
+      try {
+        if (pedidoActual.prendas) {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        }
+      } catch (e) {}
+
+      const total = prendas.length;
+      const completadas = Object.values(confeccionDatos).filter(d => d.completado).length;
+      const porcentaje = total > 0 ? (completadas / total) * 100 : 0;
+
+      document.getElementById('progressText').textContent = `${completadas} de ${total} prendas`;
+      document.getElementById('progressFill').style.width = `${porcentaje}%`;
+
+      // Habilitar botón finalizar si todas están completadas
+      const btnFinalizar = document.getElementById('btnFinalizar');
+      if (completadas === total && total > 0) {
+        btnFinalizar.disabled = false;
+      } else {
+        btnFinalizar.disabled = true;
+      }
+    }
+
+    // ========== FINALIZAR CONFECCIÓN (MARCAR COMO LISTO) ==========
+    async function finalizarConfeccion() {
+      if (!pedidoActual) return;
+
+      const confirmacion = confirm('¿Estás seguro de marcar este pedido como LISTO?\n\nYa no podrás modificar los datos de confección.');
+      if (!confirmacion) return;
+
+      try {
+        // Preparar datos para enviar
+        const confeccionDatosArray = Object.entries(confeccionDatos).map(([prendaId, datos]) => ({
+          prendaId: parseInt(prendaId),
+          ...datos
+        }));
+
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoActual.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            estado: 'listo',
+            confeccionDatos: JSON.stringify({
+              prendas: confeccionDatosArray,
+              usuario: currentUser?.nombre || 'Usuario',
+              completadoTotal: true,
+              fechaCompleto: new Date().toISOString()
+            })
+          })
+        });
+
+        if (!res.ok) throw new Error('Error al guardar');
+
+        mostrarNotificacion('✅ Pedido marcado como LISTO', 'success');
+        cerrarModal();
+        await cargarPedidos();
+      } catch (err) {
+        console.error('Error finalizando confección:', err);
+        mostrarNotificacion('Error al marcar como listo', 'error');
+      }
+    }
+
+    // ========== CARGAR IMÁGENES ==========
+    async function cargarImagenes(pedidoId) {
+      try {
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}/imagenes`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!res.ok) {
+          document.getElementById('imagenesSection').style.display = 'none';
+          return;
+        }
+
+        const imagenes = await res.json();
+        
+        if (imagenes.length === 0) {
+          document.getElementById('imagenesSection').style.display = 'none';
+          return;
+        }
+
+        document.getElementById('imagenesSection').style.display = 'block';
+        document.getElementById('imagenesGrid').innerHTML = imagenes.map(img => `
+          <div class="imagen-item" onclick="window.open('${img.imagenUrl}', '_blank')">
+            <img src="${img.imagenUrl}" alt="Referencia" loading="lazy">
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error cargando imágenes:', err);
+        document.getElementById('imagenesSection').style.display = 'none';
+      }
+    }
+
+    // ========== MODAL ==========
+    function cerrarModal() {
+      document.getElementById('modalPedido').classList.remove('active');
+      pedidoActual = null;
+      confeccionDatos = {};
+    }
+
+    // ========== UTILIDADES ==========
+    function calcularDiasRestantes(fechaEntrega) {
+      if (!fechaEntrega) return 999;
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const entrega = new Date(fechaEntrega);
+      entrega.setHours(0, 0, 0, 0);
+      const diff = entrega - hoy;
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function formatearFecha(fecha) {
+      if (!fecha) return '-';
+      const d = new Date(fecha);
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const año = d.getFullYear();
+      return `${dia}/${mes}/${año}`;
+    }
+
+    function mostrarNotificacion(mensaje, tipo = 'success') {
+      const notif = document.getElementById('notificacion');
+      notif.textContent = mensaje;
+      notif.className = `notificacion show ${tipo === 'error' ? 'error' : ''}`;
+      
+      setTimeout(() => {
+        notif.classList.remove('show');
+      }, 3000);
+    }
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('modalPedido').addEventListener('click', (e) => {
+      if (e.target.id === 'modalPedido') {
+        cerrarModal();
+      }
+    });
+  </script>
+</body>
+</html>

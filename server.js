@@ -125,14 +125,12 @@ function mapPedidoFromDb(row) {
     clienteNombre: row.cliente_nombre,
     clienteTelefono: row.cliente_telefono,
     clienteEscuela: row.cliente_escuela,
-    prendaTipo: row.prenda_tipo,
-    prendaModelo: row.prenda_modelo,
     descripcionGeneral: row.descripcion_general,
+    fechaIngreso: row.fecha_ingreso,
     fechaEntrega: row.fecha_entrega,
     estado: row.estado,
     tallasTexto: row.tallas_texto,
     especificacionesTelas: row.especificaciones_telas,
-    comprasNotas: row.compras_notas,
     corteNotas: row.corte_notas,
     confeccionNotas: row.confeccion_notas,
     precioTotal: Number(row.precio_total || 0),
@@ -142,8 +140,24 @@ function mapPedidoFromDb(row) {
     condicionesCliente: row.condiciones_cliente,
     comprasDetalle: row.compras_detalle,
     imagenUrl: row.imagen_url,
-    prendas: row.prendas, // ← NUEVO: Array de prendas con precios (JSON)
-    notas: row.notas,     // ← NUEVO: Notas internas del equipo (JSON)
+    prendas: row.prendas,
+    notas: row.notas,
+    // Campos de Corte
+    corteTipoTela: row.corte_tipo_tela,
+    corteColor: row.corte_color,
+    corteCantidadKg: row.corte_cantidad_kg,
+    corteCantidadMetros: row.corte_cantidad_metros,
+    cortePiezasCortadas: row.corte_piezas_cortadas,
+    corteObservaciones: row.corte_observaciones,
+    corteUsuario: row.corte_usuario,
+    corteFecha: row.corte_fecha,
+    // Campos de Confección
+    confeccionPiezasRecibidas: row.confeccion_piezas_recibidas,
+    confeccionPiezasTerminadas: row.confeccion_piezas_terminadas,
+    confeccionAccesorios: row.confeccion_accesorios,
+    confeccionObservaciones: row.confeccion_observaciones,
+    confeccionUsuario: row.confeccion_usuario,
+    confeccionFecha: row.confeccion_fecha,
     creadoEn: row.creado_en,
     actualizadoEn: row.actualizado_en,
   };
@@ -155,14 +169,12 @@ function mapPedidoToDb(body, extra = {}) {
     cliente_nombre: body.clienteNombre,
     cliente_telefono: body.clienteTelefono,
     cliente_escuela: body.clienteEscuela,
-    prenda_tipo: body.prendaTipo,
-    prenda_modelo: body.prendaModelo,
     descripcion_general: body.descripcionGeneral,
+    fecha_ingreso: body.fechaIngreso,
     fecha_entrega: body.fechaEntrega,
     estado: body.estado,
     tallas_texto: body.tallasTexto,
     especificaciones_telas: body.especificacionesTelas,
-    compras_notas: body.comprasNotas,
     corte_notas: body.corteNotas,
     confeccion_notas: body.confeccionNotas,
     precio_total: body.precioTotal,
@@ -172,8 +184,24 @@ function mapPedidoToDb(body, extra = {}) {
     condiciones_cliente: body.condicionesCliente,
     compras_detalle: body.comprasDetalle,
     imagen_url: body.imagenUrl,
-    prendas: body.prendas,  // ← NUEVO: Array de prendas con precios (JSON)
-    notas: body.notas,      // ← NUEVO: Notas internas del equipo (JSON)
+    prendas: body.prendas,
+    notas: body.notas,
+    // Campos de Corte
+    corte_tipo_tela: body.corteTipoTela,
+    corte_color: body.corteColor,
+    corte_cantidad_kg: body.corteCantidadKg,
+    corte_cantidad_metros: body.corteCantidadMetros,
+    corte_piezas_cortadas: body.cortePiezasCortadas,
+    corte_observaciones: body.corteObservaciones,
+    corte_usuario: body.corteUsuario,
+    corte_fecha: body.corteFecha,
+    // Campos de Confección
+    confeccion_piezas_recibidas: body.confeccionPiezasRecibidas,
+    confeccion_piezas_terminadas: body.confeccionPiezasTerminadas,
+    confeccion_accesorios: body.confeccionAccesorios,
+    confeccion_observaciones: body.confeccionObservaciones,
+    confeccion_usuario: body.confeccionUsuario,
+    confeccion_fecha: body.confeccionFecha,
     ...extra,
   };
 }
@@ -315,13 +343,12 @@ app.put("/api/pedidos/:id", auth, async (req, res) => {
     clienteNombre: body.clienteNombre ?? original.clienteNombre,
     clienteTelefono: body.clienteTelefono ?? original.clienteTelefono,
     clienteEscuela: body.clienteEscuela ?? original.clienteEscuela,
-    prendaTipo: body.prendaTipo ?? original.prendaTipo,
-    prendaModelo: body.prendaModelo ?? original.prendaModelo,
     descripcionGeneral: body.descripcionGeneral ?? original.descripcionGeneral,
+    fechaIngreso: body.fechaIngreso ?? original.fechaIngreso,
     fechaEntrega: body.fechaEntrega ?? original.fechaEntrega,
     estado: body.estado ?? original.estado,
     tallasTexto: body.tallasTexto ?? original.tallasTexto,
-    comprasNotas: body.comprasNotas ?? original.comprasNotas,
+    especificacionesTelas: body.especificacionesTelas ?? original.especificacionesTelas,
     corteNotas: body.corteNotas ?? original.corteNotas,
     confeccionNotas: body.confeccionNotas ?? original.confeccionNotas,
     precioTotal:
@@ -339,8 +366,24 @@ app.put("/api/pedidos/:id", auth, async (req, res) => {
       body.condicionesCliente ?? original.condicionesCliente,
     comprasDetalle: body.comprasDetalle ?? original.comprasDetalle,
     imagenUrl: body.imagenUrl ?? original.imagenUrl,
-    prendas: body.prendas ?? original.prendas,  // ← NUEVO: Array de prendas con precios
-    notas: body.notas ?? original.notas,        // ← NUEVO: Notas internas del equipo
+    prendas: body.prendas ?? original.prendas,
+    notas: body.notas ?? original.notas,
+    // Campos de Corte
+    corteTipoTela: body.corteTipoTela ?? original.corteTipoTela,
+    corteColor: body.corteColor ?? original.corteColor,
+    corteCantidadKg: body.corteCantidadKg ?? original.corteCantidadKg,
+    corteCantidadMetros: body.corteCantidadMetros ?? original.corteCantidadMetros,
+    cortePiezasCortadas: body.cortePiezasCortadas ?? original.cortePiezasCortadas,
+    corteObservaciones: body.corteObservaciones ?? original.corteObservaciones,
+    corteUsuario: body.corteUsuario ?? original.corteUsuario,
+    corteFecha: body.corteFecha ?? original.corteFecha,
+    // Campos de Confección
+    confeccionPiezasRecibidas: body.confeccionPiezasRecibidas ?? original.confeccionPiezasRecibidas,
+    confeccionPiezasTerminadas: body.confeccionPiezasTerminadas ?? original.confeccionPiezasTerminadas,
+    confeccionAccesorios: body.confeccionAccesorios ?? original.confeccionAccesorios,
+    confeccionObservaciones: body.confeccionObservaciones ?? original.confeccionObservaciones,
+    confeccionUsuario: body.confeccionUsuario ?? original.confeccionUsuario,
+    confeccionFecha: body.confeccionFecha ?? original.confeccionFecha,
   };
 
   const payload = mapPedidoToDb(merged, {
@@ -554,8 +597,19 @@ app.get("/api/respaldo", auth, async (req, res) => {
 // ---------------------------
 //  FRONTEND
 // ---------------------------
+// Ruta principal - App de Admin/Ventas
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "app-uniformes-multi.html"));
+});
+
+// Ruta para Área de Corte
+app.get("/corte", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "app-corte.html"));
+});
+
+// Ruta para Área de Confección
+app.get("/confeccion", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "app-confeccion.html"));
 });
 
 // ---------------------------

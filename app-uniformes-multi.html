@@ -1331,6 +1331,281 @@
       to { transform: translateX(0); opacity: 1; }
     }
 
+    /* ========== RESPONSIVE MEJORADO ========== */
+    /* Tablets y pantallas medianas */
+    @media (max-width: 1024px) {
+      .contenedor {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .row-3 {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 13px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+    }
+
+    /* Móviles */
+    @media (max-width: 768px) {
+      body {
+        font-size: 14px;
+      }
+
+      header {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .brand-text-main {
+        font-size: 16px;
+      }
+
+      .brand-text-sub {
+        font-size: 10px;
+      }
+
+      .top-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .card {
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .card-inner {
+        padding: 16px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+
+      .btn.secondary,
+      .btn.danger {
+        width: 100%;
+      }
+
+      input, select, textarea {
+        font-size: 16px; /* Previene zoom en iOS */
+        padding: 12px;
+      }
+
+      label {
+        font-size: 13px;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -16px;
+        padding: 0 16px;
+      }
+
+      table {
+        min-width: 600px;
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+
+      .status-pill {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+
+      .vista-toggle {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .vista-btn {
+        width: 100%;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .filter-group {
+        width: 100%;
+      }
+
+      .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 20px auto;
+        max-height: 90vh;
+      }
+
+      .prenda-card {
+        padding: 12px;
+      }
+
+      .tabla-tallas-prenda {
+        font-size: 11px;
+      }
+
+      .tabla-tallas-prenda th,
+      .tabla-tallas-prenda td {
+        padding: 6px 4px;
+      }
+
+      .resumen-pedido {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .resumen-pedido .valor {
+        font-size: 24px;
+      }
+    }
+
+    /* Móviles pequeños */
+    @media (max-width: 480px) {
+      .brand {
+        gap: 8px;
+      }
+
+      .brand-logo {
+        width: 36px;
+        height: 36px;
+      }
+
+      .brand-text-main {
+        font-size: 14px;
+      }
+
+      .brand-text-sub {
+        display: none;
+      }
+
+      .card {
+        padding: 12px;
+        border-radius: 8px;
+      }
+
+      .card-inner {
+        padding: 12px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      h3 {
+        font-size: 15px;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      .stat-card {
+        padding: 12px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+      }
+
+      .modal-content {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+      }
+
+      .tabla-tallas-prenda input {
+        padding: 4px 6px;
+        font-size: 12px;
+      }
+
+      .btn-agregar-prenda {
+        font-size: 13px;
+        padding: 10px 16px;
+      }
+    }
+
+    /* Pantallas muy pequeñas */
+    @media (max-width: 360px) {
+      .table-wrapper {
+        margin: 0 -12px;
+        padding: 0 12px;
+      }
+
+      .btn {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+
+      .modal-header h2 {
+        font-size: 16px;
+      }
+    }
+
+    /* Landscape móvil */
+    @media (max-width: 900px) and (orientation: landscape) {
+      .modal-content {
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+
+      header {
+        position: relative;
+      }
+    }
+
   </style>
 
   <!-- Librería para generar PDF en el navegador -->
@@ -1519,20 +1794,14 @@
             <input id="clienteEscuela" type="text" />
 
             <h3>Datos del pedido</h3>
-            <div class="row">
-              <div>
-                <label for="prendaTipo">Tipo de prenda</label>
-                <input id="prendaTipo" type="text" placeholder="Polo, pants, falda..." />
-              </div>
-              <div>
-                <label for="prendaModelo">Modelo / Referencia</label>
-                <input id="prendaModelo" type="text" />
-              </div>
-            </div>
             <label for="descripcionGeneral">Descripción general</label>
             <textarea id="descripcionGeneral" placeholder="Colores, logo, detalles importantes..."></textarea>
 
             <div class="row" style="margin-top:4px;">
+              <div>
+                <label for="fechaIngreso">Fecha de ingreso del pedido</label>
+                <input id="fechaIngreso" type="date" />
+              </div>
               <div>
                 <label for="fechaEntrega">Fecha de entrega</label>
                 <input id="fechaEntrega" type="date" />
@@ -1592,10 +1861,6 @@
 
             <h3>Notas por área</h3>
             <div class="row">
-              <div>
-                <label for="comprasNotas">Compras</label>
-                <textarea id="comprasNotas" placeholder="Tela, accesorios, insumos..."></textarea>
-              </div>
               <div>
                 <label for="especificacionesTelas">🧵 Especificaciones de Telas (CORTE → COMPRAS)</label>
                 <textarea id="especificacionesTelas" placeholder="Cantidad de tela necesaria, tipo, color, metraje..."></textarea>
@@ -1664,22 +1929,6 @@
             <label>Galería de imágenes</label>
             <div id="imagenesLista"></div>
 
-            <!-- NOTAS INTERNAS DEL EQUIPO -->
-            <div class="notas-seccion" id="notasSeccion" style="display: none;">
-              <div class="notas-header">
-                <h3>
-                  💬 Notas internas del equipo
-                  <span class="notas-contador" id="notasContador">0</span>
-                </h3>
-              </div>
-              <div class="notas-lista" id="notasLista">
-                <div class="sin-notas">No hay notas todavía. Agrega la primera nota para el equipo.</div>
-              </div>
-              <div class="nota-form">
-                <textarea id="nuevaNota" placeholder="Escribe una nota para el equipo... (ej: Cliente pidió cambio urgente de talla)"></textarea>
-                <button class="btn" onclick="agregarNota()">➕ Agregar nota</button>
-              </div>
-            </div>
 
             <div class="small-text" id="infoExtra" style="margin-top:6px;"></div>
 
@@ -1695,47 +1944,52 @@
       </div>
     </main>
 
-    <!-- USUARIOS (ADMIN) -->
+    <!-- USUARIOS (ADMIN) - ACORDEÓN -->
     <section class="card" id="usuariosCard" style="display:none;">
       <div class="card-inner">
-        <h2>Usuarios por área</h2>
-        <div class="row">
-          <div>
-            <label for="newUserNombre">Nombre</label>
-            <input id="newUserNombre" type="text" placeholder="Ej. Compras" />
+        <h2 onclick="toggleUsuariosAccordion()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+          <span>👥 Usuarios por área</span>
+          <span id="usuariosAccordionIcon" style="font-size: 1.5em; transition: transform 0.3s ease;">▼</span>
+        </h2>
+        <div id="usuariosAccordionContent" style="display: none; margin-top: 20px;">
+          <div class="row">
+            <div>
+              <label for="newUserNombre">Nombre</label>
+              <input id="newUserNombre" type="text" placeholder="Ej. Compras" />
+            </div>
+            <div>
+              <label for="newUserEmail">Correo</label>
+              <input id="newUserEmail" type="email" placeholder="compras@taller.com" />
+            </div>
           </div>
-          <div>
-            <label for="newUserEmail">Correo</label>
-            <input id="newUserEmail" type="email" placeholder="compras@taller.com" />
+          <div class="row">
+            <div>
+              <label for="newUserPass">Contraseña</label>
+              <input id="newUserPass" type="password" placeholder="••••••••" />
+            </div>
+            <div>
+              <label for="newUserRol">Rol</label>
+              <select id="newUserRol">
+                <option value="admin">admin</option>
+                <option value="ventas">ventas</option>
+                <option value="compras">compras</option>
+                <option value="corte">corte</option>
+                <option value="confeccion">confeccion</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div>
-            <label for="newUserPass">Contraseña</label>
-            <input id="newUserPass" type="password" placeholder="••••••••" />
+          <button class="btn" onclick="crearUsuario()">Crear usuario</button>
+          <h3>Lista de usuarios</h3>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaUsuariosBody"></tbody>
+            </table>
           </div>
-          <div>
-            <label for="newUserRol">Rol</label>
-            <select id="newUserRol">
-              <option value="admin">admin</option>
-              <option value="ventas">ventas</option>
-              <option value="compras">compras</option>
-              <option value="corte">corte</option>
-              <option value="confeccion">confeccion</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn" onclick="crearUsuario()">Crear usuario</button>
-        <h3>Lista de usuarios</h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaUsuariosBody"></tbody>
-          </table>
         </div>
       </div>
     </section>
@@ -1761,6 +2015,37 @@
   let pedidos = [];
   let usuarios = [];
   let alertasActivas = []; // Variable para el sistema de alertas
+
+  // Verificar si hay sesión guardada al cargar la página
+  window.addEventListener('DOMContentLoaded', function() {
+    const savedToken = localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('usuarioActual');
+    
+    if (savedToken && savedUser) {
+      try {
+        authToken = savedToken;
+        usuarioActual = JSON.parse(savedUser);
+        
+        // Mostrar la app en lugar del login
+        document.getElementById("loginView").style.display = "none";
+        document.getElementById("appView").style.display = "block";
+        document.getElementById("userInfo").textContent =
+          usuarioActual.nombre + " (" + usuarioActual.rol + ")";
+        
+        applyRoleUI();
+        cargarPedidos();
+        
+        if (esAdmin()) {
+          cargarUsuarios();
+          actualizarResumen();
+        }
+      } catch (e) {
+        // Si hay error, limpiar y mostrar login
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('usuarioActual');
+      }
+    }
+  });
 
   function statusPill(estado) {
     const map = {
@@ -1844,6 +2129,23 @@
       if (btnEliminarPedido) btnEliminarPedido.style.display = esAdmin() ? "inline-flex" : "none";
     }
   }
+  
+  // === FUNCIÓN ACORDEÓN USUARIOS ===
+  function toggleUsuariosAccordion() {
+    const content = document.getElementById('usuariosAccordionContent');
+    const icon = document.getElementById('usuariosAccordionIcon');
+    
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      icon.style.transform = 'rotate(180deg)';
+      icon.textContent = '▲';
+    } else {
+      content.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+      icon.textContent = '▼';
+    }
+  }
+  
   // ========== MEJORAS BONAPARTE - FUNCIONES NUEVAS ==========
   
   // === SISTEMA DE NOTIFICACIONES ===
@@ -2321,6 +2623,24 @@
       authToken = data.token;
       usuarioActual = { nombre: data.nombre, rol: data.rol };
 
+      // Guardar sesión en localStorage
+      localStorage.setItem('authToken', authToken);
+      localStorage.setItem('usuarioActual', JSON.stringify(usuarioActual));
+
+      // REDIRECCIÓN AUTOMÁTICA SEGÚN ROL
+      const rol = data.rol;
+      
+      if (rol === 'corte') {
+        // Redirigir a app-corte.html
+        window.location.href = 'app-corte.html';
+        return;
+      } else if (rol === 'confeccion') {
+        // Redirigir a app-confeccion.html
+        window.location.href = 'app-confeccion.html';
+        return;
+      }
+      
+      // Para admin, ventas, compras u otros roles, quedarse en uniformes
       document.getElementById("loginView").style.display = "none";
       document.getElementById("appView").style.display = "block";
       document.getElementById("userInfo").textContent =
@@ -2328,7 +2648,7 @@
 
       applyRoleUI();
       await cargarPedidos();
-        mostrarNotificacion('Pedido guardado correctamente', 'success');
+      mostrarNotificacion('Sesión iniciada correctamente', 'success');
       if (esAdmin()) {
         await cargarUsuarios();
         actualizarResumen();
@@ -2345,6 +2665,11 @@
     pedidoActual = null;
     authToken = null;
     usuarioActual = null;
+    
+    // Limpiar localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('usuarioActual');
+    
     document.getElementById("appView").style.display = "none";
     document.getElementById("loginView").style.display = "block";
   }
@@ -2932,9 +3257,8 @@
     document.getElementById("clienteNombre").value = p.clienteNombre || "";
     document.getElementById("clienteTelefono").value = p.clienteTelefono || "";
     document.getElementById("clienteEscuela").value = p.clienteEscuela || "";
-    document.getElementById("prendaTipo").value = p.prendaTipo || "";
-    document.getElementById("prendaModelo").value = p.prendaModelo || "";
     document.getElementById("descripcionGeneral").value = p.descripcionGeneral || "";
+    document.getElementById("fechaIngreso").value = p.fechaIngreso || "";
     document.getElementById("fechaEntrega").value = p.fechaEntrega || "";
     document.getElementById("estado").value = p.estado || "nuevo";
     document.getElementById("tallasTexto").value = p.tallasTexto || "";
@@ -2973,7 +3297,6 @@
     if (especTelas) {
       especTelas.value = p.especificacionesTelas || "";
     }
-    document.getElementById("comprasNotas").value = p.comprasNotas || "";
     document.getElementById("corteNotas").value = p.corteNotas || "";
     document.getElementById("confeccionNotas").value = p.confeccionNotas || "";
     document.getElementById("precioTotal").value = p.precioTotal ?? "";
@@ -3021,13 +3344,16 @@
     document.getElementById("clienteNombre").value = "";
     document.getElementById("clienteTelefono").value = "";
     document.getElementById("clienteEscuela").value = "";
-    document.getElementById("prendaTipo").value = "";
-    document.getElementById("prendaModelo").value = "";
     document.getElementById("descripcionGeneral").value = "";
+    
+    // Establecer fecha de ingreso a hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById("fechaIngreso").value = hoy;
     document.getElementById("fechaEntrega").value = "";
     document.getElementById("estado").value = "nuevo";
     document.getElementById("tallasTexto").value = "";
-    document.getElementById("comprasNotas").value = "";
+    const especTelas = document.getElementById("especificacionesTelas");
+    if (especTelas) especTelas.value = "";
     document.getElementById("corteNotas").value = "";
     document.getElementById("confeccionNotas").value = "";
     document.getElementById("precioTotal").value = "";
@@ -3038,10 +3364,12 @@
     document.getElementById("comprasDetalle").value = "";
     document.getElementById("imagenUrl").value = "";
     
-    // Limpiar notas
+    // Limpiar notas (si existe el elemento)
     notasActuales = [];
-    document.getElementById('notasSeccion').style.display = 'none';
-    document.getElementById('nuevaNota').value = "";
+    const notasSeccion = document.getElementById('notasSeccion');
+    if (notasSeccion) notasSeccion.style.display = 'none';
+    const nuevaNota = document.getElementById('nuevaNota');
+    if (nuevaNota) nuevaNota.value = "";
     document.getElementById("imagenPreview").style.display = "none";
     document.getElementById("imagenesLista").innerHTML = "";
     document.getElementById("tituloFormulario").textContent = "Nuevo pedido";
@@ -3066,13 +3394,12 @@
       clienteNombre: document.getElementById("clienteNombre").value.trim(),
       clienteTelefono: document.getElementById("clienteTelefono").value.trim(),
       clienteEscuela: document.getElementById("clienteEscuela").value.trim(),
-      prendaTipo: document.getElementById("prendaTipo").value.trim(),
-      prendaModelo: document.getElementById("prendaModelo").value.trim(),
       descripcionGeneral: document.getElementById("descripcionGeneral").value.trim(),
+      fechaIngreso: document.getElementById("fechaIngreso").value,
       fechaEntrega: document.getElementById("fechaEntrega").value,
       estado: document.getElementById("estado").value,
       tallasTexto: document.getElementById("tallasTexto").value.trim(),
-      comprasNotas: document.getElementById("comprasNotas").value.trim(),
+      especificacionesTelas: document.getElementById("especificacionesTelas").value.trim(),
       corteNotas: document.getElementById("corteNotas").value.trim(),
       confeccionNotas: document.getElementById("confeccionNotas").value.trim(),
       precioTotal: parseFloat(document.getElementById("precioTotal").value || "0"),
