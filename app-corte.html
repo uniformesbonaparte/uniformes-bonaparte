@@ -1469,6 +1469,22 @@
       pedidoActual = pedido;
       corteDatos = {};
 
+      // ========== CARGAR DATOS DE CORTE GUARDADOS ==========
+      // Si las prendas tienen datos de corte guardados, cargarlos
+      try {
+        if (pedido.prendas) {
+          const prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
+          prendas.forEach((prenda, idx) => {
+            const prendaId = prenda.id || idx + 1;
+            if (prenda.corte_datos) {
+              corteDatos[prendaId] = prenda.corte_datos;
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Error cargando datos de corte:', e);
+      }
+
       // Llenar información
       document.getElementById('infoFolio').textContent = pedido.folio || '-';
       document.getElementById('infoCliente').textContent = pedido.clienteNombre || '-';
@@ -1773,7 +1789,7 @@
     }
 
     // ========== GUARDAR CORTE DE UNA PRENDA ==========
-    function guardarCortePrenda(event, prendaId, totalPiezas) {
+    async function guardarCortePrenda(event, prendaId, totalPiezas) {
       event.preventDefault();
 
       // Recolectar todas las telas
@@ -1816,6 +1832,43 @@
         completado: true,
         fecha: new Date().toISOString()
       };
+
+      // ========== GUARDAR EN BASE DE DATOS ==========
+      try {
+        // Obtener las prendas actuales
+        let prendas = [];
+        if (pedidoActual.prendas) {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        }
+
+        // Actualizar los datos de corte en la prenda específica
+        const prendaIndex = prendas.findIndex((p, idx) => (p.id || idx + 1) === prendaId);
+        if (prendaIndex !== -1) {
+          prendas[prendaIndex].corte_datos = corteDatos[prendaId];
+        }
+
+        // Guardar en BD
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoActual.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prendas: JSON.stringify(prendas)
+          })
+        });
+
+        if (!res.ok) throw new Error('Error al guardar');
+
+        // Actualizar pedido actual
+        pedidoActual.prendas = prendas;
+
+      } catch (err) {
+        console.error('Error guardando en BD:', err);
+        mostrarNotificacion('Error al guardar en base de datos', 'error');
+        return;
+      }
 
       // Actualizar UI
       const prenda = document.getElementById(`prenda-${prendaId}`);
