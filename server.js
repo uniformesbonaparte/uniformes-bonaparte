@@ -402,6 +402,56 @@ app.put("/api/pedidos/:id", auth, async (req, res) => {
     return res.status(500).json({ error: "Error al actualizar pedido" });
   }
 
+  // ========== REGISTRAR ACTIVIDAD ==========
+  // Detectar cambios en prendas (corte o confección)
+  try {
+    const prendasNuevas = body.prendas ? (typeof body.prendas === 'string' ? JSON.parse(body.prendas) : body.prendas) : null;
+    const prendasOriginales = original.prendas ? (typeof original.prendas === 'string' ? JSON.parse(original.prendas) : original.prendas) : null;
+
+    if (prendasNuevas && prendasOriginales) {
+      prendasNuevas.forEach((prendaNueva, idx) => {
+        const prendaOriginal = prendasOriginales[idx];
+        if (!prendaOriginal) return;
+
+        // Detectar si se guardaron datos de corte
+        if (prendaNueva.corte_datos && !prendaOriginal.corte_datos) {
+          registrarActividad(
+            id,
+            'corte_guardado',
+            prendaNueva.tipoPrenda || 'Prenda',
+            req.user?.nombre || 'Usuario',
+            { telas: prendaNueva.corte_datos.telas }
+          );
+        }
+
+        // Detectar si se envió a confección
+        if (prendaNueva.estado_prenda === 'en_confeccion' && prendaOriginal.estado_prenda !== 'en_confeccion') {
+          registrarActividad(
+            id,
+            'prenda_enviada_confeccion',
+            prendaNueva.tipoPrenda || 'Prenda',
+            req.user?.nombre || 'Usuario',
+            { piezas_cortadas: prendaNueva.corte_datos?.piezasCortadas }
+          );
+        }
+
+        // Detectar si se completó en confección
+        if (prendaNueva.estado_prenda === 'terminada' && prendaOriginal.estado_prenda !== 'terminada') {
+          registrarActividad(
+            id,
+            'confeccion_terminada',
+            prendaNueva.tipoPrenda || 'Prenda',
+            req.user?.nombre || 'Usuario',
+            { piezas_terminadas: prendaNueva.confeccion_datos?.piezasTerminadas }
+          );
+        }
+      });
+    }
+  } catch (actividadError) {
+    console.error('Error registrando actividad:', actividadError);
+    // No bloquear la respuesta si falla el registro de actividad
+  }
+
   res.json(mapPedidoFromDb(data));
 });
 
@@ -597,6 +647,79 @@ app.get("/api/respaldo", auth, async (req, res) => {
 // ---------------------------
 //  FRONTEND
 // ---------------------------
+// ---------------------------
+//  ACTIVIDAD / TIMELINE
+// ---------------------------
+
+// GET /api/actividad - Obtener actividad reciente (últimas 24 horas)
+app.get("/api/actividad", async (req, res) => {
+  try {
+    const hace24h = new Date();
+    hace24h.setHours(hace24h.getHours() - 24);
+
+    const { data, error } = await supabase
+      .from("actividad_pedidos")
+      .select(`
+        *,
+        pedidos:pedido_id (
+          folio,
+          cliente_nombre
+        )
+      `)
+      .gte("fecha", hace24h.toISOString())
+      .order("fecha", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (err) {
+    console.error("Error obteniendo actividad:", err);
+    res.status(500).json({ error: "Error al obtener actividad" });
+  }
+});
+
+// GET /api/pedidos/:id/timeline - Obtener timeline de un pedido específico
+app.get("/api/pedidos/:id/timeline", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("actividad_pedidos")
+      .select("*")
+      .eq("pedido_id", id)
+      .order("fecha", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data || []);
+  } catch (err) {
+    console.error("Error obteniendo timeline:", err);
+    res.status(500).json({ error: "Error al obtener timeline" });
+  }
+});
+
+// Función helper para registrar actividad
+async function registrarActividad(pedidoId, tipo, prendaNombre, usuario, detalles = {}) {
+  try {
+    const { error } = await supabase
+      .from("actividad_pedidos")
+      .insert({
+        pedido_id: pedidoId,
+        tipo: tipo,
+        prenda_nombre: prendaNombre,
+        usuario: usuario,
+        detalles: detalles
+      });
+
+    if (error) {
+      console.error("Error registrando actividad:", error);
+    }
+  } catch (err) {
+    console.error("Error en registrarActividad:", err);
+  }
+}
+
 // Ruta principal - App de Admin/Ventas
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "app-uniformes-multi.html"));

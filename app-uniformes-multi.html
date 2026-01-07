@@ -1606,6 +1606,204 @@
       }
     }
 
+    /* ========== PANEL DE ACTIVIDAD RECIENTE ========== */
+    .actividad-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #8b5cf6;
+    }
+
+    .actividad-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .actividad-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b3a73;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .actividad-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .actividad-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 3px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    .actividad-item:hover {
+      background: #f1f5f9;
+      border-left-color: #8b5cf6;
+    }
+
+    .actividad-item.corte {
+      border-left-color: #10b981;
+    }
+
+    .actividad-item.confeccion {
+      border-left-color: #8b5cf6;
+    }
+
+    .actividad-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .actividad-content {
+      flex: 1;
+    }
+
+    .actividad-texto {
+      font-size: 14px;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .actividad-meta {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .actividad-empty {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+    }
+
+    /* ========== TIMELINE EN MODAL ========== */
+    .timeline-tab {
+      border-top: 2px solid #e2e8f0;
+      margin-top: 20px;
+      padding-top: 20px;
+    }
+
+    .timeline-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: -16px;
+      width: 2px;
+      background: #e2e8f0;
+    }
+
+    .timeline-item:last-child::before {
+      display: none;
+    }
+
+    .timeline-dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline-dot.corte {
+      background: #dcfce7;
+    }
+
+    .timeline-dot.confeccion {
+      background: #f3e8ff;
+    }
+
+    .timeline-dot.pedido {
+      background: #dbeafe;
+    }
+
+    .timeline-content {
+      flex: 1;
+      background: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 8px;
+    }
+
+    .timeline-tipo {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 4px;
+    }
+
+    .timeline-prenda {
+      font-size: 13px;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .timeline-detalles {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .timeline-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .timeline-usuario {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .timeline-fecha {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
   </style>
 
   <!-- Librería para generar PDF en el navegador -->
@@ -1683,6 +1881,18 @@
     <main>
       <!-- Panel de alertas (visible cuando hay alertas) -->
       <div id="panelAlertas" class="alertas-panel"></div>
+
+      <!-- PANEL DE ACTIVIDAD RECIENTE (solo visible para admin) -->
+      <div id="panelActividad" class="actividad-panel" style="display: none;">
+        <div class="actividad-header">
+          <div class="actividad-title">
+            📊 Actividad Reciente (Últimas 24 horas)
+          </div>
+        </div>
+        <div class="actividad-lista" id="actividadLista">
+          <div class="actividad-empty">Cargando actividad...</div>
+        </div>
+      </div>
 
       <div class="grid">
         <!-- LISTA DE PEDIDOS -->
@@ -2648,6 +2858,7 @@
 
       applyRoleUI();
       await cargarPedidos();
+      await cargarActividadReciente(); // Cargar actividad reciente
       mostrarNotificacion('Sesión iniciada correctamente', 'success');
       if (esAdmin()) {
         await cargarUsuarios();
@@ -2736,6 +2947,175 @@
     
     actualizarBadgeAlertas();
     actualizarPanelAlertas();
+  }
+
+  // ========== ACTIVIDAD RECIENTE ==========
+  async function cargarActividadReciente() {
+    // Solo para admin
+    if (usuarioActual.rol !== 'admin') {
+      document.getElementById('panelActividad').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('panelActividad').style.display = 'block';
+
+    try {
+      const res = await fetch(`${API_BASE}/actividad`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (!res.ok) throw new Error('Error cargando actividad');
+
+      const actividad = await res.json();
+      renderActividadReciente(actividad);
+    } catch (err) {
+      console.error('Error cargando actividad:', err);
+      document.getElementById('actividadLista').innerHTML = `
+        <div class="actividad-empty">Error al cargar actividad</div>
+      `;
+    }
+  }
+
+  function renderActividadReciente(actividad) {
+    const container = document.getElementById('actividadLista');
+
+    if (!actividad || actividad.length === 0) {
+      container.innerHTML = `
+        <div class="actividad-empty">No hay actividad reciente</div>
+      `;
+      return;
+    }
+
+    container.innerHTML = actividad.map(item => {
+      const icono = item.tipo === 'corte_guardado' ? '✂️' : 
+                    item.tipo === 'prenda_enviada_confeccion' ? '📦' :
+                    item.tipo === 'confeccion_terminada' ? '✅' : '📝';
+      
+      const clase = item.tipo.includes('corte') ? 'corte' : 
+                    item.tipo.includes('confeccion') ? 'confeccion' : '';
+
+      const texto = item.tipo === 'corte_guardado' ? 'Datos de corte guardados' :
+                    item.tipo === 'prenda_enviada_confeccion' ? 'Enviada a confección' :
+                    item.tipo === 'confeccion_terminada' ? 'Confección terminada' : 'Actualización';
+
+      const pedidoInfo = item.pedidos ? `Pedido ${item.pedidos.folio || '#' + item.pedido_id}` : `Pedido #${item.pedido_id}`;
+      const clienteInfo = item.pedidos?.cliente_nombre ? ` - ${item.pedidos.cliente_nombre}` : '';
+
+      return `
+        <div class="actividad-item ${clase}">
+          <div class="actividad-icon">${icono}</div>
+          <div class="actividad-content">
+            <div class="actividad-texto">
+              <strong>${item.prenda_nombre}</strong> ${texto}
+            </div>
+            <div class="actividad-meta">
+              ${pedidoInfo}${clienteInfo} • ${item.usuario || 'Usuario'} • ${formatearTiempoRelativo(item.fecha)}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ========== TIMELINE DE PEDIDO ==========
+  async function cargarTimelinePedido(pedidoId) {
+    try {
+      const res = await fetch(`${API_BASE}/pedidos/${pedidoId}/timeline`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (!res.ok) throw new Error('Error cargando timeline');
+
+      const timeline = await res.json();
+      renderTimeline(timeline);
+    } catch (err) {
+      console.error('Error cargando timeline:', err);
+      const container = document.getElementById('timelineLista');
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #94a3b8;">
+            Error al cargar historial
+          </div>
+        `;
+      }
+    }
+  }
+
+  function renderTimeline(timeline) {
+    const container = document.getElementById('timelineLista');
+    if (!container) return;
+
+    if (!timeline || timeline.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #94a3b8;">
+          No hay actividad registrada en este pedido
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = timeline.map(item => {
+      const icono = item.tipo === 'corte_guardado' ? '✂️' :
+                    item.tipo === 'prenda_enviada_confeccion' ? '📦' :
+                    item.tipo === 'confeccion_terminada' ? '✅' : '📝';
+
+      const clase = item.tipo.includes('corte') ? 'corte' :
+                    item.tipo.includes('confeccion') ? 'confeccion' : 'pedido';
+
+      const titulo = item.tipo === 'corte_guardado' ? 'CORTE GUARDADO' :
+                     item.tipo === 'prenda_enviada_confeccion' ? 'ENVIADO A CONFECCIÓN' :
+                     item.tipo === 'confeccion_terminada' ? 'CONFECCIÓN TERMINADA' : 'ACTUALIZACIÓN';
+
+      let detalles = '';
+      if (item.detalles) {
+        if (item.detalles.telas) {
+          detalles = `Telas: ${item.detalles.telas.map(t => `${t.tipoTela} ${t.color}`).join(', ')}`;
+        } else if (item.detalles.piezas_cortadas) {
+          detalles = `${item.detalles.piezas_cortadas} piezas cortadas`;
+        } else if (item.detalles.piezas_terminadas) {
+          detalles = `${item.detalles.piezas_terminadas} piezas terminadas`;
+        }
+      }
+
+      return `
+        <div class="timeline-item">
+          <div class="timeline-dot ${clase}">${icono}</div>
+          <div class="timeline-content">
+            <div class="timeline-tipo">${titulo}</div>
+            ${item.prenda_nombre ? `<div class="timeline-prenda">${item.prenda_nombre}</div>` : ''}
+            ${detalles ? `<div class="timeline-detalles">${detalles}</div>` : ''}
+            <div class="timeline-footer">
+              <div class="timeline-usuario">👤 ${item.usuario || 'Usuario'}</div>
+              <div class="timeline-fecha">${formatearFechaCompleta(item.fecha)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function formatearTiempoRelativo(fecha) {
+    const ahora = new Date();
+    const entonces = new Date(fecha);
+    const diff = Math.floor((ahora - entonces) / 1000); // segundos
+
+    if (diff < 60) return 'hace un momento';
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
+    if (diff < 172800) return 'ayer';
+    return `hace ${Math.floor(diff / 86400)} días`;
+  }
+
+  function formatearFechaCompleta(fecha) {
+    const f = new Date(fecha);
+    const opciones = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    };
+    return f.toLocaleDateString('es-MX', opciones);
   }
 
   function actualizarBadgeAlertas() {
