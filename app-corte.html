@@ -513,6 +513,27 @@
       background: #f0fdf4;
     }
 
+    .prenda-item.en-confeccion {
+      border-color: #8b5cf6;
+      background: #f5f3ff;
+    }
+
+    .prenda-item.en-confeccion .prenda-header {
+      background: #ede9fe;
+    }
+
+    .badge-confeccion {
+      display: inline-block;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .prenda-header {
       padding: 20px;
       cursor: pointer;
@@ -663,6 +684,70 @@
       font-size: 12px;
       color: var(--text-light);
       font-style: italic;
+    }
+
+    /* ========== TELAS LISTA ========== */
+    .telas-lista {
+      margin-bottom: 20px;
+    }
+
+    .tela-item {
+      background: #f8fafc;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .tela-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tela-numero {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    .btn-icon-delete {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon-delete:hover {
+      background: #fee2e2;
+      transform: scale(1.1);
+    }
+
+    .btn-add-tela {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .btn-add-tela:hover {
+      background: var(--primary);
+      color: white;
+      border-style: solid;
     }
 
     /* ========== BUTTONS ========== */
@@ -1450,20 +1535,23 @@
         const tallasTexto = prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ');
         
         return `
-          <div class="prenda-item ${completado ? 'completado' : ''}" id="prenda-${prendaId}">
+          <div class="prenda-item ${completado ? 'completado' : ''} ${prenda.estado_prenda === 'en_confeccion' ? 'en-confeccion' : ''}" id="prenda-${prendaId}">
             <div class="prenda-header" onclick="togglePrenda(${prendaId})">
               <div class="prenda-info-left">
                 <div class="prenda-nombre">
-                  <span class="prenda-status-icon">${completado ? '✅' : '⚪'}</span>
+                  <span class="prenda-status-icon">
+                    ${prenda.estado_prenda === 'en_confeccion' ? '✅🔄' : completado ? '✅' : '⚪'}
+                  </span>
                   ${prenda.tipoPrenda || 'Prenda sin nombre'}
+                  ${prenda.estado_prenda === 'en_confeccion' ? '<span class="badge-confeccion">En Confección</span>' : ''}
                 </div>
                 <div class="prenda-tallas">Tallas: ${tallasTexto}</div>
                 <div class="prenda-total-piezas">Total: ${totalPiezas} piezas</div>
                 ${completado ? `
                   <div class="prenda-resumen-corte">
-                    ✂️ ${corteDatos[prendaId].tipoTela} • ${corteDatos[prendaId].color} • 
-                    ${corteDatos[prendaId].cantidadKg || 0}kg • ${corteDatos[prendaId].cantidadMetros || 0}m • 
-                    ${corteDatos[prendaId].piezasCortadas} pzas
+                    ✂️ ${corteDatos[prendaId].telas.map(t => 
+                      `${t.tipoTela} ${t.color} (${t.cantidadKg || 0}kg / ${t.cantidadMetros || 0}m)`
+                    ).join(' • ')} • ${corteDatos[prendaId].piezasCortadas} pzas cortadas
                   </div>
                 ` : ''}
               </div>
@@ -1473,37 +1561,103 @@
               <form class="prenda-form" onsubmit="guardarCortePrenda(event, ${prendaId}, ${totalPiezas})">
                 <div class="form-section-title">✂️ Datos de Corte</div>
                 
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="form-label required">Tipo de Tela</label>
-                    <input type="text" class="form-input" id="tipoTela-${prendaId}" 
-                           placeholder="Ej: Popelina, Jersey, Gabardina" 
-                           value="${corteDatos[prendaId]?.tipoTela || ''}" required>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label class="form-label required">Color</label>
-                    <input type="text" class="form-input" id="color-${prendaId}" 
-                           placeholder="Ej: Azul marino, Blanco" 
-                           value="${corteDatos[prendaId]?.color || ''}" required>
-                  </div>
+                <!-- LISTA DE TELAS/COLORES -->
+                <div id="telasLista-${prendaId}" class="telas-lista">
+                  ${corteDatos[prendaId]?.telas?.map((tela, idx) => `
+                    <div class="tela-item" id="tela-${prendaId}-${idx}">
+                      <div class="tela-header">
+                        <span class="tela-numero">Tela ${idx + 1}</span>
+                        <button type="button" class="btn-icon-delete" onclick="eliminarTela(${prendaId}, ${idx})">🗑️</button>
+                      </div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label class="form-label required">Tipo de Tela</label>
+                          <input type="text" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="${idx}" 
+                                 data-field="tipoTela"
+                                 placeholder="Ej: Popelina, Jersey" 
+                                 value="${tela.tipoTela || ''}" required>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label required">Color</label>
+                          <input type="text" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="${idx}" 
+                                 data-field="color"
+                                 placeholder="Ej: Azul marino" 
+                                 value="${tela.color || ''}" required>
+                        </div>
+                      </div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label class="form-label">Cantidad (kg)</label>
+                          <input type="number" step="0.01" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="${idx}" 
+                                 data-field="cantidadKg"
+                                 placeholder="0.00" 
+                                 value="${tela.cantidadKg || ''}">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Cantidad (metros)</label>
+                          <input type="number" step="0.01" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="${idx}" 
+                                 data-field="cantidadMetros"
+                                 placeholder="0.00" 
+                                 value="${tela.cantidadMetros || ''}">
+                        </div>
+                      </div>
+                    </div>
+                  `).join('') || `
+                    <div class="tela-item" id="tela-${prendaId}-0">
+                      <div class="tela-header">
+                        <span class="tela-numero">Tela 1</span>
+                      </div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label class="form-label required">Tipo de Tela</label>
+                          <input type="text" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="0" 
+                                 data-field="tipoTela"
+                                 placeholder="Ej: Popelina, Jersey" required>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label required">Color</label>
+                          <input type="text" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="0" 
+                                 data-field="color"
+                                 placeholder="Ej: Azul marino" required>
+                        </div>
+                      </div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label class="form-label">Cantidad (kg)</label>
+                          <input type="number" step="0.01" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="0" 
+                                 data-field="cantidadKg"
+                                 placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Cantidad (metros)</label>
+                          <input type="number" step="0.01" class="form-input" 
+                                 data-prenda="${prendaId}" 
+                                 data-tela="0" 
+                                 data-field="cantidadMetros"
+                                 placeholder="0.00">
+                        </div>
+                      </div>
+                    </div>
+                  `}
                 </div>
-
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="form-label">Cantidad Usada (kg)</label>
-                    <input type="number" step="0.01" class="form-input" id="cantidadKg-${prendaId}" 
-                           placeholder="0.00" value="${corteDatos[prendaId]?.cantidadKg || ''}">
-                    <span class="form-help">Dejar en 0 si no aplica</span>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label class="form-label">Cantidad Usada (metros)</label>
-                    <input type="number" step="0.01" class="form-input" id="cantidadMetros-${prendaId}" 
-                           placeholder="0.00" value="${corteDatos[prendaId]?.cantidadMetros || ''}">
-                    <span class="form-help">Dejar en 0 si no aplica</span>
-                  </div>
-                </div>
+                
+                <button type="button" class="btn btn-add-tela" onclick="agregarTela(${prendaId})">
+                  ➕ Agregar otra tela/color
+                </button>
 
                 <div class="form-grid">
                   <div class="form-group">
@@ -1524,6 +1678,11 @@
                 <div class="btn-group">
                   <button type="button" class="btn btn-secondary" onclick="togglePrenda(${prendaId})">Cerrar</button>
                   <button type="submit" class="btn btn-success">💾 Guardar Corte</button>
+                  ${completado ? `
+                    <button type="button" class="btn btn-primary" onclick="enviarPrendaAConfeccion(${prendaId})">
+                      ✂️➡️ Enviar a Confección
+                    </button>
+                  ` : ''}
                 </div>
               </form>
             </div>
@@ -1540,29 +1699,118 @@
       prenda.classList.toggle('expanded');
     }
 
+    // ========== AGREGAR TELA ==========
+    function agregarTela(prendaId) {
+      const container = document.getElementById(`telasLista-${prendaId}`);
+      const telaItems = container.querySelectorAll('.tela-item');
+      const newIndex = telaItems.length;
+      
+      const newTela = document.createElement('div');
+      newTela.className = 'tela-item';
+      newTela.id = `tela-${prendaId}-${newIndex}`;
+      newTela.innerHTML = `
+        <div class="tela-header">
+          <span class="tela-numero">Tela ${newIndex + 1}</span>
+          <button type="button" class="btn-icon-delete" onclick="eliminarTela(${prendaId}, ${newIndex})">🗑️</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label required">Tipo de Tela</label>
+            <input type="text" class="form-input" 
+                   data-prenda="${prendaId}" 
+                   data-tela="${newIndex}" 
+                   data-field="tipoTela"
+                   placeholder="Ej: Popelina, Jersey" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Color</label>
+            <input type="text" class="form-input" 
+                   data-prenda="${prendaId}" 
+                   data-tela="${newIndex}" 
+                   data-field="color"
+                   placeholder="Ej: Azul marino" required>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Cantidad (kg)</label>
+            <input type="number" step="0.01" class="form-input" 
+                   data-prenda="${prendaId}" 
+                   data-tela="${newIndex}" 
+                   data-field="cantidadKg"
+                   placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cantidad (metros)</label>
+            <input type="number" step="0.01" class="form-input" 
+                   data-prenda="${prendaId}" 
+                   data-tela="${newIndex}" 
+                   data-field="cantidadMetros"
+                   placeholder="0.00">
+          </div>
+        </div>
+      `;
+      
+      container.appendChild(newTela);
+      mostrarNotificacion('Tela agregada', 'success');
+    }
+
+    // ========== ELIMINAR TELA ==========
+    function eliminarTela(prendaId, telaIndex) {
+      const container = document.getElementById(`telasLista-${prendaId}`);
+      const telaItems = container.querySelectorAll('.tela-item');
+      
+      if (telaItems.length === 1) {
+        mostrarNotificacion('Debe haber al menos una tela', 'error');
+        return;
+      }
+      
+      const telaItem = document.getElementById(`tela-${prendaId}-${telaIndex}`);
+      if (telaItem) {
+        telaItem.remove();
+        mostrarNotificacion('Tela eliminada', 'success');
+      }
+    }
+
     // ========== GUARDAR CORTE DE UNA PRENDA ==========
     function guardarCortePrenda(event, prendaId, totalPiezas) {
       event.preventDefault();
 
-      const tipoTela = document.getElementById(`tipoTela-${prendaId}`).value;
-      const color = document.getElementById(`color-${prendaId}`).value;
-      const cantidadKg = parseFloat(document.getElementById(`cantidadKg-${prendaId}`).value) || 0;
-      const cantidadMetros = parseFloat(document.getElementById(`cantidadMetros-${prendaId}`).value) || 0;
-      const piezasCortadas = parseInt(document.getElementById(`piezasCortadas-${prendaId}`).value);
-      const observaciones = document.getElementById(`observaciones-${prendaId}`).value;
+      // Recolectar todas las telas
+      const telasInputs = document.querySelectorAll(`[data-prenda="${prendaId}"]`);
+      const telasData = {};
+      
+      telasInputs.forEach(input => {
+        const telaIdx = input.dataset.tela;
+        const field = input.dataset.field;
+        
+        if (!telasData[telaIdx]) {
+          telasData[telaIdx] = {};
+        }
+        
+        if (field === 'cantidadKg' || field === 'cantidadMetros') {
+          telasData[telaIdx][field] = parseFloat(input.value) || 0;
+        } else {
+          telasData[telaIdx][field] = input.value;
+        }
+      });
 
-      // Validar que al menos una cantidad esté llena
-      if (cantidadKg === 0 && cantidadMetros === 0) {
-        mostrarNotificacion('Debes ingresar al menos una cantidad (kg o metros)', 'error');
+      // Convertir a array
+      const telas = Object.values(telasData);
+      
+      // Validar que al menos una tela tenga cantidad
+      const tieneAlgunaCantidad = telas.some(t => t.cantidadKg > 0 || t.cantidadMetros > 0);
+      if (!tieneAlgunaCantidad) {
+        mostrarNotificacion('Debes ingresar al menos una cantidad (kg o metros) en alguna tela', 'error');
         return;
       }
 
+      const piezasCortadas = parseInt(document.getElementById(`piezasCortadas-${prendaId}`).value);
+      const observaciones = document.getElementById(`observaciones-${prendaId}`).value;
+
       // Guardar en memoria
       corteDatos[prendaId] = {
-        tipoTela,
-        color,
-        cantidadKg,
-        cantidadMetros,
+        telas: telas,
         piezasCortadas,
         observaciones,
         completado: true,
@@ -1610,6 +1858,58 @@
         btnFinalizar.disabled = false;
       } else {
         btnFinalizar.disabled = true;
+      }
+    }
+
+    // ========== ENVIAR PRENDA INDIVIDUAL A CONFECCIÓN ==========
+    async function enviarPrendaAConfeccion(prendaId) {
+      if (!pedidoActual) return;
+
+      const confirmacion = confirm('¿Enviar esta prenda a Confección?\n\nLa prenda aparecerá en el área de confección.');
+      if (!confirmacion) return;
+
+      try {
+        // Obtener las prendas actuales
+        let prendas = [];
+        if (pedidoActual.prendas) {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        }
+
+        // Actualizar el estado de la prenda específica
+        const prendaIndex = prendas.findIndex((p, idx) => (p.id || idx + 1) === prendaId);
+        if (prendaIndex !== -1) {
+          prendas[prendaIndex].estado_prenda = 'en_confeccion';
+          prendas[prendaIndex].corte_datos = corteDatos[prendaId];
+        }
+
+        // Guardar en BD
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoActual.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prendas: JSON.stringify(prendas)
+          })
+        });
+
+        if (!res.ok) throw new Error('Error al guardar');
+
+        mostrarNotificacion('✅ Prenda enviada a Confección', 'success');
+        
+        // Actualizar pedido actual
+        pedidoActual.prendas = prendas;
+        
+        // Re-render del acordeón
+        renderAcordeon(prendas);
+        
+        // Recargar lista de pedidos
+        await cargarPedidos();
+
+      } catch (err) {
+        console.error('Error:', err);
+        mostrarNotificacion('Error al enviar prenda a confección', 'error');
       }
     }
 
