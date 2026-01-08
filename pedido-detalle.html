@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Pedido - Bonaparte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0b3a73 0%, #1e5a9e 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .btn-volver {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-volver:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .btn-imprimir {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-left: 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-imprimir:hover {
+      background: #059669;
+    }
+
+    .content {
+      padding: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge.listo {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.entregado {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .section {
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .info-item {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .prenda-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 2px solid #e5e7eb;
+    }
+
+    .prenda-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .tallas-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .talla-badge {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      font-size: 13px;
+    }
+
+    .datos-produccion {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .datos-corte {
+      background: #f0fdf4;
+      border-left: 4px solid #10b981;
+    }
+
+    .datos-confeccion {
+      background: #faf5ff;
+      border-left: 4px solid #8b5cf6;
+      margin-top: 12px;
+    }
+
+    .produccion-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tela-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border: 1px solid #d1fae5;
+    }
+
+    .tela-nombre {
+      font-weight: 600;
+      color: #059669;
+      margin-bottom: 4px;
+    }
+
+    .tela-detalles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .resumen-total {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 12px;
+      margin-top: 32px;
+    }
+
+    .resumen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .resumen-item {
+      text-align: center;
+    }
+
+    .resumen-label {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+
+    .resumen-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #64748b;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .btn-volver,
+      .btn-imprimir {
+        display: none;
+      }
+      
+      .container {
+        box-shadow: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 20px;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📋 Detalle de Pedido</h1>
+      <div>
+        <button class="btn-volver" onclick="window.close()">← Volver</button>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+      </div>
+    </div>
+
+    <div id="content" class="content">
+      <div class="loading">Cargando pedido...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    let pedido = null;
+
+    // Obtener ID del pedido de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pedidoId = urlParams.get('id');
+
+    if (!pedidoId) {
+      mostrarError('No se especificó un pedido');
+    } else {
+      cargarPedido();
+    }
+
+    async function cargarPedido() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          mostrarError('No hay sesión activa. Por favor inicia sesión.');
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Error al cargar pedido');
+
+        pedido = await res.json();
+        renderPedido();
+      } catch (err) {
+        console.error('Error:', err);
+        mostrarError('Error al cargar el pedido: ' + err.message);
+      }
+    }
+
+    function renderPedido() {
+      const container = document.getElementById('content');
+
+      // Parsear prendas
+      let prendas = [];
+      try {
+        if (pedido.prendas) {
+          prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
+        }
+      } catch (e) {
+        console.error('Error parseando prendas:', e);
+      }
+
+      // Calcular totales
+      let totalTelas = { kg: 0, metros: 0 };
+      let totalPiezas = 0;
+      let duracionDias = 0;
+
+      prendas.forEach(prenda => {
+        // Sumar telas
+        if (prenda.corte_datos?.telas) {
+          prenda.corte_datos.telas.forEach(tela => {
+            totalTelas.kg += parseFloat(tela.cantidadKg || 0);
+            totalTelas.metros += parseFloat(tela.cantidadMetros || 0);
+          });
+        } else if (prenda.corte_datos) {
+          totalTelas.kg += parseFloat(prenda.corte_datos.cantidadKg || 0);
+          totalTelas.metros += parseFloat(prenda.corte_datos.cantidadMetros || 0);
+        }
+
+        // Sumar piezas
+        if (prenda.tallas) {
+          prenda.tallas.forEach(t => {
+            totalPiezas += parseInt(t.cantidad || 0);
+          });
+        }
+      });
+
+      // Calcular duración
+      if (pedido.fechaIngreso && pedido.fechaEntrega) {
+        const inicio = new Date(pedido.fechaIngreso);
+        const fin = new Date(pedido.fechaEntrega);
+        duracionDias = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+      }
+
+      container.innerHTML = `
+        <!-- INFO GENERAL -->
+        <div class="section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="section-title">
+              🏢 Información General
+            </div>
+            <span class="badge ${pedido.estado}">${pedido.estado.toUpperCase()}</span>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Folio</div>
+              <div class="info-value">${pedido.folio || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Cliente</div>
+              <div class="info-value">${pedido.clienteNombre || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Escuela</div>
+              <div class="info-value">${pedido.clienteEscuela || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Teléfono</div>
+              <div class="info-value">${pedido.clienteTelefono || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Fecha Ingreso</div>
+              <div class="info-value">${formatearFecha(pedido.fechaIngreso)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Fecha Entrega</div>
+              <div class="info-value">${formatearFecha(pedido.fechaEntrega)}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INFO FINANCIERA -->
+        <div class="section">
+          <div class="section-title">💰 Información Financiera</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Precio Total</div>
+              <div class="info-value">$${parseFloat(pedido.precioTotal || 0).toFixed(2)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Anticipo</div>
+              <div class="info-value">$${parseFloat(pedido.anticipo || 0).toFixed(2)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Saldo</div>
+              <div class="info-value">$${parseFloat(pedido.saldo || 0).toFixed(2)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Gastos Compras</div>
+              <div class="info-value">$${parseFloat(pedido.gastosCompras || 0).toFixed(2)}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRENDAS Y PRODUCCIÓN -->
+        <div class="section">
+          <div class="section-title">👔 Prendas y Producción</div>
+          ${prendas.map(prenda => renderPrenda(prenda)).join('')}
+        </div>
+
+        <!-- RESUMEN TOTAL -->
+        <div class="resumen-total">
+          <div class="section-title" style="color: white; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 16px; margin-bottom: 20px;">
+            📊 Resumen de Producción
+          </div>
+          <div class="resumen-grid">
+            <div class="resumen-item">
+              <div class="resumen-label">Total Telas</div>
+              <div class="resumen-value">${totalTelas.kg.toFixed(1)} kg</div>
+              <div class="resumen-label">${totalTelas.metros.toFixed(1)} metros</div>
+            </div>
+            <div class="resumen-item">
+              <div class="resumen-label">Total Piezas</div>
+              <div class="resumen-value">${totalPiezas}</div>
+            </div>
+            <div class="resumen-item">
+              <div class="resumen-label">Duración</div>
+              <div class="resumen-value">${duracionDias}</div>
+              <div class="resumen-label">días</div>
+            </div>
+            <div class="resumen-item">
+              <div class="resumen-label">Prendas</div>
+              <div class="resumen-value">${prendas.length}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPrenda(prenda) {
+      let html = `
+        <div class="prenda-card">
+          <div class="prenda-header">
+            ${prenda.tipoPrenda || 'Prenda sin nombre'}
+          </div>
+
+          <div class="tallas-grid">
+            ${prenda.tallas ? prenda.tallas.map(t => `
+              <div class="talla-badge">
+                ${t.talla}: <strong>${t.cantidad}</strong>
+              </div>
+            `).join('') : 'Sin tallas'}
+          </div>
+      `;
+
+      // DATOS DE CORTE
+      if (prenda.corte_datos) {
+        html += `
+          <div class="datos-produccion datos-corte">
+            <div class="produccion-title">✂️ Datos de Corte</div>
+        `;
+
+        if (prenda.corte_datos.telas) {
+          html += prenda.corte_datos.telas.map(tela => `
+            <div class="tela-item">
+              <div class="tela-nombre">📌 ${tela.tipoTela || '-'} - ${tela.color || '-'}</div>
+              <div class="tela-detalles">
+                <div>📦 ${tela.cantidadKg || 0} kg</div>
+                <div>📏 ${tela.cantidadMetros || 0} m</div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          html += `
+            <div class="tela-item">
+              <div class="tela-nombre">📌 ${prenda.corte_datos.tipoTela || '-'} - ${prenda.corte_datos.color || '-'}</div>
+              <div class="tela-detalles">
+                <div>📦 ${prenda.corte_datos.cantidadKg || 0} kg</div>
+                <div>📏 ${prenda.corte_datos.cantidadMetros || 0} m</div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+            <div style="margin-top: 12px; font-size: 13px; color: #4b5563;">
+              <div>✂️ Piezas cortadas: <strong>${prenda.corte_datos.piezasCortadas || 0}</strong></div>
+              ${prenda.corte_datos.observaciones ? `
+                <div style="margin-top: 8px;">📝 ${prenda.corte_datos.observaciones}</div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // DATOS DE CONFECCIÓN
+      if (prenda.confeccion_datos) {
+        html += `
+          <div class="datos-produccion datos-confeccion">
+            <div class="produccion-title">🧵 Datos de Confección</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; font-size: 13px; color: #4b5563;">
+              <div>📥 Recibidas: <strong>${prenda.confeccion_datos.piezasRecibidas || 0}</strong></div>
+              <div>✅ Terminadas: <strong>${prenda.confeccion_datos.piezasTerminadas || 0}</strong></div>
+              ${prenda.confeccion_datos.accesorios ? `
+                <div>🔘 Accesorios: <em>${prenda.confeccion_datos.accesorios}</em></div>
+              ` : ''}
+            </div>
+            ${prenda.confeccion_datos.observaciones ? `
+              <div style="margin-top: 12px; font-size: 13px; color: #4b5563;">
+                💬 ${prenda.confeccion_datos.observaciones}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    function formatearFecha(fecha) {
+      if (!fecha) return 'N/A';
+      const f = new Date(fecha);
+      return f.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function mostrarError(mensaje) {
+      document.getElementById('content').innerHTML = `
+        <div class="error">
+          <strong>Error:</strong> ${mensaje}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

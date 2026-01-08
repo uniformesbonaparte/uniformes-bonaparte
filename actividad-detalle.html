@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Actividad - Bonaparte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0b3a73 0%, #1e5a9e 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .btn-volver {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-volver:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .content {
+      padding: 32px;
+    }
+
+    .badge-tipo {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .badge-tipo.corte {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-tipo.confeccion {
+      background: #f3e8ff;
+      color: #6b21a8;
+    }
+
+    .info-pedido {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #0f172a;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .section {
+      background: #f0fdf4;
+      border-left: 4px solid #10b981;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .section.confeccion {
+      background: #faf5ff;
+      border-left-color: #8b5cf6;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tela-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 2px solid #d1fae5;
+    }
+
+    .tela-card.confeccion {
+      border-color: #e9d5ff;
+    }
+
+    .tela-nombre {
+      font-size: 16px;
+      font-weight: 700;
+      color: #059669;
+      margin-bottom: 12px;
+    }
+
+    .tela-detalles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .detalle-item {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .detalle-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .detalle-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .observaciones {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      border: 2px dashed #d1fae5;
+    }
+
+    .observaciones.confeccion {
+      border-color: #e9d5ff;
+    }
+
+    .observaciones-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b3a73;
+      margin-bottom: 8px;
+    }
+
+    .observaciones-text {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .meta-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #64748b;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 20px;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+      
+      .tela-detalles {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Detalle de Actividad</h1>
+      <button class="btn-volver" onclick="window.close()">← Volver</button>
+    </div>
+
+    <div id="content" class="content">
+      <div class="loading">Cargando actividad...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    let pedido = null;
+    let prenda = null;
+
+    // Obtener parámetros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pedidoId = urlParams.get('pedido');
+    const prendaNombre = urlParams.get('prenda');
+
+    if (!pedidoId) {
+      mostrarError('No se especificó un pedido');
+    } else {
+      cargarDatos();
+    }
+
+    async function cargarDatos() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          mostrarError('No hay sesión activa. Por favor inicia sesión.');
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Error al cargar pedido');
+
+        pedido = await res.json();
+        
+        // Buscar la prenda específica
+        let prendas = [];
+        if (pedido.prendas) {
+          prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
+        }
+
+        prenda = prendas.find(p => p.tipoPrenda === prendaNombre);
+
+        if (!prenda) {
+          mostrarError('No se encontró la prenda especificada');
+          return;
+        }
+
+        renderActividad();
+      } catch (err) {
+        console.error('Error:', err);
+        mostrarError('Error al cargar los datos: ' + err.message);
+      }
+    }
+
+    function renderActividad() {
+      const container = document.getElementById('content');
+      const tieneCorte = !!prenda.corte_datos;
+      const tieneConfeccion = !!prenda.confeccion_datos;
+
+      let html = `
+        <!-- INFO DEL PEDIDO -->
+        <div class="info-pedido">
+          <div class="info-label">Pedido</div>
+          <div class="info-value">${pedido.folio || '#' + pedido.id} - ${pedido.clienteNombre || 'Sin nombre'}</div>
+          <div class="info-label">Prenda</div>
+          <div class="info-value">${prenda.tipoPrenda}</div>
+          <div class="info-label">Tallas</div>
+          <div class="info-value">
+            ${prenda.tallas ? prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ') : 'Sin tallas'}
+          </div>
+        </div>
+      `;
+
+      // DATOS DE CORTE
+      if (tieneCorte) {
+        const corte = prenda.corte_datos;
+        
+        html += `
+          <div class="badge-tipo corte">✂️ DATOS DE CORTE</div>
+          <div class="section">
+            <div class="section-title">✂️ Telas Utilizadas</div>
+        `;
+
+        if (corte.telas) {
+          // Sistema nuevo: múltiples telas
+          corte.telas.forEach((tela, idx) => {
+            html += `
+              <div class="tela-card">
+                <div class="tela-nombre">📌 Tela ${idx + 1}: ${tela.tipoTela || '-'} - ${tela.color || '-'}</div>
+                <div class="tela-detalles">
+                  <div class="detalle-item">
+                    <div class="detalle-label">Cantidad (kg)</div>
+                    <div class="detalle-value">${tela.cantidadKg || 0} kg</div>
+                  </div>
+                  <div class="detalle-item">
+                    <div class="detalle-label">Metraje</div>
+                    <div class="detalle-value">${tela.cantidadMetros || 0} m</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        } else {
+          // Sistema viejo: una sola tela
+          html += `
+            <div class="tela-card">
+              <div class="tela-nombre">📌 ${corte.tipoTela || '-'} - ${corte.color || '-'}</div>
+              <div class="tela-detalles">
+                <div class="detalle-item">
+                  <div class="detalle-label">Cantidad (kg)</div>
+                  <div class="detalle-value">${corte.cantidadKg || 0} kg</div>
+                </div>
+                <div class="detalle-item">
+                  <div class="detalle-label">Metraje</div>
+                  <div class="detalle-value">${corte.cantidadMetros || 0} m</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+            <div style="margin-top: 20px;">
+              <div class="detalle-item" style="display: inline-block; padding: 16px 24px;">
+                <div class="detalle-label">Piezas Cortadas</div>
+                <div class="detalle-value">✂️ ${corte.piezasCortadas || 0}</div>
+              </div>
+            </div>
+        `;
+
+        if (corte.observaciones) {
+          html += `
+            <div class="observaciones">
+              <div class="observaciones-title">📝 Observaciones del Cortador</div>
+              <div class="observaciones-text">${corte.observaciones}</div>
+            </div>
+          `;
+        }
+
+        html += `
+            <div class="meta-info">
+              <div>🕒 Fecha: ${formatearFecha(corte.fecha)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // DATOS DE CONFECCIÓN
+      if (tieneConfeccion) {
+        const conf = prenda.confeccion_datos;
+        
+        html += `
+          <div class="badge-tipo confeccion">🧵 DATOS DE CONFECCIÓN</div>
+          <div class="section confeccion">
+            <div class="section-title">🧵 Información de Confección</div>
+            
+            <div class="tela-detalles">
+              <div class="detalle-item">
+                <div class="detalle-label">Piezas Recibidas</div>
+                <div class="detalle-value">📥 ${conf.piezasRecibidas || 0}</div>
+              </div>
+              <div class="detalle-item">
+                <div class="detalle-label">Piezas Terminadas</div>
+                <div class="detalle-value">✅ ${conf.piezasTerminadas || 0}</div>
+              </div>
+            </div>
+
+            ${conf.accesorios ? `
+              <div class="tela-card confeccion" style="margin-top: 16px;">
+                <div class="observaciones-title">🔘 Accesorios Utilizados</div>
+                <div style="font-size: 14px; color: #4b5563; margin-top: 8px;">${conf.accesorios}</div>
+              </div>
+            ` : ''}
+
+            ${conf.observaciones ? `
+              <div class="observaciones confeccion">
+                <div class="observaciones-title">💬 Observaciones de Confección</div>
+                <div class="observaciones-text">${conf.observaciones}</div>
+              </div>
+            ` : ''}
+
+            <div class="meta-info">
+              <div>🕒 Fecha: ${formatearFecha(conf.fecha)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (!tieneCorte && !tieneConfeccion) {
+        html += `
+          <div class="error">
+            Esta prenda no tiene datos de producción registrados.
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function formatearFecha(fecha) {
+      if (!fecha) return 'N/A';
+      const f = new Date(fecha);
+      return f.toLocaleDateString('es-MX', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function mostrarError(mensaje) {
+      document.getElementById('content').innerHTML = `
+        <div class="error">
+          <strong>Error:</strong> ${mensaje}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
