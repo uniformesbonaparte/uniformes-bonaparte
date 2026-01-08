@@ -1884,12 +1884,13 @@
 
       <!-- PANEL DE ACTIVIDAD RECIENTE (solo visible para admin) -->
       <div id="panelActividad" class="actividad-panel" style="display: none;">
-        <div class="actividad-header">
+        <div class="actividad-header" onclick="togglePanelActividad()" style="cursor: pointer;">
           <div class="actividad-title">
             📊 Actividad Reciente (Últimas 24 horas)
           </div>
+          <span id="actividadToggleIcon" style="font-size: 20px; transition: transform 0.3s;">▼</span>
         </div>
-        <div class="actividad-lista" id="actividadLista">
+        <div class="actividad-lista" id="actividadLista" style="display: block;">
           <div class="actividad-empty">Cargando actividad...</div>
         </div>
       </div>
@@ -1912,6 +1913,25 @@
 
             <!-- VISTA LISTA -->
             <div id="vistaLista">
+              <!-- FILTRO DE VISTA: ACTIVOS / COMPLETADOS / TODOS -->
+              <div style="margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0;">
+                <label style="font-weight: 600; margin-bottom: 8px; display: block;">📊 Ver pedidos:</label>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="vistaFiltro" value="activos" onchange="cambiarVistaFiltro()" checked style="width: auto; cursor: pointer;" />
+                    <span>🔄 Activos</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="vistaFiltro" value="completados" onchange="cambiarVistaFiltro()" style="width: auto; cursor: pointer;" />
+                    <span>✅ Completados (Listo/Entregado)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="vistaFiltro" value="todos" onchange="cambiarVistaFiltro()" style="width: auto; cursor: pointer;" />
+                    <span>📋 Todos</span>
+                  </label>
+                </div>
+              </div>
+
               <div class="row" style="margin-bottom:4px;">
                 <div>
                   <label for="filtroTexto">Buscar</label>
@@ -2976,6 +2996,22 @@
     }
   }
 
+  // ========== TOGGLE PANEL ACTIVIDAD ==========
+  function togglePanelActividad() {
+    const lista = document.getElementById('actividadLista');
+    const icon = document.getElementById('actividadToggleIcon');
+    
+    if (lista.style.display === 'none') {
+      lista.style.display = 'block';
+      icon.style.transform = 'rotate(0deg)';
+      icon.textContent = '▼';
+    } else {
+      lista.style.display = 'none';
+      icon.style.transform = 'rotate(-90deg)';
+      icon.textContent = '▶';
+    }
+  }
+
   function renderActividadReciente(actividad) {
     const container = document.getElementById('actividadLista');
 
@@ -3002,7 +3038,7 @@
       const clienteInfo = item.pedidos?.cliente_nombre ? ` - ${item.pedidos.cliente_nombre}` : '';
 
       return `
-        <div class="actividad-item ${clase}">
+        <div class="actividad-item ${clase}" onclick="verDetalleActividad(${item.pedido_id}, ${item.id})" style="cursor: pointer;">
           <div class="actividad-icon">${icono}</div>
           <div class="actividad-content">
             <div class="actividad-texto">
@@ -3015,6 +3051,12 @@
         </div>
       `;
     }).join('');
+  }
+
+  // ========== VER DETALLE DE ACTIVIDAD ==========
+  async function verDetalleActividad(pedidoId, actividadId) {
+    // Simplemente abrir el pedido
+    await cargarPedido(pedidoId);
   }
 
   // ========== TIMELINE DE PEDIDO ==========
@@ -3534,16 +3576,36 @@
   }
   // ==================== FIN NOTAS INTERNAS ====================
 
+  // ========== CAMBIAR VISTA FILTRO (ACTIVOS/COMPLETADOS/TODOS) ==========
+  function cambiarVistaFiltro() {
+    renderPedidos();
+  }
+
   function renderPedidos() {
     const tbody = document.getElementById("tablaPedidosBody");
     tbody.innerHTML = "";
     const filtroTexto = document.getElementById("filtroTexto").value.toLowerCase().trim();
     const filtroEstado = document.getElementById("filtroEstado").value;
     const ocultarEntregados = document.getElementById("ocultarEntregados").checked;
+    
+    // NUEVO: Obtener filtro de vista (activos/completados/todos)
+    const vistaFiltroSeleccionado = document.querySelector('input[name="vistaFiltro"]:checked');
+    const vistaFiltro = vistaFiltroSeleccionado ? vistaFiltroSeleccionado.value : 'activos';
 
     let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
 
     lista = lista.filter(p => {
+      // FILTRO DE VISTA
+      let okVista = true;
+      if (vistaFiltro === 'activos') {
+        // Mostrar solo pedidos NO completados (ni listo ni entregado)
+        okVista = p.estado !== 'listo' && p.estado !== 'entregado';
+      } else if (vistaFiltro === 'completados') {
+        // Mostrar solo pedidos completados (listo o entregado)
+        okVista = p.estado === 'listo' || p.estado === 'entregado';
+      }
+      // Si es 'todos', okVista = true (muestra todos)
+      
       let okTexto = true;
       if (filtroTexto) {
         const t = ((p.clienteNombre || "") + " " + (p.clienteEscuela || "")).toLowerCase();
@@ -3558,7 +3620,7 @@
         okEntregado = false;
       }
       
-      return okTexto && okEstado && okEntregado;
+      return okVista && okTexto && okEstado && okEntregado;
     });
 
     for (const p of lista) {
