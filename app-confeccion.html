@@ -1303,8 +1303,50 @@
 
         const data = await res.json();
         
-        // Filtrar solo pedidos en estado "confeccion"
-        pedidos = data.filter(p => p.estado === 'confeccion');
+        console.log('📦 Total pedidos recibidos:', data.length);
+        
+        // NUEVA LÓGICA: Mostrar pedidos que cumplan CUALQUIERA de estas condiciones:
+        // 1. El pedido completo está en estado "confeccion"
+        // 2. El pedido tiene al menos una prenda con estado_prenda = "en_confeccion"
+        pedidos = data.filter(p => {
+          // CONDICIÓN 1: Estado general del pedido
+          if (p.estado === 'confeccion') {
+            console.log(`✅ Pedido ${p.id}: Estado general = confección`);
+            return true;
+          }
+          
+          // CONDICIÓN 2: Verificar si tiene prendas individuales en confección
+          if (!p.prendas) {
+            console.log(`⚠️ Pedido ${p.id}: Sin prendas`);
+            return false;
+          }
+          
+          try {
+            const prendas = typeof p.prendas === 'string' ? JSON.parse(p.prendas) : p.prendas;
+            
+            if (!Array.isArray(prendas)) {
+              console.log(`⚠️ Pedido ${p.id}: prendas no es array`);
+              return false;
+            }
+            
+            // Verificar si al menos una prenda está en confección
+            const tienePrendasEnConfeccion = prendas.some(prenda => {
+              const enConfeccion = prenda.estado_prenda === 'en_confeccion' || prenda.estado_prenda === 'terminada';
+              if (enConfeccion) {
+                console.log(`✅ Pedido ${p.id}: Prenda "${prenda.tipoPrenda}" en confección por corte`);
+              }
+              return enConfeccion;
+            });
+            
+            return tienePrendasEnConfeccion;
+          } catch (e) {
+            console.error(`❌ Error parseando pedido ${p.id}:`, e);
+            return false;
+          }
+        });
+        
+        console.log('✅ Pedidos en confección:', pedidos.length);
+        
         pedidosFiltrados = [...pedidos];
         
         actualizarEstadisticas();
@@ -1514,7 +1556,32 @@
     function renderAcordeon(prendas, corteDatos) {
       const container = document.getElementById('prendasAcordeon');
       
-      container.innerHTML = prendas.map((prenda, index) => {
+      // NUEVA LÓGICA:
+      // - Si pedido.estado = "confeccion" → Mostrar TODAS las prendas
+      // - Si llegó por prendas individuales → Mostrar SOLO las que tienen estado_prenda
+      let prendasAMostrar;
+      
+      if (pedidoActual.estado === 'confeccion') {
+        // Pedido completo en confección → mostrar todas
+        console.log('📋 Mostrando TODAS las prendas (pedido en estado confección)');
+        prendasAMostrar = prendas;
+      } else {
+        // Prendas enviadas individualmente → mostrar solo las enviadas
+        prendasAMostrar = prendas.filter(p => p.estado_prenda === 'en_confeccion' || p.estado_prenda === 'terminada');
+        console.log(`📋 Mostrando ${prendasAMostrar.length} prendas enviadas individualmente`);
+      }
+      
+      if (prendasAMostrar.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🧵</div>
+            <div class="empty-state-text">No hay prendas de este pedido en confección aún</div>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = prendasAMostrar.map((prenda, index) => {
         const prendaId = prenda.id || index + 1;
         const completado = confeccionDatos[prendaId]?.completado || false;
         
@@ -1525,7 +1592,14 @@
         const tallasTexto = prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ');
         
         // Buscar datos de corte para esta prenda
-        const corte = corteDatos?.prendas?.find(c => c.prendaId === prendaId);
+        // NUEVA LÓGICA: Buscar en corteDatos (sistema viejo) O en prenda.corte_datos (sistema nuevo)
+        let corte = corteDatos?.prendas?.find(c => c.prendaId === prendaId);
+        
+        // Si no hay en corteDatos, buscar en la prenda misma (enviada individualmente)
+        if (!corte && prenda.corte_datos) {
+          corte = prenda.corte_datos;
+          console.log(`📋 Datos de corte encontrados en prenda ${prendaId}:`, corte);
+        }
         
         return `
           <div class="prenda-item ${completado ? 'completado' : ''}" id="prenda-${prendaId}">
@@ -1553,28 +1627,55 @@
                   <!-- INFO DE CORTE -->
                   <div class="info-corte-section">
                     <div class="info-corte-title">✂️ Datos del Corte</div>
-                    <div class="info-corte-grid">
-                      <div class="info-corte-item">
-                        <span class="info-corte-label">Tela</span>
-                        <span class="info-corte-value">${corte.tipoTela || '-'}</span>
+                    ${corte.telas ? `
+                      <!-- SISTEMA NUEVO: Múltiples telas -->
+                      ${corte.telas.map((tela, idx) => `
+                        <div class="info-corte-grid" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                          <div class="info-corte-item" style="grid-column: span 2;">
+                            <span class="info-corte-label">Tela ${idx + 1}</span>
+                            <span class="info-corte-value"><strong>${tela.tipoTela || '-'} - ${tela.color || '-'}</strong></span>
+                          </div>
+                          <div class="info-corte-item">
+                            <span class="info-corte-label">Cantidad (kg)</span>
+                            <span class="info-corte-value">${tela.cantidadKg || 0} kg</span>
+                          </div>
+                          <div class="info-corte-item">
+                            <span class="info-corte-label">Cantidad (m)</span>
+                            <span class="info-corte-value">${tela.cantidadMetros || 0} m</span>
+                          </div>
+                        </div>
+                      `).join('')}
+                      <div class="info-corte-grid" style="margin-top: 12px;">
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Piezas Cortadas</span>
+                          <span class="info-corte-value">${corte.piezasCortadas || 0}</span>
+                        </div>
                       </div>
-                      <div class="info-corte-item">
-                        <span class="info-corte-label">Color</span>
-                        <span class="info-corte-value">${corte.color || '-'}</span>
+                    ` : `
+                      <!-- SISTEMA VIEJO: Una sola tela -->
+                      <div class="info-corte-grid">
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Tela</span>
+                          <span class="info-corte-value">${corte.tipoTela || '-'}</span>
+                        </div>
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Color</span>
+                          <span class="info-corte-value">${corte.color || '-'}</span>
+                        </div>
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Cantidad (kg)</span>
+                          <span class="info-corte-value">${corte.cantidadKg || 0} kg</span>
+                        </div>
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Cantidad (m)</span>
+                          <span class="info-corte-value">${corte.cantidadMetros || 0} m</span>
+                        </div>
+                        <div class="info-corte-item">
+                          <span class="info-corte-label">Piezas Cortadas</span>
+                          <span class="info-corte-value">${corte.piezasCortadas || 0}</span>
+                        </div>
                       </div>
-                      <div class="info-corte-item">
-                        <span class="info-corte-label">Cantidad (kg)</span>
-                        <span class="info-corte-value">${corte.cantidadKg || 0} kg</span>
-                      </div>
-                      <div class="info-corte-item">
-                        <span class="info-corte-label">Cantidad (m)</span>
-                        <span class="info-corte-value">${corte.cantidadMetros || 0} m</span>
-                      </div>
-                      <div class="info-corte-item">
-                        <span class="info-corte-label">Piezas Cortadas</span>
-                        <span class="info-corte-value">${corte.piezasCortadas || 0}</span>
-                      </div>
-                    </div>
+                    `}
                     ${corte.observaciones ? `
                       <div style="margin-top: 12px; font-size: 12px; color: #64748b;">
                         <strong>Obs:</strong> ${corte.observaciones}
@@ -1658,7 +1759,7 @@
     }
 
     // ========== GUARDAR CONFECCIÓN DE UNA PRENDA ==========
-    function guardarConfeccionPrenda(event, prendaId, totalPiezas) {
+    async function guardarConfeccionPrenda(event, prendaId, totalPiezas) {
       event.preventDefault();
 
       const piezasRecibidas = parseInt(document.getElementById(`piezasRecibidas-${prendaId}`).value);
@@ -1689,6 +1790,57 @@
         completado: true,
         fecha: new Date().toISOString()
       };
+
+      // ========== GUARDAR EN BASE DE DATOS ==========
+      try {
+        // Obtener las prendas actuales
+        let prendas = [];
+        if (pedidoActual.prendas) {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        }
+
+        // Actualizar los datos de confección en la prenda específica
+        const prendaIndex = prendas.findIndex((p, idx) => (p.id || idx + 1) === prendaId);
+        if (prendaIndex !== -1) {
+          prendas[prendaIndex].confeccion_datos = confeccionDatos[prendaId];
+          
+          // Si las piezas terminadas == piezas totales, marcar como terminada
+          if (piezasTerminadas === totalPiezas) {
+            prendas[prendaIndex].estado_prenda = 'terminada';
+            console.log(`✅ Prenda ${prendaId} marcada como terminada`);
+          }
+        }
+
+        console.log('📤 Guardando confección en BD...');
+
+        // Guardar en BD
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoActual.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prendas: JSON.stringify(prendas)
+          })
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('❌ Error del servidor:', errorText);
+          throw new Error('Error al guardar');
+        }
+
+        console.log('✅ Confección guardada en BD');
+
+        // Actualizar pedido actual
+        pedidoActual.prendas = prendas;
+
+      } catch (err) {
+        console.error('❌ Error guardando en BD:', err);
+        mostrarNotificacion('Error al guardar en base de datos', 'error');
+        return;
+      }
 
       // Actualizar UI
       const prenda = document.getElementById(`prenda-${prendaId}`);

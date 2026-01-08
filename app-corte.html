@@ -610,7 +610,9 @@
     }
 
     .prenda-item.expanded .prenda-body {
-      max-height: 1000px;
+      max-height: none;
+      overflow-y: auto;
+      max-height: 70vh; /* Máximo 70% de la altura de viewport */
     }
 
     .prenda-form {
@@ -1922,32 +1924,56 @@
       if (!confirmacion) return;
 
       try {
+        console.log('🚀 Enviando prenda a confección:', prendaId);
+        
         // Obtener las prendas actuales
         let prendas = [];
         if (pedidoActual.prendas) {
           prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
         }
 
+        console.log('📦 Prendas antes:', JSON.stringify(prendas, null, 2));
+
         // Actualizar el estado de la prenda específica
         const prendaIndex = prendas.findIndex((p, idx) => (p.id || idx + 1) === prendaId);
-        if (prendaIndex !== -1) {
-          prendas[prendaIndex].estado_prenda = 'en_confeccion';
-          prendas[prendaIndex].corte_datos = corteDatos[prendaId];
+        
+        if (prendaIndex === -1) {
+          console.error('❌ Prenda no encontrada:', prendaId);
+          mostrarNotificacion('Error: Prenda no encontrada', 'error');
+          return;
         }
+        
+        console.log('✅ Prenda encontrada en índice:', prendaIndex);
+        
+        prendas[prendaIndex].estado_prenda = 'en_confeccion';
+        prendas[prendaIndex].corte_datos = corteDatos[prendaId];
+        
+        console.log('📝 Prenda actualizada:', prendas[prendaIndex]);
 
         // Guardar en BD
+        const payload = {
+          prendas: JSON.stringify(prendas)
+        };
+        
+        console.log('📤 Enviando a BD:', payload);
+        
         const res = await fetch(`${API_BASE}/pedidos/${pedidoActual.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            prendas: JSON.stringify(prendas)
-          })
+          body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error('Error al guardar');
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('❌ Error del servidor:', errorText);
+          throw new Error('Error al guardar: ' + errorText);
+        }
+
+        const resultado = await res.json();
+        console.log('✅ Respuesta del servidor:', resultado);
 
         mostrarNotificacion('✅ Prenda enviada a Confección', 'success');
         
@@ -1961,8 +1987,8 @@
         await cargarPedidos();
 
       } catch (err) {
-        console.error('Error:', err);
-        mostrarNotificacion('Error al enviar prenda a confección', 'error');
+        console.error('❌ Error completo:', err);
+        mostrarNotificacion('Error al enviar prenda a confección: ' + err.message, 'error');
       }
     }
 
