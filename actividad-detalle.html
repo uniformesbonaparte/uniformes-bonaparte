@@ -223,6 +223,81 @@
       margin: 20px;
     }
 
+    /* Estilos del Acordeón */
+    .accordion {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .accordion-header:hover {
+      background: #f9fafb;
+    }
+
+    .accordion-header.corte {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-left: 4px solid #10b981;
+    }
+
+    .accordion-header.corte:hover {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    }
+
+    .accordion-header.confeccion {
+      background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+      border-left: 4px solid #8b5cf6;
+    }
+
+    .accordion-header.confeccion:hover {
+      background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    }
+
+    .accordion-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b3a73;
+    }
+
+    .accordion-icon {
+      font-size: 24px;
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-icon.open {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 24px;
+    }
+
+    .accordion-content.open {
+      max-height: 2000px;
+      padding: 0 24px 24px 24px;
+    }
+
+    .accordion-inner {
+      padding-top: 20px;
+    }
+
     @media (max-width: 768px) {
       .content {
         padding: 20px;
@@ -336,14 +411,22 @@
         </div>
       `;
 
-      // DATOS DE CORTE
+      // DATOS DE CORTE CON ACORDEÓN
       if (tieneCorte) {
         const corte = prenda.corte_datos;
         
         html += `
-          <div class="badge-tipo corte">✂️ DATOS DE CORTE</div>
-          <div class="section">
-            <div class="section-title">✂️ Telas Utilizadas</div>
+          <div class="accordion">
+            <div class="accordion-header corte" onclick="toggleAccordion('corte')">
+              <div class="accordion-title">
+                <span>✂️</span>
+                <span>Datos de Corte</span>
+              </div>
+              <div class="accordion-icon" id="icon-corte">▼</div>
+            </div>
+            <div class="accordion-content open" id="content-corte">
+              <div class="accordion-inner">
+                <div class="section-title">📏 Telas Utilizadas</div>
         `;
 
         if (corte.telas) {
@@ -385,12 +468,12 @@
         }
 
         html += `
-            <div style="margin-top: 20px;">
-              <div class="detalle-item" style="display: inline-block; padding: 16px 24px;">
-                <div class="detalle-label">Piezas Cortadas</div>
-                <div class="detalle-value">✂️ ${corte.piezasCortadas || 0}</div>
-              </div>
-            </div>
+                <div style="margin-top: 20px;">
+                  <div class="detalle-item" style="display: inline-block; padding: 16px 24px;">
+                    <div class="detalle-label">Piezas Cortadas</div>
+                    <div class="detalle-value">✂️ ${corte.piezasCortadas || 0}</div>
+                  </div>
+                </div>
         `;
 
         if (corte.observaciones) {
@@ -403,49 +486,61 @@
         }
 
         html += `
-            <div class="meta-info">
-              <div>🕒 Fecha: ${formatearFecha(corte.fecha)}</div>
+                <div class="meta-info">
+                  <div>🕒 Fecha: ${formatearFecha(corte.fecha)}</div>
+                </div>
+              </div>
             </div>
           </div>
         `;
       }
 
-      // DATOS DE CONFECCIÓN
+      // DATOS DE CONFECCIÓN CON ACORDEÓN
       if (tieneConfeccion) {
         const conf = prenda.confeccion_datos;
         
         html += `
-          <div class="badge-tipo confeccion">🧵 DATOS DE CONFECCIÓN</div>
-          <div class="section confeccion">
-            <div class="section-title">🧵 Información de Confección</div>
-            
-            <div class="tela-detalles">
-              <div class="detalle-item">
-                <div class="detalle-label">Piezas Recibidas</div>
-                <div class="detalle-value">📥 ${conf.piezasRecibidas || 0}</div>
+          <div class="accordion">
+            <div class="accordion-header confeccion" onclick="toggleAccordion('confeccion')">
+              <div class="accordion-title">
+                <span>🧵</span>
+                <span>Datos de Confección</span>
               </div>
-              <div class="detalle-item">
-                <div class="detalle-label">Piezas Terminadas</div>
-                <div class="detalle-value">✅ ${conf.piezasTerminadas || 0}</div>
-              </div>
+              <div class="accordion-icon" id="icon-confeccion">▼</div>
             </div>
+            <div class="accordion-content open" id="content-confeccion">
+              <div class="accordion-inner">
+                <div class="section-title">🧵 Información de Confección</div>
+                
+                <div class="tela-detalles">
+                  <div class="detalle-item">
+                    <div class="detalle-label">Piezas Recibidas</div>
+                    <div class="detalle-value">📥 ${conf.piezasRecibidas || 0}</div>
+                  </div>
+                  <div class="detalle-item">
+                    <div class="detalle-label">Piezas Terminadas</div>
+                    <div class="detalle-value">✅ ${conf.piezasTerminadas || 0}</div>
+                  </div>
+                </div>
 
-            ${conf.accesorios ? `
-              <div class="tela-card confeccion" style="margin-top: 16px;">
-                <div class="observaciones-title">🔘 Accesorios Utilizados</div>
-                <div style="font-size: 14px; color: #4b5563; margin-top: 8px;">${conf.accesorios}</div>
+                ${conf.accesorios ? `
+                  <div class="tela-card confeccion" style="margin-top: 16px;">
+                    <div class="observaciones-title">🔘 Accesorios Utilizados</div>
+                    <div style="font-size: 14px; color: #4b5563; margin-top: 8px;">${conf.accesorios}</div>
+                  </div>
+                ` : ''}
+
+                ${conf.observaciones ? `
+                  <div class="observaciones confeccion">
+                    <div class="observaciones-title">💬 Observaciones de Confección</div>
+                    <div class="observaciones-text">${conf.observaciones}</div>
+                  </div>
+                ` : ''}
+
+                <div class="meta-info">
+                  <div>🕒 Fecha: ${formatearFecha(conf.fecha)}</div>
+                </div>
               </div>
-            ` : ''}
-
-            ${conf.observaciones ? `
-              <div class="observaciones confeccion">
-                <div class="observaciones-title">💬 Observaciones de Confección</div>
-                <div class="observaciones-text">${conf.observaciones}</div>
-              </div>
-            ` : ''}
-
-            <div class="meta-info">
-              <div>🕒 Fecha: ${formatearFecha(conf.fecha)}</div>
             </div>
           </div>
         `;
@@ -472,6 +567,19 @@
         hour: '2-digit',
         minute: '2-digit'
       });
+    }
+
+    function toggleAccordion(id) {
+      const content = document.getElementById(`content-${id}`);
+      const icon = document.getElementById(`icon-${id}`);
+      
+      if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        icon.classList.remove('open');
+      } else {
+        content.classList.add('open');
+        icon.classList.add('open');
+      }
     }
 
     function mostrarError(mensaje) {
