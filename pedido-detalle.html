@@ -145,20 +145,60 @@
     }
 
     .prenda-card {
-      background: #f9fafb;
+      background: white;
       border-radius: 12px;
-      padding: 20px;
       margin-bottom: 16px;
       border: 2px solid #e5e7eb;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .prenda-header {
       font-size: 16px;
       font-weight: 700;
       color: #0b3a73;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
       border-bottom: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .prenda-header:hover {
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    }
+
+    .prenda-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prenda-icon {
+      font-size: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .prenda-icon.open {
+      transform: rotate(180deg);
+    }
+
+    .prenda-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .prenda-content.open {
+      max-height: 2500px;
+    }
+
+    .prenda-inner {
+      padding: 20px;
     }
 
     .tallas-grid {
@@ -472,7 +512,7 @@
         <!-- PRENDAS Y PRODUCCIÓN -->
         <div class="section">
           <div class="section-title">👔 Prendas y Producción</div>
-          ${prendas.map(prenda => renderPrenda(prenda)).join('')}
+          ${prendas.map((prenda, idx) => renderPrenda(prenda, idx)).join('')}
         </div>
 
         <!-- RESUMEN TOTAL -->
@@ -504,20 +544,28 @@
       `;
     }
 
-    function renderPrenda(prenda) {
+    function renderPrenda(prenda, index) {
+      const prendaId = `prenda-${index}`;
+      
       let html = `
         <div class="prenda-card">
-          <div class="prenda-header">
-            ${prenda.tipoPrenda || 'Prenda sin nombre'}
+          <div class="prenda-header" onclick="togglePrenda('${prendaId}')">
+            <div class="prenda-title">
+              <span>👔</span>
+              <span>${prenda.tipoPrenda || 'Prenda sin nombre'}</span>
+            </div>
+            <div class="prenda-icon open" id="icon-${prendaId}">▼</div>
           </div>
 
-          <div class="tallas-grid">
-            ${prenda.tallas ? prenda.tallas.map(t => `
-              <div class="talla-badge">
-                ${t.talla}: <strong>${t.cantidad}</strong>
+          <div class="prenda-content open" id="content-${prendaId}">
+            <div class="prenda-inner">
+              <div class="tallas-grid">
+                ${prenda.tallas ? prenda.tallas.map(t => `
+                  <div class="talla-badge">
+                    ${t.talla}: <strong>${t.cantidad}</strong>
+                  </div>
+                `).join('') : 'Sin tallas'}
               </div>
-            `).join('') : 'Sin tallas'}
-          </div>
       `;
 
       // DATOS DE CORTE
@@ -581,7 +629,12 @@
         `;
       }
 
-      html += `</div>`;
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+      
       return html;
     }
 
@@ -589,6 +642,19 @@
       if (!fecha) return 'N/A';
       const f = new Date(fecha);
       return f.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function togglePrenda(id) {
+      const content = document.getElementById(`content-${id}`);
+      const icon = document.getElementById(`icon-${id}`);
+      
+      if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        icon.classList.remove('open');
+      } else {
+        content.classList.add('open');
+        icon.classList.add('open');
+      }
     }
 
     function mostrarError(mensaje) {
