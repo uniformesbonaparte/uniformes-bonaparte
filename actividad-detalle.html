@@ -276,30 +276,43 @@
           return;
         }
 
-        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+        console.log('Cargando pedido ID:', pedidoId, 'Prenda:', prendaNombre);
+        const url = `${API_BASE}/pedidos/${pedidoId}`;
+        console.log('URL:', url);
+
+        const res = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error('Error al cargar pedido');
+        console.log('Response status:', res.status);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Error response:', errorText);
+          throw new Error(`HTTP ${res.status}: ${errorText}`);
+        }
 
         pedido = await res.json();
+        console.log('Pedido cargado:', pedido);
         
         // Buscar la prenda específica
         let prendas = [];
         if (pedido.prendas) {
           prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
         }
+        console.log('Prendas:', prendas);
 
         prenda = prendas.find(p => p.tipoPrenda === prendaNombre);
+        console.log('Prenda encontrada:', prenda);
 
         if (!prenda) {
-          mostrarError('No se encontró la prenda especificada');
+          mostrarError('No se encontró la prenda especificada: ' + prendaNombre);
           return;
         }
 
         renderActividad();
       } catch (err) {
-        console.error('Error:', err);
+        console.error('Error completo:', err);
         mostrarError('Error al cargar los datos: ' + err.message);
       }
     }

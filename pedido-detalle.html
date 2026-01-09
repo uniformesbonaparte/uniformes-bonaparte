@@ -338,16 +338,27 @@
           return;
         }
 
-        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+        console.log('Cargando pedido ID:', pedidoId);
+        const url = `${API_BASE}/pedidos/${pedidoId}`;
+        console.log('URL:', url);
+
+        const res = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error('Error al cargar pedido');
+        console.log('Response status:', res.status);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Error response:', errorText);
+          throw new Error(`HTTP ${res.status}: ${errorText}`);
+        }
 
         pedido = await res.json();
+        console.log('Pedido cargado:', pedido);
         renderPedido();
       } catch (err) {
-        console.error('Error:', err);
+        console.error('Error completo:', err);
         mostrarError('Error al cargar el pedido: ' + err.message);
       }
     }

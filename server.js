@@ -720,6 +720,26 @@ async function registrarActividad(pedidoId, tipo, prendaNombre, usuario, detalle
   }
 }
 
+// GET pedido individual por ID
+// IMPORTANTE: Este endpoint va después de /api/pedidos/:id/imagenes y /api/pedidos/:id/timeline
+// porque en Express las rutas más específicas deben ir primero
+app.get("/api/pedidos/:id", auth, async (req, res) => {
+  const id = Number(req.params.id);
+
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    console.error("Error obteniendo pedido:", error);
+    return res.status(404).json({ error: "Pedido no encontrado" });
+  }
+
+  res.json(mapPedidoFromDb(data));
+});
+
 // Ruta principal - App de Admin/Ventas
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "app-uniformes-multi.html"));
