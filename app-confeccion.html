@@ -1308,7 +1308,14 @@
         // NUEVA LÓGICA: Mostrar pedidos que cumplan CUALQUIERA de estas condiciones:
         // 1. El pedido completo está en estado "confeccion"
         // 2. El pedido tiene al menos una prenda con estado_prenda = "en_confeccion"
+        // PERO EXCLUIR pedidos que ya están "listo" o "entregado"
         pedidos = data.filter(p => {
+          // IMPORTANTE: Excluir pedidos ya completados
+          if (p.estado === 'listo' || p.estado === 'entregado') {
+            console.log(`⏭️ Pedido ${p.id}: Ya está ${p.estado}, se excluye de confección`);
+            return false;
+          }
+          
           // CONDICIÓN 1: Estado general del pedido
           if (p.estado === 'confeccion') {
             console.log(`✅ Pedido ${p.id}: Estado general = confección`);
