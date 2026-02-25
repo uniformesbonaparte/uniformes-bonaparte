@@ -6,23 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <style>
     :root {
-      --primary: #1e3a8a;
-      --primary-light: #3b82f6;
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
       --primary-dark: #1e40af;
       --accent: #f97316;
       --accent-light: #fb923c;
-      --bg-main: #f8fafc;
-      --bg-card: #ffffff;
-      --text: #0f172a;
-      --text-light: #64748b;
-      --border: #e2e8f0;
+      --bg-main: #0c1929;
+      --bg-card: rgba(15, 30, 52, 0.85);
+      --text: #e2e8f0;
+      --text-light: #94a3b8;
+      --border: rgba(51, 72, 100, 0.6);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --radius: 12px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-      --shadow: 0 4px 12px rgba(30,58,138,0.15);
-      --shadow-lg: 0 10px 40px rgba(30,58,138,0.2);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow: 0 4px 12px rgba(4,21,39,0.4);
+      --shadow-lg: 0 10px 40px rgba(4,21,39,0.5);
     }
 
     * {
@@ -33,7 +33,7 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: radial-gradient(circle at top left, #102241 0%, #020617 50%, #030712 100%);
       color: var(--text);
       min-height: 100vh;
       padding-bottom: 40px;
@@ -41,9 +41,9 @@
 
     /* ========== HEADER ========== */
     header {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(3, 15, 35, 0.96);
       backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       padding: 16px 24px;
       display: flex;
       justify-content: space-between;
@@ -51,7 +51,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      border-bottom: 3px solid var(--primary);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
     }
 
     .brand {
@@ -63,13 +63,13 @@
     .brand-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     }
 
     .brand-text {
@@ -80,7 +80,7 @@
     .brand-title {
       font-size: 22px;
       font-weight: 800;
-      color: var(--primary);
+      color: #f1f5f9;
       letter-spacing: -0.5px;
     }
 
@@ -98,7 +98,7 @@
 
     .user-name {
       font-weight: 600;
-      color: var(--text);
+      color: #cbd5e1;
       font-size: 14px;
     }
 
@@ -197,21 +197,23 @@
     .stat-value {
       font-size: 36px;
       font-weight: 800;
-      color: var(--primary);
+      color: #60a5fa;
       line-height: 1;
     }
 
     /* ========== FILTERS ========== */
     .filters {
-      background: var(--bg-card);
+      background: rgba(15, 30, 52, 0.85);
+      backdrop-filter: blur(12px);
       padding: 20px;
       border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow);
       margin-bottom: 24px;
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
       align-items: center;
+      border: 1px solid rgba(51, 72, 100, 0.5);
     }
 
     .filter-group {
@@ -232,17 +234,18 @@
     .filter-input, .filter-select {
       width: 100%;
       padding: 10px 14px;
-      border: 2px solid var(--border);
+      border: 1px solid rgba(51, 72, 100, 0.6);
       border-radius: 8px;
       font-size: 14px;
       transition: all 0.3s ease;
-      background: white;
+      background: rgba(10, 20, 40, 0.8);
+      color: #e2e8f0;
     }
 
     .filter-input:focus, .filter-select:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
     /* ========== PEDIDOS LISTA ========== */
@@ -1032,6 +1035,91 @@
     #appView {
       display: none;
     }
+    /* ========== DARK THEME BONAPARTE ========== */
+    body { background: radial-gradient(circle at top left, #102241 0%, #020617 50%, #030712 100%) !important; color: #e2e8f0; }
+    header { background: rgba(3, 15, 35, 0.96) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(148,163,184,0.2) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
+    .brand-title { color: #f1f5f9 !important; }
+    .brand-subtitle { color: #94a3b8 !important; }
+    .brand-icon { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 15px rgba(16,185,129,0.3) !important; }
+    .user-name { color: #cbd5e1 !important; }
+    .btn-logout { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.3) !important; }
+    .btn-logout:hover { background: rgba(239,68,68,0.4) !important; }
+    .container { }
+    .stat-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
+    .stat-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
+    .stat-card.active { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2)) !important; box-shadow: 0 10px 30px rgba(16,185,129,0.25) !important; }
+    .stat-value { color: #60a5fa !important; }
+    .stat-card.active .stat-value, .stat-card.active .stat-label { color: #fff !important; }
+    .stat-label { color: #94a3b8 !important; }
+    .filters { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
+    .filter-input, .filter-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
+    .filter-input:focus, .filter-select:focus { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.2) !important; }
+    .filter-input::placeholder { color: #64748b !important; }
+    .filter-label { color: #94a3b8 !important; }
+    .pedido-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
+    .pedido-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
+    .pedido-card::before { background: linear-gradient(90deg, #10b981 0%, #f97316 100%) !important; }
+    .pedido-folio { color: #34d399 !important; }
+    .pedido-cliente { color: #e2e8f0 !important; }
+    .pedido-escuela { color: #94a3b8 !important; }
+    .pedido-details { border-top-color: rgba(51,72,100,0.5) !important; }
+    .detail-label { color: #94a3b8 !important; }
+    .detail-value { color: #e2e8f0 !important; }
+    .pedido-badge.normal { background: rgba(16,185,129,0.2) !important; color: #34d399 !important; }
+    .pedido-badge.urgente { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; }
+    .modal { background: rgba(0,0,0,0.8) !important; }
+    .modal-content { background: #0f1e34 !important; border: 1px solid rgba(51,72,100,0.5); }
+    .modal-header { background: linear-gradient(135deg, #0b3a73 0%, #041527 100%) !important; }
+    .modal-body { background: #0f1e34 !important; }
+    .info-section { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
+    .info-label { color: #94a3b8 !important; }
+    .info-value { color: #e2e8f0 !important; }
+    .form-input, .form-textarea, .form-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.2) !important; }
+    .form-input::placeholder, .form-textarea::placeholder { color: #64748b !important; }
+    .form-label { color: #cbd5e1 !important; }
+    .form-help { color: #64748b !important; }
+    .prenda-item { background: rgba(15,30,52,0.6) !important; border-color: rgba(51,72,100,0.5) !important; }
+    .prenda-item.completado { background: rgba(16,185,129,0.1) !important; border-color: rgba(16,185,129,0.4) !important; }
+    .prenda-header:hover { background: rgba(20,40,70,0.5) !important; }
+    .prenda-item.completado .prenda-header { background: rgba(16,185,129,0.15) !important; }
+    .prenda-nombre { color: #e2e8f0 !important; }
+    .prenda-tallas { color: #94a3b8 !important; }
+    .prenda-total-piezas { color: #60a5fa !important; }
+    .prenda-form { background: rgba(10,20,40,0.6) !important; border-top-color: rgba(51,72,100,0.5) !important; }
+    .form-section-title { color: #34d399 !important; border-bottom-color: rgba(51,72,100,0.5) !important; }
+    .tela-item { background: rgba(15,30,52,0.4) !important; border-color: rgba(51,72,100,0.4) !important; }
+    .tela-header { border-bottom-color: rgba(51,72,100,0.4) !important; }
+    .tela-numero { color: #34d399 !important; }
+    .btn-add-tela { background: rgba(10,20,40,0.6) !important; border-color: #10b981 !important; color: #34d399 !important; }
+    .btn-add-tela:hover { background: rgba(16,185,129,0.2) !important; }
+    .progress-bar-container { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
+    .progress-bar { background: rgba(10,20,40,0.8) !important; }
+    .progress-label { color: #e2e8f0 !important; }
+    .empty-state { color: #64748b !important; }
+    .notificacion { box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
+    .login-card { background: rgba(15,30,52,0.9) !important; backdrop-filter: blur(16px); border: 1px solid rgba(51,72,100,0.5); box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
+    .login-title { color: #34d399 !important; }
+    .login-subtitle { color: #94a3b8 !important; }
+    .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; }
+    .btn-secondary { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
+    .btn-volver { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
+    .btn-volver:hover { background: rgba(20,40,70,0.8) !important; }
+    .imagen-item { border-color: rgba(51,72,100,0.5) !important; }
+    .imagen-item:hover { border-color: #10b981 !important; }
+    /* Notas section in modal */
+    #notasCorteSection { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1)) !important; border-left-color: #10b981 !important; }
+    #notasCorteSection h3 { color: #34d399 !important; }
+    #notasCorteSection div { color: #a7f3d0 !important; }
+    /* Glass card effect for info sections */
+    .info-corte-section { background: rgba(59,130,246,0.1) !important; border-left-color: #3b82f6 !important; }
+    .info-corte-title { color: #60a5fa !important; }
+    .info-corte-value { color: #93c5fd !important; }
+    .info-corte-label { color: #94a3b8 !important; }
+    /* Prenda en confeccion badge */
+    .prenda-item.en-confeccion { background: rgba(139,92,246,0.1) !important; border-color: rgba(139,92,246,0.4) !important; }
+    .prenda-item.en-confeccion .prenda-header { background: rgba(139,92,246,0.15) !important; }
+    select option { background: #0f1e34; color: #e2e8f0; }
   </style>
 </head>
 <body>
