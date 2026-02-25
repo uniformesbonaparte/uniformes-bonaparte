@@ -957,6 +957,76 @@
       }
     }
 
+    /* ========== TALLAS COMPARISON TABLE ========== */
+    .tallas-comparacion {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 13px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    .tallas-comparacion th {
+      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+      color: white;
+      padding: 8px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .tallas-comparacion td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .tallas-comparacion .talla-nombre {
+      font-weight: 700;
+      color: var(--primary);
+      text-align: left;
+    }
+
+    .tallas-comparacion .cantidad-extra {
+      color: #ea580c;
+      font-weight: 700;
+    }
+
+    .tallas-comparacion .cantidad-normal {
+      color: #64748b;
+    }
+
+    .tallas-comparacion .diff-positiva { color: #16a34a; font-weight: 700; }
+    .tallas-comparacion .diff-negativa { color: #dc2626; font-weight: 700; }
+    .tallas-comparacion .diff-igual { color: #9ca3af; }
+
+    .tallas-comparacion .totales-row {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .tallas-comparacion .totales-row td {
+      border-top: 2px solid var(--primary);
+    }
+
+    .badge-corte-modifico {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      color: #ea580c;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #fdba74;
+      margin: 8px 0;
+    }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
       .container {
@@ -1042,86 +1112,6 @@
     #appView {
       display: none;
     }
-    /* ========== DARK THEME BONAPARTE ========== */
-    body { background: radial-gradient(circle at top left, #1a0a2e 0%, #020617 50%, #030712 100%) !important; color: #e2e8f0; }
-    header { background: rgba(3, 15, 35, 0.96) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(148,163,184,0.2) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
-    .brand-title { color: #f1f5f9 !important; }
-    .brand-subtitle { color: #94a3b8 !important; }
-    .brand-icon { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important; box-shadow: 0 4px 15px rgba(139,92,246,0.3) !important; }
-    .user-name { color: #cbd5e1 !important; }
-    .btn-logout { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.3) !important; }
-    .btn-logout:hover { background: rgba(239,68,68,0.4) !important; }
-    .stat-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .stat-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
-    .stat-card.active { background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(124,58,237,0.2)) !important; box-shadow: 0 10px 30px rgba(139,92,246,0.25) !important; }
-    .stat-value { color: #a78bfa !important; }
-    .stat-card.active .stat-value, .stat-card.active .stat-label { color: #fff !important; }
-    .stat-label { color: #94a3b8 !important; }
-    .filters { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .filter-input, .filter-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
-    .filter-input:focus, .filter-select:focus { border-color: #8b5cf6 !important; box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important; }
-    .filter-input::placeholder { color: #64748b !important; }
-    .filter-label { color: #94a3b8 !important; }
-    .pedido-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .pedido-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
-    .pedido-card::before { background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%) !important; }
-    .pedido-folio { color: #a78bfa !important; }
-    .pedido-cliente { color: #e2e8f0 !important; }
-    .pedido-escuela { color: #94a3b8 !important; }
-    .pedido-details { border-top-color: rgba(51,72,100,0.5) !important; }
-    .detail-label { color: #94a3b8 !important; }
-    .detail-value { color: #e2e8f0 !important; }
-    .pedido-badge.normal { background: rgba(139,92,246,0.2) !important; color: #c4b5fd !important; }
-    .pedido-badge.urgente { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; }
-    .modal { background: rgba(0,0,0,0.8) !important; }
-    .modal-content { background: #0f1e34 !important; border: 1px solid rgba(51,72,100,0.5); }
-    .modal-header { background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%) !important; }
-    .modal-body { background: #0f1e34 !important; }
-    .info-section { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
-    .info-label { color: #94a3b8 !important; }
-    .info-value { color: #e2e8f0 !important; }
-    .form-input, .form-textarea, .form-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #8b5cf6 !important; box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important; }
-    .form-input::placeholder, .form-textarea::placeholder { color: #64748b !important; }
-    .form-label { color: #cbd5e1 !important; }
-    .form-help { color: #64748b !important; }
-    .prenda-item { background: rgba(15,30,52,0.6) !important; border-color: rgba(51,72,100,0.5) !important; }
-    .prenda-item.completado { background: rgba(16,185,129,0.1) !important; border-color: rgba(16,185,129,0.4) !important; }
-    .prenda-header:hover { background: rgba(20,40,70,0.5) !important; }
-    .prenda-item.completado .prenda-header { background: rgba(16,185,129,0.15) !important; }
-    .prenda-nombre { color: #e2e8f0 !important; }
-    .prenda-tallas { color: #94a3b8 !important; }
-    .prenda-total-piezas { color: #a78bfa !important; }
-    .prenda-form { background: rgba(10,20,40,0.6) !important; border-top-color: rgba(51,72,100,0.5) !important; }
-    .form-section-title { color: #a78bfa !important; border-bottom-color: rgba(51,72,100,0.5) !important; }
-    .progress-bar-container { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
-    .progress-bar { background: rgba(10,20,40,0.8) !important; }
-    .progress-label { color: #e2e8f0 !important; }
-    .empty-state { color: #64748b !important; }
-    .notificacion { box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
-    .login-card { background: rgba(15,30,52,0.9) !important; backdrop-filter: blur(16px); border: 1px solid rgba(51,72,100,0.5); box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-    .login-title { color: #a78bfa !important; }
-    .login-subtitle { color: #94a3b8 !important; }
-    .btn-primary { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important; }
-    .btn-secondary { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
-    .btn-volver { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
-    .btn-volver:hover { background: rgba(20,40,70,0.8) !important; }
-    .imagen-item { border-color: rgba(51,72,100,0.5) !important; }
-    .imagen-item:hover { border-color: #8b5cf6 !important; }
-    /* Notas section */
-    #notasConfeccionSection { background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(124,58,237,0.1)) !important; border-left-color: #8b5cf6 !important; }
-    #notasConfeccionSection h3 { color: #a78bfa !important; }
-    #notasConfeccionSection div { color: #c4b5fd !important; }
-    /* Info corte section */
-    .info-corte-section { background: rgba(16,185,129,0.1) !important; border-left-color: #10b981 !important; }
-    .info-corte-title { color: #34d399 !important; }
-    .info-corte-value { color: #6ee7b7 !important; }
-    .info-corte-label { color: #94a3b8 !important; }
-    /* Accesorios */
-    .accesorio-item { background: rgba(15,30,52,0.4) !important; border-color: transparent !important; }
-    .accesorio-item:hover { background: rgba(20,40,70,0.6) !important; border-color: #8b5cf6 !important; }
-    .accesorio-label { color: #e2e8f0 !important; }
-    select option { background: #0f1e34; color: #e2e8f0; }
   </style>
 </head>
 <body>
@@ -1697,7 +1687,7 @@
                   ${prenda.tipoPrenda || 'Prenda sin nombre'}
                 </div>
                 <div class="prenda-tallas">Tallas: ${tallasTexto}</div>
-                <div class="prenda-total-piezas">Total: ${totalPiezas} piezas</div>
+                <div class="prenda-total-piezas">Total pedido: ${totalPiezas} piezas${corte?.tallasModificadas ? ` · Cortadas: ${corte.piezasCortadas}` : ''}</div>
                 ${completado ? `
                   <div class="prenda-resumen-confeccion">
                     🧵 Recibidas: ${confeccionDatos[prendaId].piezasRecibidas} • 
@@ -1769,6 +1759,46 @@
                       </div>
                     ` : ''}
                   </div>
+                ` : ''}
+                
+                ${corte?.tallasModificadas && corte.tallasCortadas ? `
+                  <!-- TABLA COMPARACIÓN TALLAS -->
+                  <div class="badge-corte-modifico">⚠️ Corte ajustó las cantidades — se cortaron piezas de más</div>
+                  <table class="tallas-comparacion">
+                    <thead>
+                      <tr>
+                        <th style="text-align:left;">Talla</th>
+                        <th>Pedido</th>
+                        <th>Cortadas</th>
+                        <th>Dif.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${(corte.tallasCortadas || []).map((tc, idx) => {
+                        const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
+                        const cortada = tc.cantidad || 0;
+                        const diff = cortada - orig;
+                        return `
+                          <tr>
+                            <td class="talla-nombre">${tc.talla}</td>
+                            <td>${orig}</td>
+                            <td class="${diff !== 0 ? 'cantidad-extra' : 'cantidad-normal'}">${cortada}</td>
+                            <td class="${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}">
+                              ${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')}
+                      <tr class="totales-row">
+                        <td class="talla-nombre">TOTAL</td>
+                        <td>${corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : totalPiezas}</td>
+                        <td class="cantidad-extra">${corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0)}</td>
+                        <td class="${corte.piezasCortadas - totalPiezas > 0 ? 'diff-positiva' : corte.piezasCortadas - totalPiezas < 0 ? 'diff-negativa' : 'diff-igual'}">
+                          ${(() => { const d = corte.piezasCortadas - totalPiezas; return d > 0 ? '+'+d : d === 0 ? '—' : d; })()}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 ` : ''}
                 
                 <div class="form-section-title">🧵 Datos de Confección</div>

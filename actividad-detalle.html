@@ -197,6 +197,67 @@
       font-style: italic;
     }
 
+    /* Tallas comparison */
+    .tallas-comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #e2e8f0;
+    }
+
+    .tallas-comp-table th {
+      background: linear-gradient(135deg, #0b3a73, #1e5a9e);
+      color: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .tallas-comp-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .tallas-comp-table .talla-nombre {
+      font-weight: 700;
+      text-align: left;
+      color: #0b3a73;
+    }
+
+    .tallas-comp-table .diff-positiva { color: #16a34a; font-weight: 700; }
+    .tallas-comp-table .diff-negativa { color: #dc2626; font-weight: 700; }
+    .tallas-comp-table .diff-igual { color: #9ca3af; }
+    .tallas-comp-table .cantidad-mod { color: #ea580c; font-weight: 700; }
+
+    .tallas-comp-table .totales-row {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .tallas-comp-table .totales-row td {
+      border-top: 2px solid #0b3a73;
+    }
+
+    .badge-cantidades-mod {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      color: #ea580c;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #fdba74;
+      margin: 12px 0;
+    }
+
     .meta-info {
       display: flex;
       justify-content: space-between;
@@ -313,39 +374,6 @@
         grid-template-columns: 1fr;
       }
     }
-    /* ========== DARK THEME BONAPARTE ========== */
-    body { background: radial-gradient(circle at top left, #102241 0%, #020617 50%, #030712 100%) !important; color: #e2e8f0; }
-    .container { background: rgba(15,30,52,0.9) !important; border: 1px solid rgba(51,72,100,0.5); box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-    .header { background: linear-gradient(135deg, #0b3a73 0%, #041527 100%) !important; }
-    .header h1 { color: #f1f5f9 !important; }
-    .btn-volver { background: rgba(255,255,255,0.1) !important; border-color: rgba(255,255,255,0.2) !important; }
-    .content { color: #e2e8f0; }
-    .info-pedido { background: rgba(15,30,52,0.6) !important; border-left-color: #60a5fa !important; }
-    .info-label { color: #94a3b8 !important; }
-    .info-value { color: #e2e8f0 !important; }
-    .section { background: rgba(16,185,129,0.08) !important; border-left-color: #10b981 !important; }
-    .section.confeccion { background: rgba(139,92,246,0.08) !important; border-left-color: #8b5cf6 !important; }
-    .section-title { color: #60a5fa !important; }
-    .tela-card { background: rgba(15,30,52,0.5) !important; border-color: rgba(16,185,129,0.3) !important; }
-    .tela-card.confeccion { border-color: rgba(139,92,246,0.3) !important; }
-    .tela-nombre { color: #34d399 !important; }
-    .detalle-item { background: rgba(10,20,40,0.6) !important; }
-    .detalle-label { color: #94a3b8 !important; }
-    .detalle-value { color: #e2e8f0 !important; }
-    .observaciones { background: rgba(15,30,52,0.4) !important; border-color: rgba(16,185,129,0.3) !important; }
-    .observaciones.confeccion { border-color: rgba(139,92,246,0.3) !important; }
-    .observaciones-title { color: #60a5fa !important; }
-    .observaciones-text { color: #94a3b8 !important; }
-    .meta-info { background: rgba(10,20,40,0.6) !important; color: #94a3b8 !important; }
-    .accordion { background: rgba(15,30,52,0.6) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; }
-    .accordion-header.corte { background: rgba(16,185,129,0.1) !important; border-left-color: #10b981 !important; }
-    .accordion-header.corte:hover { background: rgba(16,185,129,0.2) !important; }
-    .accordion-header.confeccion { background: rgba(139,92,246,0.1) !important; border-left-color: #8b5cf6 !important; }
-    .accordion-header.confeccion:hover { background: rgba(139,92,246,0.2) !important; }
-    .accordion-title { color: #e2e8f0 !important; }
-    .accordion-content { }
-    .error { background: rgba(239,68,68,0.15) !important; color: #fca5a5 !important; }
-    .loading { color: #64748b !important; }
   </style>
 </head>
 <body>
@@ -508,6 +536,48 @@
                   </div>
                 </div>
         `;
+
+        // Mostrar comparación de tallas si fueron modificadas
+        if (corte.tallasModificadas && corte.tallasCortadas) {
+          html += `
+            <div class="badge-cantidades-mod">⚠️ Corte ajustó las cantidades del pedido original</div>
+            <table class="tallas-comp-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Talla</th>
+                  <th>Pedido Original</th>
+                  <th>Cortadas</th>
+                  <th>Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${corte.tallasCortadas.map((tc, idx) => {
+                  const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
+                  const cortada = tc.cantidad || 0;
+                  const diff = cortada - orig;
+                  return `
+                    <tr>
+                      <td class="talla-nombre">${tc.talla}</td>
+                      <td>${orig}</td>
+                      <td class="${diff !== 0 ? 'cantidad-mod' : ''}">${cortada}</td>
+                      <td class="${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}">
+                        ${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+                <tr class="totales-row">
+                  <td class="talla-nombre">TOTAL</td>
+                  <td>${corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0}</td>
+                  <td class="cantidad-mod">${corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0)}</td>
+                  <td class="${(() => { const d = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) - (corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); return d > 0 ? 'diff-positiva' : d < 0 ? 'diff-negativa' : 'diff-igual'; })()}">
+                    ${(() => { const d = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) - (corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); return d > 0 ? '+'+d : d === 0 ? '—' : d; })()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        }
 
         if (corte.observaciones) {
           html += `

@@ -6,23 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <style>
     :root {
-      --primary: #3b82f6;
-      --primary-light: #60a5fa;
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
       --primary-dark: #1e40af;
       --accent: #f97316;
       --accent-light: #fb923c;
-      --bg-main: #0c1929;
-      --bg-card: rgba(15, 30, 52, 0.85);
-      --text: #e2e8f0;
-      --text-light: #94a3b8;
-      --border: rgba(51, 72, 100, 0.6);
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #e2e8f0;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --radius: 12px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-      --shadow: 0 4px 12px rgba(4,21,39,0.4);
-      --shadow-lg: 0 10px 40px rgba(4,21,39,0.5);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow: 0 4px 12px rgba(30,58,138,0.15);
+      --shadow-lg: 0 10px 40px rgba(30,58,138,0.2);
     }
 
     * {
@@ -33,7 +33,7 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at top left, #102241 0%, #020617 50%, #030712 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: var(--text);
       min-height: 100vh;
       padding-bottom: 40px;
@@ -41,9 +41,9 @@
 
     /* ========== HEADER ========== */
     header {
-      background: rgba(3, 15, 35, 0.96);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow);
       padding: 16px 24px;
       display: flex;
       justify-content: space-between;
@@ -51,7 +51,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      border-bottom: 3px solid var(--primary);
     }
 
     .brand {
@@ -63,13 +63,13 @@
     .brand-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      box-shadow: var(--shadow);
     }
 
     .brand-text {
@@ -80,7 +80,7 @@
     .brand-title {
       font-size: 22px;
       font-weight: 800;
-      color: #f1f5f9;
+      color: var(--primary);
       letter-spacing: -0.5px;
     }
 
@@ -98,7 +98,7 @@
 
     .user-name {
       font-weight: 600;
-      color: #cbd5e1;
+      color: var(--text);
       font-size: 14px;
     }
 
@@ -197,23 +197,21 @@
     .stat-value {
       font-size: 36px;
       font-weight: 800;
-      color: #60a5fa;
+      color: var(--primary);
       line-height: 1;
     }
 
     /* ========== FILTERS ========== */
     .filters {
-      background: rgba(15, 30, 52, 0.85);
-      backdrop-filter: blur(12px);
+      background: var(--bg-card);
       padding: 20px;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
       margin-bottom: 24px;
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
       align-items: center;
-      border: 1px solid rgba(51, 72, 100, 0.5);
     }
 
     .filter-group {
@@ -234,18 +232,17 @@
     .filter-input, .filter-select {
       width: 100%;
       padding: 10px 14px;
-      border: 1px solid rgba(51, 72, 100, 0.6);
+      border: 2px solid var(--border);
       border-radius: 8px;
       font-size: 14px;
       transition: all 0.3s ease;
-      background: rgba(10, 20, 40, 0.8);
-      color: #e2e8f0;
+      background: white;
     }
 
     .filter-input:focus, .filter-select:focus {
       outline: none;
-      border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
     }
 
     /* ========== PEDIDOS LISTA ========== */
@@ -954,6 +951,122 @@
       object-fit: cover;
     }
 
+    /* ========== TALLAS EDITABLE TABLE ========== */
+    .tallas-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    .tallas-table th {
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+      color: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .tallas-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .tallas-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tallas-table .talla-nombre {
+      font-weight: 700;
+      color: var(--primary);
+      text-align: left;
+    }
+
+    .tallas-table .cantidad-original {
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .tallas-table input.talla-cortada-input {
+      width: 70px;
+      padding: 6px 8px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .tallas-table input.talla-cortada-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+      outline: none;
+    }
+
+    .tallas-table input.talla-cortada-input.modificada {
+      border-color: #f97316;
+      background: #fff7ed;
+      color: #ea580c;
+    }
+
+    .tallas-table .diff-cell {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tallas-table .diff-positiva {
+      color: #16a34a;
+    }
+
+    .tallas-table .diff-negativa {
+      color: #dc2626;
+    }
+
+    .tallas-table .diff-igual {
+      color: #9ca3af;
+    }
+
+    .tallas-totales-row {
+      background: #f1f5f9 !important;
+      font-weight: 700;
+    }
+
+    .tallas-totales-row td {
+      border-top: 2px solid var(--primary) !important;
+    }
+
+    .badge-modificado {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      color: #ea580c;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #fdba74;
+      margin-left: 8px;
+    }
+
+    .tallas-help-text {
+      font-size: 12px;
+      color: var(--text-light);
+      font-style: italic;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
       .container {
@@ -1035,91 +1148,6 @@
     #appView {
       display: none;
     }
-    /* ========== DARK THEME BONAPARTE ========== */
-    body { background: radial-gradient(circle at top left, #102241 0%, #020617 50%, #030712 100%) !important; color: #e2e8f0; }
-    header { background: rgba(3, 15, 35, 0.96) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(148,163,184,0.2) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
-    .brand-title { color: #f1f5f9 !important; }
-    .brand-subtitle { color: #94a3b8 !important; }
-    .brand-icon { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 15px rgba(16,185,129,0.3) !important; }
-    .user-name { color: #cbd5e1 !important; }
-    .btn-logout { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; border: 1px solid rgba(239,68,68,0.3) !important; }
-    .btn-logout:hover { background: rgba(239,68,68,0.4) !important; }
-    .container { }
-    .stat-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .stat-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
-    .stat-card.active { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2)) !important; box-shadow: 0 10px 30px rgba(16,185,129,0.25) !important; }
-    .stat-value { color: #60a5fa !important; }
-    .stat-card.active .stat-value, .stat-card.active .stat-label { color: #fff !important; }
-    .stat-label { color: #94a3b8 !important; }
-    .filters { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .filter-input, .filter-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
-    .filter-input:focus, .filter-select:focus { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.2) !important; }
-    .filter-input::placeholder { color: #64748b !important; }
-    .filter-label { color: #94a3b8 !important; }
-    .pedido-card { background: rgba(15,30,52,0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51,72,100,0.5) !important; }
-    .pedido-card:hover { box-shadow: 0 10px 30px rgba(4,21,39,0.6) !important; }
-    .pedido-card::before { background: linear-gradient(90deg, #10b981 0%, #f97316 100%) !important; }
-    .pedido-folio { color: #34d399 !important; }
-    .pedido-cliente { color: #e2e8f0 !important; }
-    .pedido-escuela { color: #94a3b8 !important; }
-    .pedido-details { border-top-color: rgba(51,72,100,0.5) !important; }
-    .detail-label { color: #94a3b8 !important; }
-    .detail-value { color: #e2e8f0 !important; }
-    .pedido-badge.normal { background: rgba(16,185,129,0.2) !important; color: #34d399 !important; }
-    .pedido-badge.urgente { background: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; }
-    .modal { background: rgba(0,0,0,0.8) !important; }
-    .modal-content { background: #0f1e34 !important; border: 1px solid rgba(51,72,100,0.5); }
-    .modal-header { background: linear-gradient(135deg, #0b3a73 0%, #041527 100%) !important; }
-    .modal-body { background: #0f1e34 !important; }
-    .info-section { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
-    .info-label { color: #94a3b8 !important; }
-    .info-value { color: #e2e8f0 !important; }
-    .form-input, .form-textarea, .form-select { background: rgba(10,20,40,0.8) !important; color: #e2e8f0 !important; border-color: rgba(51,72,100,0.6) !important; }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.2) !important; }
-    .form-input::placeholder, .form-textarea::placeholder { color: #64748b !important; }
-    .form-label { color: #cbd5e1 !important; }
-    .form-help { color: #64748b !important; }
-    .prenda-item { background: rgba(15,30,52,0.6) !important; border-color: rgba(51,72,100,0.5) !important; }
-    .prenda-item.completado { background: rgba(16,185,129,0.1) !important; border-color: rgba(16,185,129,0.4) !important; }
-    .prenda-header:hover { background: rgba(20,40,70,0.5) !important; }
-    .prenda-item.completado .prenda-header { background: rgba(16,185,129,0.15) !important; }
-    .prenda-nombre { color: #e2e8f0 !important; }
-    .prenda-tallas { color: #94a3b8 !important; }
-    .prenda-total-piezas { color: #60a5fa !important; }
-    .prenda-form { background: rgba(10,20,40,0.6) !important; border-top-color: rgba(51,72,100,0.5) !important; }
-    .form-section-title { color: #34d399 !important; border-bottom-color: rgba(51,72,100,0.5) !important; }
-    .tela-item { background: rgba(15,30,52,0.4) !important; border-color: rgba(51,72,100,0.4) !important; }
-    .tela-header { border-bottom-color: rgba(51,72,100,0.4) !important; }
-    .tela-numero { color: #34d399 !important; }
-    .btn-add-tela { background: rgba(10,20,40,0.6) !important; border-color: #10b981 !important; color: #34d399 !important; }
-    .btn-add-tela:hover { background: rgba(16,185,129,0.2) !important; }
-    .progress-bar-container { background: rgba(15,30,52,0.6) !important; border: 1px solid rgba(51,72,100,0.4); }
-    .progress-bar { background: rgba(10,20,40,0.8) !important; }
-    .progress-label { color: #e2e8f0 !important; }
-    .empty-state { color: #64748b !important; }
-    .notificacion { box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
-    .login-card { background: rgba(15,30,52,0.9) !important; backdrop-filter: blur(16px); border: 1px solid rgba(51,72,100,0.5); box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-    .login-title { color: #34d399 !important; }
-    .login-subtitle { color: #94a3b8 !important; }
-    .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; }
-    .btn-secondary { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
-    .btn-volver { background: rgba(15,30,52,0.6) !important; color: #e2e8f0 !important; }
-    .btn-volver:hover { background: rgba(20,40,70,0.8) !important; }
-    .imagen-item { border-color: rgba(51,72,100,0.5) !important; }
-    .imagen-item:hover { border-color: #10b981 !important; }
-    /* Notas section in modal */
-    #notasCorteSection { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1)) !important; border-left-color: #10b981 !important; }
-    #notasCorteSection h3 { color: #34d399 !important; }
-    #notasCorteSection div { color: #a7f3d0 !important; }
-    /* Glass card effect for info sections */
-    .info-corte-section { background: rgba(59,130,246,0.1) !important; border-left-color: #3b82f6 !important; }
-    .info-corte-title { color: #60a5fa !important; }
-    .info-corte-value { color: #93c5fd !important; }
-    .info-corte-label { color: #94a3b8 !important; }
-    /* Prenda en confeccion badge */
-    .prenda-item.en-confeccion { background: rgba(139,92,246,0.1) !important; border-color: rgba(139,92,246,0.4) !important; }
-    .prenda-item.en-confeccion .prenda-header { background: rgba(139,92,246,0.15) !important; }
-    select option { background: #0f1e34; color: #e2e8f0; }
   </style>
 </head>
 <body>
@@ -1658,6 +1686,7 @@
                     ✂️ ${corteDatos[prendaId].telas.map(t => 
                       `${t.tipoTela} ${t.color} (${t.cantidadKg || 0}kg / ${t.cantidadMetros || 0}m)`
                     ).join(' • ')} • ${corteDatos[prendaId].piezasCortadas} pzas cortadas
+                    ${corteDatos[prendaId].tallasModificadas ? '<span class="badge-modificado">⚠️ Cantidades ajustadas</span>' : ''}
                   </div>
                 ` : ''}
               </div>
@@ -1665,7 +1694,57 @@
             </div>
             <div class="prenda-body">
               <form class="prenda-form" onsubmit="guardarCortePrenda(event, ${prendaId}, ${totalPiezas})">
-                <div class="form-section-title">✂️ Datos de Corte</div>
+                <div class="form-section-title">📏 Cantidades por Talla</div>
+                <div class="tallas-help-text">💡 Si cortaste piezas de más, ajusta la cantidad aquí</div>
+                <table class="tallas-table">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left;">Talla</th>
+                      <th>Pedido Original</th>
+                      <th>Cortadas</th>
+                      <th>Dif.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${prenda.tallas.map((t, tIdx) => {
+                      const cortado = corteDatos[prendaId]?.tallasCortadas?.[tIdx]?.cantidad ?? t.cantidad;
+                      const diff = parseInt(cortado) - parseInt(t.cantidad);
+                      return `
+                        <tr>
+                          <td class="talla-nombre">${t.talla}</td>
+                          <td class="cantidad-original">${t.cantidad}</td>
+                          <td>
+                            <input type="number" class="talla-cortada-input ${diff !== 0 ? 'modificada' : ''}" 
+                                   min="0"
+                                   data-prenda-talla="${prendaId}" 
+                                   data-talla-idx="${tIdx}"
+                                   data-original="${t.cantidad}"
+                                   value="${cortado}"
+                                   onchange="actualizarDiffTalla(this, ${prendaId})">
+                          </td>
+                          <td class="diff-cell ${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}" 
+                              id="diff-${prendaId}-${tIdx}">
+                            ${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                    <tr class="tallas-totales-row">
+                      <td class="talla-nombre">TOTAL</td>
+                      <td class="cantidad-original" id="totalOriginal-${prendaId}">${totalPiezas}</td>
+                      <td id="totalCortadas-${prendaId}"><strong>${corteDatos[prendaId]?.tallasCortadas ? corteDatos[prendaId].tallasCortadas.reduce((s, t) => s + (parseInt(t.cantidad) || 0), 0) : totalPiezas}</strong></td>
+                      <td class="diff-cell" id="totalDiff-${prendaId}">
+                        ${(() => {
+                          const totalCort = corteDatos[prendaId]?.tallasCortadas ? corteDatos[prendaId].tallasCortadas.reduce((s, t) => s + (parseInt(t.cantidad) || 0), 0) : totalPiezas;
+                          const diff = totalCort - totalPiezas;
+                          return `<span class="${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}">${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}</span>`;
+                        })()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="form-section-title" style="margin-top: 20px;">✂️ Datos de Corte</div>
                 
                 <!-- LISTA DE TELAS/COLORES -->
                 <div id="telasLista-${prendaId}" class="telas-lista">
@@ -1767,11 +1846,11 @@
 
                 <div class="form-grid">
                   <div class="form-group">
-                    <label class="form-label required">Piezas Cortadas</label>
+                    <label class="form-label">Piezas Cortadas (auto-calculado)</label>
                     <input type="number" class="form-input" id="piezasCortadas-${prendaId}" 
-                           placeholder="${totalPiezas}" 
-                           value="${corteDatos[prendaId]?.piezasCortadas || totalPiezas}" required>
-                    <span class="form-help">Sugerido: ${totalPiezas} piezas</span>
+                           value="${corteDatos[prendaId]?.piezasCortadas || totalPiezas}" readonly
+                           style="background: #f1f5f9; font-weight: 700;">
+                    <span class="form-help">Se calcula de la tabla de tallas. Original: ${totalPiezas}</span>
                   </div>
                 </div>
 
@@ -1878,6 +1957,50 @@
       }
     }
 
+    // ========== ACTUALIZAR DIFF TALLA EN TIEMPO REAL ==========
+    function actualizarDiffTalla(input, prendaId) {
+      const original = parseInt(input.dataset.original) || 0;
+      const cortado = parseInt(input.value) || 0;
+      const diff = cortado - original;
+      const tIdx = input.dataset.tallaIdx;
+
+      // Actualizar clase visual
+      if (diff !== 0) {
+        input.classList.add('modificada');
+      } else {
+        input.classList.remove('modificada');
+      }
+
+      // Actualizar celda de diferencia
+      const diffCell = document.getElementById(`diff-${prendaId}-${tIdx}`);
+      if (diffCell) {
+        diffCell.className = `diff-cell ${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}`;
+        diffCell.textContent = diff > 0 ? '+' + diff : diff === 0 ? '—' : diff;
+      }
+
+      // Recalcular totales
+      const inputs = document.querySelectorAll(`input[data-prenda-talla="${prendaId}"]`);
+      let totalCortadas = 0;
+      let totalOriginal = 0;
+      inputs.forEach(inp => {
+        totalCortadas += parseInt(inp.value) || 0;
+        totalOriginal += parseInt(inp.dataset.original) || 0;
+      });
+
+      const totalCortadasCell = document.getElementById(`totalCortadas-${prendaId}`);
+      if (totalCortadasCell) totalCortadasCell.innerHTML = `<strong>${totalCortadas}</strong>`;
+
+      const totalDiffCell = document.getElementById(`totalDiff-${prendaId}`);
+      if (totalDiffCell) {
+        const totalDiff = totalCortadas - totalOriginal;
+        totalDiffCell.innerHTML = `<span class="${totalDiff > 0 ? 'diff-positiva' : totalDiff < 0 ? 'diff-negativa' : 'diff-igual'}">${totalDiff > 0 ? '+' + totalDiff : totalDiff === 0 ? '—' : totalDiff}</span>`;
+      }
+
+      // Actualizar piezas cortadas (auto-calculado)
+      const piezasInput = document.getElementById(`piezasCortadas-${prendaId}`);
+      if (piezasInput) piezasInput.value = totalCortadas;
+    }
+
     // ========== GUARDAR CORTE DE UNA PRENDA ==========
     async function guardarCortePrenda(event, prendaId, totalPiezas) {
       event.preventDefault();
@@ -1914,10 +2037,38 @@
       const piezasCortadas = parseInt(document.getElementById(`piezasCortadas-${prendaId}`).value);
       const observaciones = document.getElementById(`observaciones-${prendaId}`).value;
 
+      // Recolectar tallas cortadas
+      const tallasInputs = document.querySelectorAll(`input[data-prenda-talla="${prendaId}"]`);
+      const tallasCortadas = [];
+      const tallasOriginales = [];
+      let huboModificacion = false;
+
+      tallasInputs.forEach(inp => {
+        const original = parseInt(inp.dataset.original) || 0;
+        const cortado = parseInt(inp.value) || 0;
+        const tIdx = parseInt(inp.dataset.tallaIdx);
+        
+        // Buscar nombre de talla del pedido original
+        let prendas = [];
+        try {
+          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+        } catch(e) {}
+        const prendaData = prendas.find((p, idx) => (p.id || idx + 1) === prendaId);
+        const tallaNombre = prendaData?.tallas?.[tIdx]?.talla || 'T' + tIdx;
+
+        tallasOriginales.push({ talla: tallaNombre, cantidad: original });
+        tallasCortadas.push({ talla: tallaNombre, cantidad: cortado });
+        
+        if (cortado !== original) huboModificacion = true;
+      });
+
       // Guardar en memoria
       corteDatos[prendaId] = {
         telas: telas,
         piezasCortadas,
+        tallasOriginales,
+        tallasCortadas,
+        tallasModificadas: huboModificacion,
         observaciones,
         completado: true,
         fecha: new Date().toISOString()
