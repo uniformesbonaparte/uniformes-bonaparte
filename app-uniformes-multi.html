@@ -4161,8 +4161,8 @@
     renderPedidos();
   }
 
-
-            // IMPORTANTE: Limpiar prendas antes de cargar el pedido
+  async function cargarPedido(id) {
+    // IMPORTANTE: Limpiar prendas antes de cargar el pedido
     prendasData = [];
     prendaIdCounter = 1;
     const p = pedidos.find(x => x.id === id);
