@@ -1965,18 +1965,18 @@
       prenda.classList.remove('expanded');
 
       // Re-render para mostrar el resumen
-      let prendas = [];
-      let corteDatos = null;
+      let prendasRerender = [];
+      let corteDatosRerender = null;
       try {
         if (pedidoActual.prendas) {
-          prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
+          prendasRerender = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
         }
         if (pedidoActual.corteDatos) {
-          corteDatos = typeof pedidoActual.corteDatos === 'string' ? JSON.parse(pedidoActual.corteDatos) : pedidoActual.corteDatos;
+          corteDatosRerender = typeof pedidoActual.corteDatos === 'string' ? JSON.parse(pedidoActual.corteDatos) : pedidoActual.corteDatos;
         }
       } catch (e) {}
       
-      renderAcordeon(prendas, corteDatos);
+      renderAcordeon(prendasRerender, corteDatosRerender);
       actualizarProgreso();
 
       mostrarNotificacion('✅ Confección de prenda guardada', 'success');

@@ -1392,13 +1392,6 @@
       renderPedidos();
     }
 
-    // ========== INIT ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      if (authToken) {
-        verificarSesion();
-      }
-    });
-
     // ========== AUTENTICACIÓN ==========
     async function login(e) {
       e.preventDefault();

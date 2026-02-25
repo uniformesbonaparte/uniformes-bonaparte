@@ -380,7 +380,7 @@
   <div class="container">
     <div class="header">
       <h1>📊 Detalle de Actividad</h1>
-      <button class="btn-volver" onclick="window.close()">← Volver</button>
+      <button class="btn-volver" onclick="if (window.opener) { window.close(); } else { history.back(); }">← Volver</button>
     </div>
 
     <div id="content" class="content">

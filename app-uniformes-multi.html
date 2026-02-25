@@ -582,7 +582,6 @@
     .resumen-pedido .valor { font-size: 32px; font-weight: 800; }
     .empty-prendas { text-align: center; padding: 40px; color: #94a3b8; }
     .empty-prendas svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
-    .precio-column { }
 
     /* ========== ACTIVIDAD ========== */
     .actividad-panel { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid #8b5cf6; }
@@ -1386,7 +1385,6 @@
     }
     
                       convertirPrendasATexto();
-      console.log('  Texto generado:', document.getElementById("tallasTexto").value.substring(0, 200));
   }
 
   // Renderizar prendas con permisos por rol
@@ -2779,7 +2777,6 @@
       return;
     }
 
-    alert("Pedido guardado.");
     await cargarPedidos();
         mostrarNotificacion('Pedido guardado correctamente', 'success');
     if (id) {
@@ -2811,9 +2808,8 @@
       alert(data.error || "Error al eliminar pedido.");
       return;
     }
-    alert("Pedido eliminado.");
     await cargarPedidos();
-        mostrarNotificacion('Pedido guardado correctamente', 'success');
+        mostrarNotificacion('Pedido eliminado correctamente', 'success');
     nuevoPedido();
   }
 
@@ -3054,13 +3050,6 @@
     const escuela = document.getElementById("clienteEscuela").value || "";
     const tel = document.getElementById("clienteTelefono").value || "";
     const fechaEntrega = document.getElementById("fechaEntrega").value || "";
-    const prendaTipo = document.getElementById("prendaTipo").value || "";
-    const prendaModelo = document.getElementById("prendaModelo").value || "";
-    const tallas = document.getElementById("tallasTexto").value || "";
-    const precioTotal = document.getElementById("precioTotal").value || "0";
-    const anticipo = document.getElementById("anticipo").value || "0";
-    const saldo = document.getElementById("saldo").value || "0";
-    const condiciones = document.getElementById("condicionesCliente").value || "";
 
     doc.setFontSize(14);
     doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
@@ -3073,7 +3062,7 @@
     doc.text("Cliente: " + nombre, 10, y); y += 5;
     doc.text("Escuela: " + escuela, 10, y); y += 5;
     if (tel) {
-      doc.text("Teléfono: " + tel, 10, y); y += 5;
+      doc.text("Telefono: " + tel, 10, y); y += 5;
     }
     if (fechaEntrega) {
       doc.text("Fecha de entrega: " + fechaEntrega, 10, y); y += 7;
@@ -3082,42 +3071,38 @@
     }
 
     doc.setFontSize(11);
-    doc.text("Detalle del pedido:", 10, y); y += 5;
+    doc.text("Detalle del pedido:", 10, y); y += 6;
     doc.setFontSize(10);
-    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
-    if (prendaModelo) {
-      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 5;
-    }
 
-    if (tallas) {
-      y += 3;
-      doc.text("Tallas y cantidades:", 10, y); y += 5;
-      const tallasLineas = tallas.split("\n");
-      tallasLineas.forEach(l => {
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.text("- " + l, 12, y);
-        y += 5;
-      });
-    }
-
-    y += 4;
-    doc.setFontSize(11);
-    doc.text("Importes:", 10, y); y += 5;
-    doc.setFontSize(10);
-    doc.text("Precio total: $" + precioTotal, 10, y); y += 5;
-    doc.text("Anticipo: $" + anticipo, 10, y); y += 5;
-    doc.text("Saldo: $" + saldo, 10, y); y += 8;
-
-    if (condiciones) {
-      doc.setFontSize(11);
-      doc.text("Condiciones del pedido:", 10, y); y += 5;
+    // Iterar prendas
+    let totalGeneral = 0;
+    prendasData.forEach((prenda, idx) => {
+      if (y > 250) { doc.addPage(); y = 20; }
       doc.setFontSize(10);
-      const condLineas = condiciones.split("\n");
-      condLineas.forEach(l => {
+      doc.setFont(undefined, 'bold');
+      doc.text((idx + 1) + ". " + (prenda.tipoPrenda || "Prenda"), 10, y); y += 5;
+      doc.setFont(undefined, 'normal');
+
+      prenda.tallas.forEach(t => {
         if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(l, 12, y);
-        y += 5;
+        const linea = "   Talla " + t.talla + " - Cant: " + t.cantidad + (t.precioUnitario > 0 ? " - $" + t.precioUnitario.toFixed(2) + " c/u - Subtotal: $" + t.subtotal.toFixed(2) : "");
+        doc.text(linea, 12, y); y += 5;
       });
+
+      if (prenda.subtotalPrenda > 0) {
+        doc.text("   Subtotal prenda: $" + prenda.subtotalPrenda.toFixed(2), 12, y); y += 6;
+        totalGeneral += prenda.subtotalPrenda;
+      } else {
+        y += 3;
+      }
+    });
+
+    if (totalGeneral > 0) {
+      y += 2;
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text("TOTAL DEL PEDIDO: $" + totalGeneral.toFixed(2), 10, y); y += 8;
+      doc.setFont(undefined, 'normal');
     }
 
     y += 12;
@@ -3129,66 +3114,8 @@
   }
 
   function exportarComprasPDF() {
-    if (!usuarioActual || (usuarioActual.rol !== "admin" && usuarioActual.rol !== "compras")) {
-      alert("Solo compras o admin pueden generar el PDF de compras.");
-      return;
-    }
-    const { jsPDF } = window.jspdf || {};
-    if (!jsPDF) {
-      alert("No se pudo cargar la librería de PDF.");
-      return;
-    }
-
-    const id = document.getElementById("pedidoId").value;
-    const pedido = pedidos.find(p => String(p.id) === String(id));
-    const folio = pedido ? (pedido.folio || ("PED-" + pedido.id)) : "SIN-FOLIO";
-
-    const doc = new jsPDF();
-
-    const nombre = document.getElementById("clienteNombre").value || "";
-    const escuela = document.getElementById("clienteEscuela").value || "";
-    const prendaTipo = document.getElementById("prendaTipo").value || "";
-    const prendaModelo = document.getElementById("prendaModelo").value || "";
-    const gastosCompras = document.getElementById("gastosCompras").value || "0";
-    const comprasDetalle = document.getElementById("comprasDetalle").value || "";
-
-    doc.setFontSize(14);
-    doc.text("UNIFORMES ESCOLARES BONAPARTE", 10, 12);
-    doc.setFontSize(11);
-    doc.text("REPORTE DE COMPRAS POR PEDIDO", 10, 18);
-    doc.text("Folio: " + folio, 150, 12);
-
-    let y = 26;
-    doc.setFontSize(10);
-    doc.text("Cliente: " + nombre, 10, y); y += 5;
-    doc.text("Escuela: " + escuela, 10, y); y += 5;
-    doc.text("Prenda: " + prendaTipo, 10, y); y += 5;
-    if (prendaModelo) {
-      doc.text("Modelo/Ref.: " + prendaModelo, 10, y); y += 7;
-    } else {
-      y += 3;
-    }
-
-    doc.setFontSize(11);
-    doc.text("Detalle de compras:", 10, y); y += 5;
-    doc.setFontSize(10);
-
-    if (comprasDetalle) {
-      const lineas = comprasDetalle.split("\n");
-      lineas.forEach(l => {
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.text("- " + l, 12, y);
-        y += 5;
-      });
-    } else {
-      doc.text("Sin detalle capturado.", 12, y); y += 5;
-    }
-
-    y += 6;
-    doc.setFontSize(11);
-    doc.text("Gasto total registrado (campo gastos compras): $" + gastosCompras, 10, y);
-
-    doc.save("compras-pedido-" + folio + ".pdf");
+    // Función deshabilitada - sección de compras eliminada
+    return;
   }
 
   // Inicializar tabla de tallas al cargar la página
