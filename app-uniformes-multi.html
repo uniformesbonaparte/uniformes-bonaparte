@@ -947,8 +947,215 @@
 
 
     #loginView {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #loginView .card {
       max-width: 400px;
-      margin: 80px auto;
+      width: 100%;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .login-emoji {
+      font-size: 64px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+
+    .login-subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+
+    .login-test-users {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 10px;
+      background: rgba(10,20,40,0.5);
+      border: 1px solid rgba(51,72,100,0.4);
+      text-align: left;
+    }
+
+    .login-test-users p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 2px 0;
+    }
+
+    .login-test-users .test-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #60a5fa;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Dashboard stat cards */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard-stats {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .dash-stat {
+      background: rgba(15,30,52,0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51,72,100,0.5);
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 4px solid #0b3a73;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dash-stat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 28px rgba(4, 21, 39, 0.5);
+    }
+
+    .dash-stat .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .dash-stat .stat-icon {
+      font-size: 24px;
+    }
+
+    .dash-stat .stat-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+    }
+
+    .dash-stat .stat-val {
+      font-size: 32px;
+      font-weight: 800;
+      color: #f1f5f9;
+    }
+
+    .dash-stat.corte { border-left-color: #10b981; }
+    .dash-stat.confeccion { border-left-color: #8b5cf6; }
+    .dash-stat.listo { border-left-color: #f59e0b; }
+
+    /* Pedido cards for admin dashboard */
+    .pedido-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pedido-card-item {
+      background: rgba(15,30,52,0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51,72,100,0.5);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid #0b3a73;
+    }
+
+    .pedido-card-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 28px rgba(4, 21, 39, 0.5);
+    }
+
+    .pedido-card-item.urgente-card {
+      border-left-color: #ef4444;
+    }
+
+    .pedido-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .pedido-card-folio {
+      font-size: 16px;
+      font-weight: 800;
+      color: #60a5fa;
+    }
+
+    .pedido-card-cliente {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .pedido-card-escuela {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .pedido-card-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    .pedido-card-badge.urgente { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
+    .pedido-card-bottom {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(51,72,100,0.4);
+    }
+
+    .pedido-card-detail-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .pedido-card-detail-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .dias-danger { color: #fca5a5 !important; }
+    .dias-warning { color: #fde68a !important; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-slide-up {
+      animation: slideUp 0.4s ease;
     }
 
     #appView {
@@ -1954,20 +2161,30 @@
 
   <!-- LOGIN -->
   <div id="loginView">
-    <section class="card">
+    <section class="card animate-slide-up">
       <div class="card-inner">
-        <h2>Acceso · Uniformes Bonaparte</h2>
-        <p class="small-text">
-          Usuario de prueba:<br>
-          <b>Correo:</b> admin@local<br>
-          <b>Contraseña:</b> admin123
-        </p>
-        <label for="loginEmail">Correo</label>
-        <input id="loginEmail" type="email" placeholder="admin@local" />
-        <label for="loginPassword">Contraseña</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" />
-        <button class="btn" onclick="login()">Entrar</button>
-        <div id="loginError" class="small-text" style="color:#b91c1c; margin-top:6px;"></div>
+        <span class="login-emoji">👔</span>
+        <div class="login-title">Bonaparte</div>
+        <div class="login-subtitle">Uniformes Escolares · Sistema de Pedidos</div>
+        
+        <div style="text-align: left;">
+          <label for="loginEmail" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 4px;">Correo</label>
+          <input id="loginEmail" type="email" placeholder="admin@bonaparte.com" style="margin-bottom: 12px;" />
+          <label for="loginPassword" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 4px;">Contraseña</label>
+          <input id="loginPassword" type="password" placeholder="••••••••" />
+        </div>
+        
+        <div id="loginError" class="small-text" style="color:#fca5a5; margin-top:8px;"></div>
+        
+        <button class="btn" onclick="login()" style="margin-top: 16px; width: 100%; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;">Entrar</button>
+        
+        <div class="login-test-users">
+          <p class="test-title">Usuarios de prueba:</p>
+          <p>admin@bonaparte.com / admin123</p>
+          <p>ventas@bonaparte.com / ventas123</p>
+          <p>corte@bonaparte.com / corte123</p>
+          <p>confeccion@bonaparte.com / confeccion123</p>
+        </div>
       </div>
     </section>
   </div>
@@ -2007,6 +2224,38 @@
     </div>
 
     <main>
+      <!-- DASHBOARD STATS (like React app) -->
+      <div class="dashboard-stats" id="dashboardStats">
+        <div class="dash-stat" onclick="filtrarDashboard('total')">
+          <div class="stat-top">
+            <span class="stat-icon">📋</span>
+            <span class="stat-lbl">Total</span>
+          </div>
+          <div class="stat-val" id="dashTotal">0</div>
+        </div>
+        <div class="dash-stat corte" onclick="filtrarDashboard('corte')">
+          <div class="stat-top">
+            <span class="stat-icon">✂️</span>
+            <span class="stat-lbl">En Corte</span>
+          </div>
+          <div class="stat-val" id="dashCorte">0</div>
+        </div>
+        <div class="dash-stat confeccion" onclick="filtrarDashboard('confeccion')">
+          <div class="stat-top">
+            <span class="stat-icon">🧵</span>
+            <span class="stat-lbl">Confección</span>
+          </div>
+          <div class="stat-val" id="dashConfeccion">0</div>
+        </div>
+        <div class="dash-stat listo" onclick="filtrarDashboard('listo')">
+          <div class="stat-top">
+            <span class="stat-icon">✅</span>
+            <span class="stat-lbl">Listos</span>
+          </div>
+          <div class="stat-val" id="dashListos">0</div>
+        </div>
+      </div>
+
       <!-- Panel de alertas (visible cuando hay alertas) -->
       <div id="panelAlertas" class="alertas-panel"></div>
 
@@ -3867,9 +4116,43 @@
       `;
       tbody.appendChild(tr);
     }
+    updateDashboardStats();
   }
 
-  async function cargarPedido(id) {
+  // ========== DASHBOARD STATS (React-style) ==========
+  function updateDashboardStats() {
+    const total = pedidos.length;
+    const enCorte = pedidos.filter(p => p.estado === 'corte').length;
+    const enConfeccion = pedidos.filter(p => p.estado === 'confeccion').length;
+    const listos = pedidos.filter(p => p.estado === 'listo').length;
+    
+    const el = (id) => document.getElementById(id);
+    if (el('dashTotal')) el('dashTotal').textContent = total;
+    if (el('dashCorte')) el('dashCorte').textContent = enCorte;
+    if (el('dashConfeccion')) el('dashConfeccion').textContent = enConfeccion;
+    if (el('dashListos')) el('dashListos').textContent = listos;
+  }
+
+  let dashFiltroActivo = null;
+  function filtrarDashboard(tipo) {
+    if (dashFiltroActivo === tipo) {
+      dashFiltroActivo = null;
+      document.getElementById('filtroEstado').value = '';
+    } else {
+      dashFiltroActivo = tipo;
+      if (tipo === 'total') {
+        document.getElementById('filtroEstado').value = '';
+      } else {
+        document.getElementById('filtroEstado').value = tipo;
+      }
+      // Switch to "todos" view so filter works
+      const todosRadio = document.querySelector('input[name="vistaFiltro"][value="todos"]');
+      if (todosRadio) todosRadio.checked = true;
+    }
+    renderPedidos();
+  }
+
+
             // IMPORTANTE: Limpiar prendas antes de cargar el pedido
     prendasData = [];
     prendaIdCounter = 1;
