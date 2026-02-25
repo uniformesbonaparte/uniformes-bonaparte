@@ -1101,6 +1101,7 @@
   let authToken = null;
   let usuarioActual = null;
   let pedidos = [];
+  let pedidoActual = null;
   let usuarios = [];
   let alertasActivas = []; // Variable para el sistema de alertas
 
@@ -1669,7 +1670,10 @@
         precioUnitario: t.precioUnitario,
         subtotal: t.subtotal
       })),
-      subtotal: prenda.subtotalPrenda
+      subtotal: prenda.subtotalPrenda,
+      corte_datos: prenda.corte_datos || undefined,
+      confeccion_datos: prenda.confeccion_datos || undefined,
+      estado_prenda: prenda.estado_prenda || undefined
     }));
   }
 
@@ -2592,6 +2596,7 @@
     prendaIdCounter = 1;
     const p = pedidos.find(x => x.id === id);
     if (!p) return;
+    pedidoActual = p;
 
     document.getElementById("pedidoId").value = p.id;
     document.getElementById("clienteNombre").value = p.clienteNombre || "";
@@ -2619,7 +2624,10 @@
           })),
           subtotalPrenda: parseFloat(prenda.subtotal) || 0,
           collapsed: true,
-          tallaIdCounter: prenda.tallas.length + 1
+          tallaIdCounter: prenda.tallas.length + 1,
+          corte_datos: prenda.corte_datos || null,
+          confeccion_datos: prenda.confeccion_datos || null,
+          estado_prenda: prenda.estado_prenda || null
         }));
         prendaIdCounter = prendasData.length + 1;
         renderPrendas();
