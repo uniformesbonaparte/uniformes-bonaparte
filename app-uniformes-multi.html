@@ -3231,6 +3231,10 @@
 
 
 
+  // Supabase config para login directo
+  const SUPABASE_URL = "https://fqprxcyvsaovguguosur.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxcHJ4Y3l2c2Fvdmd1Z3Vvc3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NzU4NDgsImV4cCI6MjA4NzU1MTg0OH0.t390tS6i8L4TvIUjg2DN9rEy7SavD6p6iieCs-3S6mI";
+
   async function login() {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
@@ -3243,35 +3247,40 @@
     }
 
     try {
-      const res = await fetch(API_BASE + "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
+      // Consultar directamente la tabla usuarios en Supabase
+      const res = await fetch(
+        SUPABASE_URL + "/rest/v1/usuarios?email=eq." + encodeURIComponent(email) + "&password=eq." + encodeURIComponent(password) + "&limit=1",
+        {
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": "Bearer " + SUPABASE_KEY,
+            "Content-Type": "application/json"
+          }
+        }
+      );
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        err.textContent = data.error || "Error al iniciar sesión.";
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        err.textContent = "Credenciales incorrectas.";
         return;
       }
 
-      const data = await res.json();
-      authToken = data.token;
-      usuarioActual = { nombre: data.nombre, rol: data.rol };
+      const user = data[0];
+      authToken = "local-session";
+      usuarioActual = { id: user.id, nombre: user.nombre, rol: user.rol, email: user.email };
 
       // Guardar sesión en localStorage
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('usuarioActual', JSON.stringify(usuarioActual));
 
       // REDIRECCIÓN AUTOMÁTICA SEGÚN ROL
-      const rol = data.rol;
+      const rol = user.rol;
       
       if (rol === 'corte') {
-        // Redirigir a app-corte.html
         window.location.href = 'app-corte.html';
         return;
       } else if (rol === 'confeccion') {
-        // Redirigir a app-confeccion.html
         window.location.href = 'app-confeccion.html';
         return;
       }
@@ -3284,14 +3293,14 @@
 
       applyRoleUI();
       await cargarPedidos();
-      await cargarActividadReciente(); // Cargar actividad reciente
+      if (typeof cargarActividadReciente === 'function') await cargarActividadReciente();
       mostrarNotificacion('Sesión iniciada correctamente', 'success');
       if (esAdmin()) {
         await cargarUsuarios();
         actualizarResumen();
       }
     } catch (e) {
-      err.textContent = "No se pudo conectar al servidor.";
+      err.textContent = "No se pudo conectar. Verifica tu conexión.";
     }
   }
 
