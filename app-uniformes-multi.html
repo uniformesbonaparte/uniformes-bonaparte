@@ -846,6 +846,7 @@
                       <th>Escuela</th>
                       <th>Entrega</th>
                       <th>Estado</th>
+                      <th style="width: 50px; text-align: center;">Prod.</th>
                     </tr>
                   </thead>
                   <tbody id="tablaPedidosBody"></tbody>
@@ -1019,6 +1020,19 @@
 
 
             <div class="small-text" id="infoExtra" style="margin-top:6px;"></div>
+
+            <!-- Panel de producción (visible cuando hay datos) -->
+            <div id="panelProduccion" style="display: none; margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #faf5ff 100%); border-radius: 12px; border: 2px solid #d1fae5; text-align: center;">
+              <div style="font-size: 15px; font-weight: 700; color: #0b3a73; margin-bottom: 8px;">📊 Este pedido tiene datos de producción</div>
+              <div id="panelProduccionResumen" style="font-size: 12px; color: #64748b; margin-bottom: 12px;"></div>
+              <button id="btnVerProduccion" onclick="abrirProduccionPedido()" 
+                style="background: linear-gradient(135deg, #10b981, #8b5cf6); color: white; border: none; 
+                       padding: 12px 28px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+                       box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: all 0.3s;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16,185,129,0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'"
+              >📊 Ver Detalles de Producción</button>
+            </div>
 
             <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
               <button class="btn" id="btnGuardarPedido" onclick="guardarPedido()">Guardar pedido</button>
@@ -1935,9 +1949,7 @@
     const pedido = pedidos.find(p => p.id === pedidoId);
     if (!pedido) return;
     
-    // Buscar el nombre de la prenda desde la actividad
-    // Por ahora, simplemente abrimos el pedido completo en vista detalle
-    window.open(`/pedido-detalle.html?id=${pedidoId}`, '_blank');
+    window.open(`/actividad-detalle.html?pedido=${pedidoId}`, '_blank');
   }
 
   // ========== VER DETALLES DE PRODUCCIÓN (CORTE/CONFECCIÓN) ==========
@@ -1945,9 +1957,46 @@
     window.open(`/actividad-detalle.html?pedido=${pedidoId}&prenda=${encodeURIComponent(prendaNombre)}`, '_blank');
   }
 
+  function abrirProduccionPedido() {
+    const id = document.getElementById("pedidoId").value;
+    if (id) {
+      window.open(`/actividad-detalle.html?pedido=${id}`, '_blank');
+    }
+  }
+
+  function actualizarPanelProduccion() {
+    const panel = document.getElementById('panelProduccion');
+    const resumen = document.getElementById('panelProduccionResumen');
+    if (!panel) return;
+
+    const id = document.getElementById("pedidoId").value;
+    if (!id) { panel.style.display = 'none'; return; }
+
+    const p = pedidos.find(x => String(x.id) === String(id));
+    if (!p || !pedidoTieneProduccion(p)) {
+      panel.style.display = 'none';
+      return;
+    }
+
+    // Mostrar resumen
+    let etiquetas = [];
+    try {
+      const prendas = typeof p.prendas === 'string' ? JSON.parse(p.prendas) : (p.prendas || []);
+      const conCorte = prendas.filter(pr => pr.corte_datos).length;
+      const conConf = prendas.filter(pr => pr.confeccion_datos).length;
+      if (conCorte > 0) etiquetas.push(`✂️ ${conCorte} prenda${conCorte > 1 ? 's' : ''} con datos de corte`);
+      if (conConf > 0) etiquetas.push(`🧵 ${conConf} prenda${conConf > 1 ? 's' : ''} con datos de confección`);
+    } catch(e) { console.error('Error parseando prendas para panel producción:', e); }
+    if (p.corteDatos) etiquetas.push('✂️ Datos de corte registrados');
+    if (p.confeccionDatos) etiquetas.push('🧵 Datos de confección registrados');
+
+    resumen.textContent = etiquetas.join(' · ') || 'Datos de producción disponibles';
+    panel.style.display = 'block';
+  }
+
   // ========== VER PEDIDO COMPLETO EN VISTA DETALLE ==========
   function verPedidoDetalle(pedidoId) {
-    window.open(`/pedido-detalle.html?id=${pedidoId}`, '_blank');
+    window.open(`/actividad-detalle.html?pedido=${pedidoId}`, '_blank');
   }
 
   // ========== TIMELINE DE PEDIDO ==========
@@ -2472,6 +2521,14 @@
     renderPedidos();
   }
 
+  // Verificar si un pedido tiene datos de producción
+  function pedidoTieneProduccion(p) {
+    try {
+      const prendas = typeof p.prendas === 'string' ? JSON.parse(p.prendas) : (p.prendas || []);
+      return prendas.some(pr => pr.corte_datos || pr.confeccion_datos) || !!p.corteDatos || !!p.confeccionDatos;
+    } catch(e) { return false; }
+  }
+
   function renderPedidos() {
     const tbody = document.getElementById("tablaPedidosBody");
     tbody.innerHTML = "";
@@ -2583,6 +2640,17 @@
             <option value="entregado" ${p.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
           </select>
         </td>
+        <td style="text-align: center;" onclick="event.stopPropagation();">
+          ${pedidoTieneProduccion(p) ? `
+            <button onclick="window.open('/actividad-detalle.html?pedido=${p.id}', '_blank')" 
+              style="background: linear-gradient(135deg, #10b981, #8b5cf6); color: white; border: none; 
+                     padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700;
+                     transition: transform 0.2s;"
+              onmouseover="this.style.transform='scale(1.1)'"
+              onmouseout="this.style.transform='scale(1)'"
+              title="Ver datos de producción">📊</button>
+          ` : '<span style="color: #d1d5db;">—</span>'}
+        </td>
       `;
       tbody.appendChild(tr);
     }
@@ -2675,12 +2743,20 @@
     
     // Cargar notas internas
     cargarNotas(id);
+
+    // Mostrar panel de producción si hay datos
+    actualizarPanelProduccion();
   }
 
   function nuevoPedido() {
             // IMPORTANTE: Limpiar prendas del pedido anterior
     prendasData = [];
     prendaIdCounter = 1;
+    pedidoActual = null;
+    
+    // Ocultar panel de producción
+    const panelProd = document.getElementById('panelProduccion');
+    if (panelProd) panelProd.style.display = 'none';
         const prendasLista = document.getElementById('prendasLista');
     if (prendasLista) prendasLista.innerHTML = '';
     

@@ -2045,7 +2045,7 @@
         let prendas = [];
         try {
           prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
-        } catch(e) {}
+        } catch(e) { console.error("Error parseando prendas en corte:", e); }
         const prendaData = prendas.find((p, idx) => (p.id || idx + 1) === prendaId);
         const tallaNombre = prendaData?.tallas?.[tIdx]?.talla || 'T' + tIdx;
 
@@ -2115,7 +2115,7 @@
         if (pedidoActual.prendas) {
           prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
         }
-      } catch (e) {}
+      } catch (e) { console.error("Error parseando prendas post-save:", e); }
       
       renderAcordeon(prendas);
       actualizarProgreso();
@@ -2130,7 +2130,7 @@
         if (pedidoActual.prendas) {
           prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
         }
-      } catch (e) {}
+      } catch (e) { console.error("Error parseando prendas progreso:", e); }
 
       const total = prendas.length;
       const completadas = Object.values(corteDatos).filter(d => d.completado).length;

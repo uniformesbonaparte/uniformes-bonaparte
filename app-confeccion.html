@@ -1974,7 +1974,7 @@
         if (pedidoActual.corteDatos) {
           corteDatosRerender = typeof pedidoActual.corteDatos === 'string' ? JSON.parse(pedidoActual.corteDatos) : pedidoActual.corteDatos;
         }
-      } catch (e) {}
+      } catch (e) { console.error("Error re-render confección:", e); }
       
       renderAcordeon(prendasRerender, corteDatosRerender);
       actualizarProgreso();
@@ -1989,7 +1989,7 @@
         if (pedidoActual.prendas) {
           prendas = typeof pedidoActual.prendas === 'string' ? JSON.parse(pedidoActual.prendas) : pedidoActual.prendas;
         }
-      } catch (e) {}
+      } catch (e) { console.error("Error parseando prendas progreso:", e); }
 
       const total = prendas.length;
       const completadas = Object.values(confeccionDatos).filter(d => d.completado).length;

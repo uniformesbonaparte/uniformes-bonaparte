@@ -391,9 +391,8 @@
   <script>
     const API_BASE = '/api';
     let pedido = null;
-    let prenda = null;
+    let prendas = [];
 
-    // Obtener parámetros de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const pedidoId = urlParams.get('pedido');
     const prendaNombre = urlParams.get('prenda');
@@ -412,255 +411,293 @@
           return;
         }
 
-        console.log('Cargando pedido ID:', pedidoId, 'Prenda:', prendaNombre);
-        const url = `${API_BASE}/pedidos/${pedidoId}`;
-        console.log('URL:', url);
-
-        const res = await fetch(url, {
+        const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        console.log('Response status:', res.status);
-
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Error response:', errorText);
-          throw new Error(`HTTP ${res.status}: ${errorText}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         pedido = await res.json();
-        console.log('Pedido cargado:', pedido);
         
-        // Buscar la prenda específica
-        let prendas = [];
+        // Parsear prendas
+        let todasPrendas = [];
         if (pedido.prendas) {
-          prendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
-        }
-        console.log('Prendas:', prendas);
-
-        prenda = prendas.find(p => p.tipoPrenda === prendaNombre);
-        console.log('Prenda encontrada:', prenda);
-
-        if (!prenda) {
-          mostrarError('No se encontró la prenda especificada: ' + prendaNombre);
-          return;
+          todasPrendas = typeof pedido.prendas === 'string' ? JSON.parse(pedido.prendas) : pedido.prendas;
         }
 
-        renderActividad();
+        // Parsear corteDatos global (sistema viejo)
+        let corteDatosGlobal = null;
+        try {
+          if (pedido.corteDatos) {
+            corteDatosGlobal = typeof pedido.corteDatos === 'string' ? JSON.parse(pedido.corteDatos) : pedido.corteDatos;
+          }
+        } catch(e) { console.error("Error parseando corteDatos:", e); }
+
+        // Parsear confeccionDatos global (sistema viejo)
+        let confeccionDatosGlobal = null;
+        try {
+          if (pedido.confeccionDatos) {
+            confeccionDatosGlobal = typeof pedido.confeccionDatos === 'string' ? JSON.parse(pedido.confeccionDatos) : pedido.confeccionDatos;
+          }
+        } catch(e) { console.error("Error parseando confeccionDatos:", e); }
+
+        // Enriquecer prendas con datos de producción de ambos sistemas
+        todasPrendas.forEach((p, idx) => {
+          const prendaId = p.id || idx + 1;
+          
+          // Corte: buscar en prenda.corte_datos, fallback a corteDatosGlobal
+          if (!p.corte_datos && corteDatosGlobal) {
+            const corteViejo = corteDatosGlobal?.prendas?.find(c => c.prendaId === prendaId);
+            if (corteViejo) p.corte_datos = corteViejo;
+          }
+
+          // Confección: buscar en prenda.confeccion_datos, fallback a confeccionDatosGlobal
+          if (!p.confeccion_datos && confeccionDatosGlobal) {
+            const confViejo = confeccionDatosGlobal?.prendas?.find(c => c.prendaId === prendaId);
+            if (confViejo) p.confeccion_datos = confViejo;
+          }
+        });
+
+        // Filtrar: si hay prenda específica, solo esa; si no, todas las que tengan datos
+        if (prendaNombre) {
+          const encontrada = todasPrendas.find(p => p.tipoPrenda === prendaNombre);
+          if (!encontrada) {
+            mostrarError('No se encontró la prenda: ' + prendaNombre);
+            return;
+          }
+          prendas = [encontrada];
+        } else {
+          // Modo resumen: mostrar todas las que tengan datos de producción
+          prendas = todasPrendas.filter(p => p.corte_datos || p.confeccion_datos);
+          if (prendas.length === 0) {
+            // Si ninguna tiene datos de producción, mostrar todas
+            prendas = todasPrendas;
+          }
+        }
+
+        renderVista();
       } catch (err) {
-        console.error('Error completo:', err);
         mostrarError('Error al cargar los datos: ' + err.message);
       }
     }
 
-    function renderActividad() {
+    function renderVista() {
       const container = document.getElementById('content');
-      const tieneCorte = !!prenda.corte_datos;
-      const tieneConfeccion = !!prenda.confeccion_datos;
-
+      
       let html = `
-        <!-- INFO DEL PEDIDO -->
         <div class="info-pedido">
           <div class="info-label">Pedido</div>
-          <div class="info-value">${pedido.folio || '#' + pedido.id} - ${pedido.clienteNombre || 'Sin nombre'}</div>
-          <div class="info-label">Prenda</div>
-          <div class="info-value">${prenda.tipoPrenda}</div>
-          <div class="info-label">Tallas</div>
-          <div class="info-value">
-            ${prenda.tallas ? prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ') : 'Sin tallas'}
-          </div>
+          <div class="info-value">${pedido.folio || '#' + pedido.id} — ${pedido.clienteNombre || 'Sin nombre'}</div>
+          <div class="info-label">Escuela</div>
+          <div class="info-value">${pedido.clienteEscuela || '-'}</div>
+          <div class="info-label">Estado</div>
+          <div class="info-value">${pedido.estado || '-'}</div>
         </div>
       `;
 
-      // DATOS DE CORTE CON ACORDEÓN
-      if (tieneCorte) {
-        const corte = prenda.corte_datos;
-        
-        html += `
-          <div class="accordion">
-            <div class="accordion-header corte" onclick="toggleAccordion('corte')">
-              <div class="accordion-title">
-                <span>✂️</span>
-                <span>Datos de Corte</span>
-              </div>
-              <div class="accordion-icon" id="icon-corte">▼</div>
-            </div>
-            <div class="accordion-content open" id="content-corte">
-              <div class="accordion-inner">
-                <div class="section-title">📏 Telas Utilizadas</div>
-        `;
+      if (prendas.length === 0) {
+        html += '<div class="error">Este pedido no tiene datos de producción registrados.</div>';
+        container.innerHTML = html;
+        return;
+      }
 
-        if (corte.telas) {
-          // Sistema nuevo: múltiples telas
-          corte.telas.forEach((tela, idx) => {
+      prendas.forEach((prenda, pIdx) => {
+        const tieneCorte = !!prenda.corte_datos;
+        const tieneConfeccion = !!prenda.confeccion_datos;
+        const suffix = pIdx; // ID único por prenda
+
+        // Header de prenda (solo si hay múltiples)
+        if (prendas.length > 1 || !prendaNombre) {
+          const totalPiezas = prenda.tallas ? prenda.tallas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0;
+          const tallasTexto = prenda.tallas ? prenda.tallas.map(t => `${t.talla}(${t.cantidad})`).join(', ') : '-';
+          html += `
+            <div style="background: linear-gradient(135deg, #0b3a73, #3b82f6); color: white; padding: 16px 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 8px;">
+              <div style="font-size: 18px; font-weight: 800;">👔 ${prenda.tipoPrenda || 'Prenda ' + (pIdx+1)}</div>
+              <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">${tallasTexto} — ${totalPiezas} piezas</div>
+              <div style="display: flex; gap: 12px; margin-top: 8px;">
+                ${tieneCorte ? '<span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;">✂️ Corte</span>' : ''}
+                ${tieneConfeccion ? '<span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;">🧵 Confección</span>' : ''}
+                ${!tieneCorte && !tieneConfeccion ? '<span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:999px;font-size:11px;">Sin datos de producción</span>' : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        // CORTE
+        if (tieneCorte) {
+          const corte = prenda.corte_datos;
+          html += `
+            <div class="accordion">
+              <div class="accordion-header corte" onclick="toggleAccordion('corte-${suffix}')">
+                <div class="accordion-title"><span>✂️</span><span>Datos de Corte</span></div>
+                <div class="accordion-icon" id="icon-corte-${suffix}">▼</div>
+              </div>
+              <div class="accordion-content open" id="content-corte-${suffix}">
+                <div class="accordion-inner">
+                  <div class="section-title">📏 Telas Utilizadas</div>
+          `;
+
+          if (corte.telas && Array.isArray(corte.telas)) {
+            corte.telas.forEach((tela, idx) => {
+              html += `
+                <div class="tela-card">
+                  <div class="tela-nombre">📌 Tela ${idx + 1}: ${tela.tipoTela || '-'} - ${tela.color || '-'}</div>
+                  <div class="tela-detalles">
+                    <div class="detalle-item">
+                      <div class="detalle-label">Cantidad (kg)</div>
+                      <div class="detalle-value">${tela.cantidadKg || 0} kg</div>
+                    </div>
+                    <div class="detalle-item">
+                      <div class="detalle-label">Metraje</div>
+                      <div class="detalle-value">${tela.cantidadMetros || 0} m</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+          } else {
             html += `
               <div class="tela-card">
-                <div class="tela-nombre">📌 Tela ${idx + 1}: ${tela.tipoTela || '-'} - ${tela.color || '-'}</div>
+                <div class="tela-nombre">📌 ${corte.tipoTela || '-'} - ${corte.color || '-'}</div>
                 <div class="tela-detalles">
                   <div class="detalle-item">
                     <div class="detalle-label">Cantidad (kg)</div>
-                    <div class="detalle-value">${tela.cantidadKg || 0} kg</div>
+                    <div class="detalle-value">${corte.cantidadKg || 0} kg</div>
                   </div>
                   <div class="detalle-item">
                     <div class="detalle-label">Metraje</div>
-                    <div class="detalle-value">${tela.cantidadMetros || 0} m</div>
+                    <div class="detalle-value">${corte.cantidadMetros || 0} m</div>
                   </div>
                 </div>
               </div>
             `;
-          });
-        } else {
-          // Sistema viejo: una sola tela
+          }
+
           html += `
-            <div class="tela-card">
-              <div class="tela-nombre">📌 ${corte.tipoTela || '-'} - ${corte.color || '-'}</div>
-              <div class="tela-detalles">
-                <div class="detalle-item">
-                  <div class="detalle-label">Cantidad (kg)</div>
-                  <div class="detalle-value">${corte.cantidadKg || 0} kg</div>
-                </div>
-                <div class="detalle-item">
-                  <div class="detalle-label">Metraje</div>
-                  <div class="detalle-value">${corte.cantidadMetros || 0} m</div>
+            <div style="margin-top: 20px;">
+              <div class="detalle-item" style="display: inline-block; padding: 16px 24px;">
+                <div class="detalle-label">Piezas Cortadas</div>
+                <div class="detalle-value">✂️ ${corte.piezasCortadas || 0}</div>
+              </div>
+            </div>
+          `;
+
+          // Tabla de tallas - SIEMPRE mostrar si hay tallasCortadas
+          if (corte.tallasCortadas && corte.tallasCortadas.length > 0) {
+            const hayDiferencia = corte.tallasCortadas.some((tc, idx) => {
+              const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
+              return tc.cantidad !== orig;
+            });
+            
+            html += `
+              <div class="badge-cantidades-mod">${hayDiferencia ? '⚠️ Corte ajustó las cantidades del pedido original' : '📏 Desglose de cantidades por talla'}</div>
+              <table class="tallas-comp-table">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;">Talla</th>
+                    <th>Pedido Original</th>
+                    <th>Cortadas</th>
+                    <th>Diferencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${corte.tallasCortadas.map((tc, idx) => {
+                    const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
+                    const cortada = tc.cantidad || 0;
+                    const diff = cortada - orig;
+                    return `
+                      <tr>
+                        <td class="talla-nombre">${tc.talla}</td>
+                        <td>${orig}</td>
+                        <td class="${diff !== 0 ? 'cantidad-mod' : ''}">${cortada}</td>
+                        <td class="${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}">
+                          ${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                  <tr class="totales-row">
+                    <td class="talla-nombre">TOTAL</td>
+                    <td>${corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : (prenda.tallas ? prenda.tallas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0)}</td>
+                    <td class="cantidad-mod">${corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0)}</td>
+                    <td class="${(() => { const origT = corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : (prenda.tallas ? prenda.tallas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); const cortT = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0); const d = cortT - origT; return d > 0 ? 'diff-positiva' : d < 0 ? 'diff-negativa' : 'diff-igual'; })()}">
+                      ${(() => { const origT = corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : (prenda.tallas ? prenda.tallas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); const cortT = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0); const d = cortT - origT; return d > 0 ? '+'+d : d === 0 ? '—' : d; })()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            `;
+          }
+
+          if (corte.observaciones) {
+            html += `
+              <div class="observaciones">
+                <div class="observaciones-title">📝 Observaciones del Cortador</div>
+                <div class="observaciones-text">${corte.observaciones}</div>
+              </div>
+            `;
+          }
+
+          html += `
+                  <div class="meta-info">
+                    <div>🕒 Fecha: ${formatearFecha(corte.fecha)}</div>
+                  </div>
                 </div>
               </div>
             </div>
           `;
         }
 
-        html += `
-                <div style="margin-top: 20px;">
-                  <div class="detalle-item" style="display: inline-block; padding: 16px 24px;">
-                    <div class="detalle-label">Piezas Cortadas</div>
-                    <div class="detalle-value">✂️ ${corte.piezasCortadas || 0}</div>
+        // CONFECCIÓN
+        if (tieneConfeccion) {
+          const conf = prenda.confeccion_datos;
+          html += `
+            <div class="accordion">
+              <div class="accordion-header confeccion" onclick="toggleAccordion('conf-${suffix}')">
+                <div class="accordion-title"><span>🧵</span><span>Datos de Confección</span></div>
+                <div class="accordion-icon" id="icon-conf-${suffix}">▼</div>
+              </div>
+              <div class="accordion-content open" id="content-conf-${suffix}">
+                <div class="accordion-inner">
+                  <div class="section-title">🧵 Información de Confección</div>
+                  <div class="tela-detalles">
+                    <div class="detalle-item">
+                      <div class="detalle-label">Piezas Recibidas</div>
+                      <div class="detalle-value">📥 ${conf.piezasRecibidas || 0}</div>
+                    </div>
+                    <div class="detalle-item">
+                      <div class="detalle-label">Piezas Terminadas</div>
+                      <div class="detalle-value">✅ ${conf.piezasTerminadas || 0}</div>
+                    </div>
+                  </div>
+
+                  ${conf.accesorios ? `
+                    <div class="tela-card confeccion" style="margin-top: 16px;">
+                      <div class="observaciones-title">🔘 Accesorios Utilizados</div>
+                      <div style="font-size: 14px; color: #4b5563; margin-top: 8px;">${conf.accesorios}</div>
+                    </div>
+                  ` : ''}
+
+                  ${conf.observaciones ? `
+                    <div class="observaciones confeccion">
+                      <div class="observaciones-title">💬 Observaciones de Confección</div>
+                      <div class="observaciones-text">${conf.observaciones}</div>
+                    </div>
+                  ` : ''}
+
+                  <div class="meta-info">
+                    <div>🕒 Fecha: ${formatearFecha(conf.fecha)}</div>
                   </div>
                 </div>
-        `;
-
-        // Mostrar comparación de tallas si hay datos de tallas cortadas
-        if (corte.tallasCortadas && corte.tallasCortadas.length > 0) {
-          const hayDiferencia = corte.tallasCortadas.some((tc, idx) => {
-            const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
-            return tc.cantidad !== orig;
-          });
-          
-          html += `
-            <div class="badge-cantidades-mod">${hayDiferencia ? '⚠️ Corte ajustó las cantidades del pedido original' : '📏 Desglose de cantidades por talla'}</div>
-            <table class="tallas-comp-table">
-              <thead>
-                <tr>
-                  <th style="text-align:left;">Talla</th>
-                  <th>Pedido Original</th>
-                  <th>Cortadas</th>
-                  <th>Diferencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${corte.tallasCortadas.map((tc, idx) => {
-                  const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
-                  const cortada = tc.cantidad || 0;
-                  const diff = cortada - orig;
-                  return `
-                    <tr>
-                      <td class="talla-nombre">${tc.talla}</td>
-                      <td>${orig}</td>
-                      <td class="${diff !== 0 ? 'cantidad-mod' : ''}">${cortada}</td>
-                      <td class="${diff > 0 ? 'diff-positiva' : diff < 0 ? 'diff-negativa' : 'diff-igual'}">
-                        ${diff > 0 ? '+' + diff : diff === 0 ? '—' : diff}
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-                <tr class="totales-row">
-                  <td class="talla-nombre">TOTAL</td>
-                  <td>${corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0}</td>
-                  <td class="cantidad-mod">${corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0)}</td>
-                  <td class="${(() => { const d = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) - (corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); return d > 0 ? 'diff-positiva' : d < 0 ? 'diff-negativa' : 'diff-igual'; })()}">
-                    ${(() => { const d = corte.tallasCortadas.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) - (corte.tallasOriginales ? corte.tallasOriginales.reduce((s,t) => s + (parseInt(t.cantidad)||0), 0) : 0); return d > 0 ? '+'+d : d === 0 ? '—' : d; })()}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          `;
-        }
-
-        if (corte.observaciones) {
-          html += `
-            <div class="observaciones">
-              <div class="observaciones-title">📝 Observaciones del Cortador</div>
-              <div class="observaciones-text">${corte.observaciones}</div>
+              </div>
             </div>
           `;
         }
 
-        html += `
-                <div class="meta-info">
-                  <div>🕒 Fecha: ${formatearFecha(corte.fecha)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // DATOS DE CONFECCIÓN CON ACORDEÓN
-      if (tieneConfeccion) {
-        const conf = prenda.confeccion_datos;
-        
-        html += `
-          <div class="accordion">
-            <div class="accordion-header confeccion" onclick="toggleAccordion('confeccion')">
-              <div class="accordion-title">
-                <span>🧵</span>
-                <span>Datos de Confección</span>
-              </div>
-              <div class="accordion-icon" id="icon-confeccion">▼</div>
-            </div>
-            <div class="accordion-content open" id="content-confeccion">
-              <div class="accordion-inner">
-                <div class="section-title">🧵 Información de Confección</div>
-                
-                <div class="tela-detalles">
-                  <div class="detalle-item">
-                    <div class="detalle-label">Piezas Recibidas</div>
-                    <div class="detalle-value">📥 ${conf.piezasRecibidas || 0}</div>
-                  </div>
-                  <div class="detalle-item">
-                    <div class="detalle-label">Piezas Terminadas</div>
-                    <div class="detalle-value">✅ ${conf.piezasTerminadas || 0}</div>
-                  </div>
-                </div>
-
-                ${conf.accesorios ? `
-                  <div class="tela-card confeccion" style="margin-top: 16px;">
-                    <div class="observaciones-title">🔘 Accesorios Utilizados</div>
-                    <div style="font-size: 14px; color: #4b5563; margin-top: 8px;">${conf.accesorios}</div>
-                  </div>
-                ` : ''}
-
-                ${conf.observaciones ? `
-                  <div class="observaciones confeccion">
-                    <div class="observaciones-title">💬 Observaciones de Confección</div>
-                    <div class="observaciones-text">${conf.observaciones}</div>
-                  </div>
-                ` : ''}
-
-                <div class="meta-info">
-                  <div>🕒 Fecha: ${formatearFecha(conf.fecha)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      if (!tieneCorte && !tieneConfeccion) {
-        html += `
-          <div class="error">
-            Esta prenda no tiene datos de producción registrados.
-          </div>
-        `;
-      }
+        if (!tieneCorte && !tieneConfeccion) {
+          html += '<div class="error" style="margin-top: 12px;">Esta prenda no tiene datos de producción registrados.</div>';
+        }
+      });
 
       container.innerHTML = html;
     }
@@ -669,18 +706,14 @@
       if (!fecha) return 'N/A';
       const f = new Date(fecha);
       return f.toLocaleDateString('es-MX', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
       });
     }
 
     function toggleAccordion(id) {
       const content = document.getElementById(`content-${id}`);
       const icon = document.getElementById(`icon-${id}`);
-      
       if (content.classList.contains('open')) {
         content.classList.remove('open');
         icon.classList.remove('open');
@@ -692,9 +725,7 @@
 
     function mostrarError(mensaje) {
       document.getElementById('content').innerHTML = `
-        <div class="error">
-          <strong>Error:</strong> ${mensaje}
-        </div>
+        <div class="error"><strong>Error:</strong> ${mensaje}</div>
       `;
     }
   </script>
