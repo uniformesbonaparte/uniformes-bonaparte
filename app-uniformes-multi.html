@@ -223,8 +223,8 @@
     }
 
     .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
+      display: flex;
+      flex-direction: column;
       gap: 20px;
     }
 
@@ -630,7 +630,6 @@
 
     /* ========== RESPONSIVE ========== */
     @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
       .row, .row-3 { grid-template-columns: 1fr; }
     }
 
@@ -778,7 +777,7 @@
 
       <div class="grid">
         <!-- LISTA DE PEDIDOS -->
-        <section class="card">
+        <section class="card" id="listaPedidosCard">
           <div class="card-inner">
             <h2>Pedidos</h2>
             
@@ -885,9 +884,12 @@
         </section>
 
         <!-- FORMULARIO -->
-        <section class="card" id="formPedidoCard">
+        <section class="card" id="formPedidoCard" style="display: none;">
           <div class="card-inner">
-            <h2 id="tituloFormulario">Nuevo pedido</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h2 id="tituloFormulario" style="margin: 0;">Nuevo pedido</h2>
+              <button class="btn secondary" onclick="volverALista()" style="width: auto; margin: 0;">← Volver a pedidos</button>
+            </div>
             <input type="hidden" id="pedidoId" />
             <input type="hidden" id="imagenUrl" />
 
@@ -2664,6 +2666,9 @@
     if (!p) return;
     pedidoActual = p;
 
+    // Mostrar formulario
+    mostrarFormulario();
+
     document.getElementById("pedidoId").value = p.id;
     document.getElementById("clienteNombre").value = p.clienteNombre || "";
     document.getElementById("clienteTelefono").value = p.clienteTelefono || "";
@@ -2748,6 +2753,19 @@
     actualizarPanelProduccion();
   }
 
+  // ========== NAVEGACIÓN LISTA ↔ FORMULARIO ==========
+  function mostrarFormulario() {
+    document.getElementById('listaPedidosCard').style.display = 'none';
+    document.getElementById('formPedidoCard').style.display = 'block';
+    // Scroll al inicio del formulario
+    document.getElementById('formPedidoCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function volverALista() {
+    document.getElementById('formPedidoCard').style.display = 'none';
+    document.getElementById('listaPedidosCard').style.display = 'block';
+  }
+
   function nuevoPedido() {
             // IMPORTANTE: Limpiar prendas del pedido anterior
     prendasData = [];
@@ -2757,6 +2775,9 @@
     // Ocultar panel de producción
     const panelProd = document.getElementById('panelProduccion');
     if (panelProd) panelProd.style.display = 'none';
+
+    // Mostrar formulario
+    mostrarFormulario();
         const prendasLista = document.getElementById('prendasLista');
     if (prendasLista) prendasLista.innerHTML = '';
     
@@ -2858,7 +2879,7 @@
     if (id) {
       cargarPedido(parseInt(id));
     } else {
-      nuevoPedido();
+      volverALista();
     }
   }
 
@@ -2886,7 +2907,7 @@
     }
     await cargarPedidos();
         mostrarNotificacion('Pedido eliminado correctamente', 'success');
-    nuevoPedido();
+    volverALista();
   }
 
   async function subirImagen() {
