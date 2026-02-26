@@ -537,10 +537,15 @@
                 </div>
         `;
 
-        // Mostrar comparación de tallas si fueron modificadas
-        if (corte.tallasModificadas && corte.tallasCortadas) {
+        // Mostrar comparación de tallas si hay datos de tallas cortadas
+        if (corte.tallasCortadas && corte.tallasCortadas.length > 0) {
+          const hayDiferencia = corte.tallasCortadas.some((tc, idx) => {
+            const orig = corte.tallasOriginales?.[idx]?.cantidad || prenda.tallas?.[idx]?.cantidad || 0;
+            return tc.cantidad !== orig;
+          });
+          
           html += `
-            <div class="badge-cantidades-mod">⚠️ Corte ajustó las cantidades del pedido original</div>
+            <div class="badge-cantidades-mod">${hayDiferencia ? '⚠️ Corte ajustó las cantidades del pedido original' : '📏 Desglose de cantidades por talla'}</div>
             <table class="tallas-comp-table">
               <thead>
                 <tr>
