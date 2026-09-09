@@ -10,6 +10,9 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
+const sharp = require("sharp"); // MEJORA AGREGADA: normaliza cualquier formato de imagen (HEIC, WEBP, PNG, etc.) a JPG antes de guardarla
+const heicConvert = require("heic-convert"); // MEJORA AGREGADA: sharp no puede leer HEIC/HEIF (fotos de iPhone) por licencia, este paquete sí puede
+const bcrypt = require("bcryptjs"); // MEJORA AGREGADA: cifrado de contraseñas
 const { supabase, STORAGE_BUCKET } = require("./supabaseClient");
 
 const app = express();
@@ -28,6 +31,37 @@ app.use(express.static(__dirname));
 // Sesiones simples en memoria
 const sesiones = {};
 
+// MEJORA AGREGADA: limite de intentos de login por correo (anti fuerza bruta)
+// Se guarda en memoria: si se reinicia el servidor, el contador se reinicia
+// tambien (no es grave, solo protege contra ataques automatizados seguidos).
+const intentosLogin = {}; // { email: { intentos, bloqueadoHasta } }
+const MAX_INTENTOS_LOGIN = 10;
+const VENTANA_BLOQUEO_MS = 15 * 60 * 1000; // 15 minutos
+
+function revisarBloqueoLogin(email) {
+  const registro = intentosLogin[email];
+  if (!registro) return { bloqueado: false };
+  if (registro.bloqueadoHasta && Date.now() < registro.bloqueadoHasta) {
+    const minutosRestantes = Math.ceil((registro.bloqueadoHasta - Date.now()) / 60000);
+    return { bloqueado: true, minutosRestantes };
+  }
+  return { bloqueado: false };
+}
+
+function registrarIntentoFallido(email) {
+  const registro = intentosLogin[email] || { intentos: 0, bloqueadoHasta: null };
+  registro.intentos += 1;
+  if (registro.intentos >= MAX_INTENTOS_LOGIN) {
+    registro.bloqueadoHasta = Date.now() + VENTANA_BLOQUEO_MS;
+    registro.intentos = 0;
+  }
+  intentosLogin[email] = registro;
+}
+
+function limpiarIntentosLogin(email) {
+  delete intentosLogin[email];
+}
+
 // ---------------------------
 //  MULTER: memoria para subir a Supabase Storage
 // ---------------------------
@@ -35,6 +69,57 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
+
+// ---------------------------
+//  MEJORA AGREGADA: normalizar cualquier formato de imagen a JPG
+//  Antes la imagen se subia "tal cual" (mismo formato y mismo mimetype
+//  que mandara el celular). El problema: las fotos de iPhone por default
+//  vienen en HEIC/HEIF, y la mayoria de navegadores (Chrome, Firefox,
+//  Android) no pueden mostrar ese formato en una etiqueta <img>, aunque
+//  la foto SI se haya subido correctamente a Supabase. Por eso "un
+//  formato se ve y otro no". Esta funcion convierte SIEMPRE a JPG antes
+//  de guardar, sin importar en que formato llegue la foto original.
+// ---------------------------
+async function normalizarImagenAJpg(buffer, mimetype, originalname) {
+  const nombre = (originalname || "").toLowerCase();
+  const esHeic =
+    /heic|heif/i.test(mimetype || "") || /\.(heic|heif)$/i.test(nombre);
+
+  let bufferTrabajo = buffer;
+
+  if (esHeic) {
+    try {
+      // sharp no puede decodificar HEIC/HEIF (limitacion de licencia de la
+      // libreria que usa por debajo), asi que primero se pasa por
+      // heic-convert, que si sabe leer ese formato.
+      bufferTrabajo = await heicConvert({
+        buffer,
+        format: "JPEG",
+        quality: 0.9,
+      });
+    } catch (errHeic) {
+      console.error(
+        "MEJORA AGREGADA (imagenes): fallo heic-convert, se intenta con sharp de todos modos:",
+        errHeic.message
+      );
+      // se deja bufferTrabajo como el original; el intento con sharp de
+      // abajo probablemente tambien falle, y ahi se activa el respaldo
+      // final (subir el archivo original sin convertir).
+    }
+  }
+
+  // Se normaliza con sharp: corrige orientacion (fotos de celular giradas),
+  // limita el ancho maximo para que no pesen varios MB innecesariamente,
+  // y garantiza que el resultado sea un JPG valido y visible en cualquier
+  // navegador.
+  const jpgBuffer = await sharp(bufferTrabajo)
+    .rotate()
+    .resize({ width: 1600, withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+
+  return jpgBuffer;
+}
 
 // ---------------------------
 //  RUTA DE PRUEBA PARA SUBIR UNA IMAGEN
@@ -48,7 +133,22 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
   }
 
   try {
-    const fileExt = file.originalname.split(".").pop();
+    // MEJORA AGREGADA: misma normalizacion a JPG que en la subida real
+    let bufferFinal = file.buffer;
+    let mimetypeFinal = file.mimetype;
+    let fileExt = file.originalname.split(".").pop();
+    try {
+      bufferFinal = await normalizarImagenAJpg(
+        file.buffer,
+        file.mimetype,
+        file.originalname
+      );
+      mimetypeFinal = "image/jpeg";
+      fileExt = "jpg";
+    } catch (errConv) {
+      console.error("MEJORA AGREGADA (imagenes): fallo normalizando en /test-imagen:", errConv.message);
+    }
+
     const fileName = `${Date.now()}_${Math.random()
       .toString(36)
       .substring(2)}.${fileExt}`;
@@ -57,8 +157,8 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
     // 1) Subir al bucket de Supabase
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
+      .upload(filePath, bufferFinal, {
+        contentType: mimetypeFinal,
         upsert: false,
       });
 
@@ -217,6 +317,36 @@ function mapImagenFromDb(row) {
 }
 
 // ---------------------------
+//  MEJORA AGREGADA: ocultar dinero en el servidor
+//  Las pantallas de Corte y Confección ya NO mostraban precio, anticipo,
+//  saldo ni gastos en pantalla, pero el servidor los mandaba igual dentro
+//  de la respuesta JSON (visible con las herramientas de desarrollador
+//  del navegador). Ahora se quitan esos campos en el servidor mismo para
+//  cualquier rol que no sea admin o ventas.
+// ---------------------------
+const CAMPOS_FINANCIEROS_PEDIDO = [
+  "precioTotal",
+  "anticipo",
+  "saldo",
+  "gastosCompras",
+  "comprasDetalle",
+  "condicionesCliente",
+];
+
+function puedeVerDinero(rol) {
+  return rol === "admin" || rol === "ventas";
+}
+
+function ocultarDineroSiAplica(pedidoMapeado, rol) {
+  if (!pedidoMapeado || puedeVerDinero(rol)) return pedidoMapeado;
+  const copia = { ...pedidoMapeado };
+  for (const campo of CAMPOS_FINANCIEROS_PEDIDO) {
+    delete copia[campo];
+  }
+  return copia;
+}
+
+// ---------------------------
 //  AUTENTICACIÓN
 // ---------------------------
 function auth(req, res, next) {
@@ -234,16 +364,63 @@ function auth(req, res, next) {
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body || {};
 
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email y contraseña son requeridos" });
+  }
+
+  // MEJORA AGREGADA: bloqueo temporal tras varios intentos fallidos seguidos
+  const bloqueo = revisarBloqueoLogin(email);
+  if (bloqueo.bloqueado) {
+    return res.status(429).json({
+      error: `Demasiados intentos fallidos. Intenta de nuevo en ${bloqueo.minutosRestantes} minuto(s).`,
+    });
+  }
+
+  // MEJORA AGREGADA: ya no se filtra por password en la consulta (las
+  // contraseñas cifradas con bcrypt son distintas cada vez aunque el texto
+  // sea el mismo), se busca solo por email y se compara después.
   const { data, error } = await supabase
     .from("usuarios")
     .select("*")
     .eq("email", email)
-    .eq("password", password)
     .single();
 
   if (error || !data) {
+    registrarIntentoFallido(email);
     return res.status(401).json({ error: "Credenciales incorrectas" });
   }
+
+  // MEJORA AGREGADA: cifrado de contraseñas con migración automática.
+  // Si la contraseña guardada ya está cifrada (empieza con $2a$/$2b$/$2y$)
+  // se compara con bcrypt. Si todavía está en texto plano (usuarios
+  // antiguos), se compara como antes y, si coincide, se cifra y se guarda
+  // de una vez en Supabase para que la próxima vez ya quede protegida.
+  // Así no hace falta migrar a todos los usuarios de golpe ni pedirles
+  // que cambien su contraseña.
+  const yaEstaCifrada = /^\$2[aby]\$/.test(data.password || "");
+  let credencialesValidas = false;
+
+  if (yaEstaCifrada) {
+    credencialesValidas = await bcrypt.compare(password, data.password);
+  } else {
+    credencialesValidas = data.password === password;
+    if (credencialesValidas) {
+      try {
+        const hash = await bcrypt.hash(password, 10);
+        await supabase.from("usuarios").update({ password: hash }).eq("id", data.id);
+      } catch (errHash) {
+        console.error("MEJORA AGREGADA (login): no se pudo migrar la contraseña a cifrada:", errHash.message);
+        // No bloquea el login si la migración falla, solo se queda sin cifrar por ahora
+      }
+    }
+  }
+
+  if (!credencialesValidas) {
+    registrarIntentoFallido(email);
+    return res.status(401).json({ error: "Credenciales incorrectas" });
+  }
+
+  limpiarIntentosLogin(email);
 
   const token = Date.now() + "-" + data.id;
   sesiones[token] = { userId: data.id, nombre: data.nombre, rol: data.rol };
@@ -267,7 +444,8 @@ app.get("/api/pedidos", auth, async (req, res) => {
     return res.status(500).json({ error: "Error al obtener pedidos" });
   }
 
-  const mapped = data.map(mapPedidoFromDb);
+  // MEJORA AGREGADA: no mandar dinero a roles que no deben verlo
+  const mapped = data.map((row) => ocultarDineroSiAplica(mapPedidoFromDb(row), req.user?.rol));
   res.json(mapped);
 });
 
@@ -315,7 +493,8 @@ app.post("/api/pedidos", auth, async (req, res) => {
     return res.status(500).json({ error: "Error al crear pedido" });
   }
 
-  res.status(201).json(mapPedidoFromDb(data));
+  // MEJORA AGREGADA: no mandar dinero a roles que no deben verlo
+  res.status(201).json(ocultarDineroSiAplica(mapPedidoFromDb(data), req.user?.rol));
 });
 
 // PUT actualizar pedido
@@ -452,12 +631,39 @@ app.put("/api/pedidos/:id", auth, async (req, res) => {
     // No bloquear la respuesta si falla el registro de actividad
   }
 
-  res.json(mapPedidoFromDb(data));
+  // MEJORA AGREGADA: no mandar dinero a roles que no deben verlo
+  res.json(ocultarDineroSiAplica(mapPedidoFromDb(data), req.user?.rol));
 });
 
 // DELETE pedido
 app.delete("/api/pedidos/:id", auth, async (req, res) => {
   const id = Number(req.params.id);
+
+  // MEJORA AGREGADA: antes solo se borraban las filas de la tabla
+  // "imagenes", pero los archivos reales seguian ocupando espacio en
+  // Supabase Storage para siempre (huerfanos). Ahora se borran tambien
+  // los archivos de la carpeta pedidos/{id}/ dentro del bucket.
+  try {
+    const carpeta = `pedidos/${id}`;
+    const { data: archivos, error: errorList } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .list(carpeta);
+
+    if (errorList) {
+      console.error("MEJORA AGREGADA (storage): no se pudo listar archivos a borrar:", errorList.message);
+    } else if (archivos && archivos.length > 0) {
+      const rutas = archivos.map((archivo) => `${carpeta}/${archivo.name}`);
+      const { error: errorRemove } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .remove(rutas);
+      if (errorRemove) {
+        console.error("MEJORA AGREGADA (storage): no se pudieron borrar los archivos:", errorRemove.message);
+      }
+    }
+  } catch (errStorage) {
+    console.error("MEJORA AGREGADA (storage): error inesperado limpiando archivos:", errStorage.message);
+    // No se bloquea el borrado del pedido si falla la limpieza de Storage
+  }
 
   await supabase.from("imagenes").delete().eq("pedido_id", id);
 
@@ -486,15 +692,36 @@ app.post(
       return res.status(400).json({ error: "No se recibió imagen" });
     }
 
-    const ext = path.extname(req.file.originalname) || ".jpg";
-    const filename = `pedido-${id}-${Date.now()}${ext}`;
+    // MEJORA AGREGADA: normalizar siempre a JPG (arregla fotos HEIC de
+    // iPhone y cualquier otro formato que el navegador no pudiera mostrar).
+    // Si por algo falla la conversion, se sube el archivo original tal
+    // cual llego, para que la subida nunca se rompa por completo.
+    let bufferFinal = req.file.buffer;
+    let mimetypeFinal = req.file.mimetype;
+    let extFinal = path.extname(req.file.originalname) || ".jpg";
+    try {
+      bufferFinal = await normalizarImagenAJpg(
+        req.file.buffer,
+        req.file.mimetype,
+        req.file.originalname
+      );
+      mimetypeFinal = "image/jpeg";
+      extFinal = ".jpg";
+    } catch (errConv) {
+      console.error(
+        "MEJORA AGREGADA (imagenes): no se pudo normalizar la imagen, se sube el archivo original:",
+        errConv.message
+      );
+    }
+
+    const filename = `pedido-${id}-${Date.now()}${extFinal}`;
     const filePath = `pedidos/${id}/${filename}`;
 
     // Subir a Storage
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(filePath, req.file.buffer, {
-        contentType: req.file.mimetype,
+      .upload(filePath, bufferFinal, {
+        contentType: mimetypeFinal,
         upsert: false,
       });
 
@@ -583,9 +810,17 @@ app.post("/api/users", auth, async (req, res) => {
 
   const { nombre, email, password, rol } = req.body || {};
 
+  if (!nombre || !email || !password || !rol) {
+    return res.status(400).json({ error: "Faltan datos del usuario" });
+  }
+
+  // MEJORA AGREGADA: los usuarios nuevos se guardan con contraseña ya
+  // cifrada desde el inicio, no en texto plano
+  const passwordCifrada = await bcrypt.hash(password, 10);
+
   const { data, error } = await supabase
     .from("usuarios")
-    .insert({ nombre, email, password, rol })
+    .insert({ nombre, email, password: passwordCifrada, rol })
     .select("id, nombre, email, rol")
     .single();
 
@@ -652,7 +887,9 @@ app.get("/api/respaldo", auth, async (req, res) => {
 // ---------------------------
 
 // GET /api/actividad - Obtener actividad reciente (últimas 24 horas)
-app.get("/api/actividad", async (req, res) => {
+// MEJORA AGREGADA: esta ruta no tenía "auth", cualquiera con la URL
+// podía ver el historial de actividad sin haber iniciado sesión
+app.get("/api/actividad", auth, async (req, res) => {
   try {
     const hace24h = new Date();
     hace24h.setHours(hace24h.getHours() - 24);
@@ -680,7 +917,9 @@ app.get("/api/actividad", async (req, res) => {
 });
 
 // GET /api/pedidos/:id/timeline - Obtener timeline de un pedido específico
-app.get("/api/pedidos/:id/timeline", async (req, res) => {
+// MEJORA AGREGADA: esta ruta no tenía "auth", cualquiera con la URL
+// podía ver la línea de tiempo de un pedido sin haber iniciado sesión
+app.get("/api/pedidos/:id/timeline", auth, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -737,7 +976,8 @@ app.get("/api/pedidos/:id", auth, async (req, res) => {
     return res.status(404).json({ error: "Pedido no encontrado" });
   }
 
-  res.json(mapPedidoFromDb(data));
+  // MEJORA AGREGADA: no mandar dinero a roles que no deben verlo
+  res.json(ocultarDineroSiAplica(mapPedidoFromDb(data), req.user?.rol));
 });
 
 // Ruta principal - App de Admin/Ventas

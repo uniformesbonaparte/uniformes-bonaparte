@@ -1412,11 +1412,12 @@
           return;
         }
 
-        // TEMPORAL: Verificación de rol desactivada para pruebas
-        // if (data.rol !== 'corte') {
-        //   mostrarNotificacion('Esta área es solo para personal de Corte', 'error');
-        //   return;
-        // }
+        // MEJORA AGREGADA: se reactiva la verificacion de rol (estaba
+        // desactivada "temporalmente para pruebas" y se quedo asi)
+        if (data.rol !== 'corte') {
+          mostrarNotificacion('Esta área es solo para personal de Corte', 'error');
+          return;
+        }
 
         authToken = data.token;
         currentUser = data;
@@ -2340,6 +2341,151 @@
         cerrarModal();
       }
     });
+  // ==================== NAVEGACIÓN CON TECLADO ====================
+
+  // ================================================================
+  // MEJORA AGREGADA: Navegación con teclado entre campos (Enter y
+  // flechas), para no depender solo del mouse al llenar el formulario
+  // en computadora. Funciona aunque los campos se vuelvan a dibujar
+  // dinámicamente (tablas de tallas), porque escucha a nivel de
+  // documento en vez de campo por campo.
+  //
+  // Reglas:
+  //  - Enter: pasa al siguiente campo (y ya NO envía formularios por
+  //    accidente al presionar Enter dentro de una tabla).
+  //  - Flecha Arriba/Abajo dentro de una tabla: salta a la misma
+  //    columna en la fila de arriba/abajo (como en una hoja de cálculo).
+  //  - Flecha Arriba/Abajo fuera de una tabla: pasa al campo
+  //    anterior/siguiente del formulario.
+  //  - Flecha Izquierda/Derecha en campos de texto: solo cambia de
+  //    campo cuando el cursor ya está al inicio/final del texto, para
+  //    no interferir con la edición normal dentro del campo.
+  //  - No se activa en <select> ni <textarea> para no romper su
+  //    comportamiento normal (opciones, texto con varias líneas).
+  // ================================================================
+  (function () {
+    function esCampoNavegable(el) {
+      if (!el || el.tagName !== "INPUT") return false;
+      const tipo = (el.getAttribute("type") || "text").toLowerCase();
+      if (["hidden", "checkbox", "radio", "button", "submit", "file"].includes(tipo)) return false;
+      if (el.disabled || el.readOnly) return false;
+      return el.offsetParent !== null; // visible
+    }
+
+    function obtenerCamposVisibles() {
+      return Array.from(document.querySelectorAll("input")).filter(esCampoNavegable);
+    }
+
+    function moverA(el) {
+      if (!el) return;
+      el.focus();
+      try {
+        if (typeof el.select === "function") el.select();
+      } catch (e) {
+        /* algunos tipos de input no soportan select(), se ignora */
+      }
+    }
+
+    function moverEnTabla(input, direccion) {
+      const celda = input.closest("td");
+      const fila = input.closest("tr");
+      const tabla = input.closest("table");
+      if (!celda || !fila || !tabla) return false;
+
+      const filas = Array.from(tabla.querySelectorAll("tbody tr"));
+      const indiceFila = filas.indexOf(fila);
+      const celdas = Array.from(fila.children);
+      const indiceCol = celdas.indexOf(celda);
+      if (indiceFila === -1 || indiceCol === -1) return false;
+
+      const filaDestino = direccion === "up" ? filas[indiceFila - 1] : filas[indiceFila + 1];
+      if (!filaDestino) return false;
+
+      const celdaDestino = filaDestino.children[indiceCol];
+      if (!celdaDestino) return false;
+
+      const inputDestino = celdaDestino.querySelector("input");
+      if (!inputDestino || !esCampoNavegable(inputDestino)) return false;
+
+      moverA(inputDestino);
+      return true;
+    }
+
+    function cursorEnInicio(input) {
+      try {
+        return input.selectionStart === 0;
+      } catch (e) {
+        return false; // si no se puede saber, no se mueve (mas seguro)
+      }
+    }
+    function cursorEnFinal(input) {
+      try {
+        return input.selectionEnd === input.value.length;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    document.addEventListener(
+      "keydown",
+      function (ev) {
+        const input = ev.target;
+        if (!esCampoNavegable(input)) return;
+
+        const tabla = input.closest("table");
+
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          const campos = obtenerCamposVisibles();
+          const idx = campos.indexOf(input);
+          if (idx > -1 && idx < campos.length - 1) {
+            moverA(campos[idx + 1]);
+          } else {
+            input.blur();
+          }
+          return;
+        }
+
+        if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
+          if (tabla && moverEnTabla(input, ev.key === "ArrowUp" ? "up" : "down")) {
+            ev.preventDefault();
+            return;
+          }
+          // Fuera de una tabla: se comporta como Enter (siguiente/anterior campo)
+          const campos = obtenerCamposVisibles();
+          const idx = campos.indexOf(input);
+          if (ev.key === "ArrowDown" && idx > -1 && idx < campos.length - 1) {
+            moverA(campos[idx + 1]);
+            ev.preventDefault();
+          } else if (ev.key === "ArrowUp" && idx > 0) {
+            moverA(campos[idx - 1]);
+            ev.preventDefault();
+          }
+          return;
+        }
+
+        if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") {
+          const tipo = (input.getAttribute("type") || "text").toLowerCase();
+          // En campos "number" el navegador no permite leer la posición
+          // del cursor de forma confiable, asi que ahi se deja el
+          // comportamiento normal de las flechas (mover el cursor).
+          if (tipo !== "text" && tipo !== "date" && tipo !== "email" && tipo !== "tel") return;
+
+          const campos = obtenerCamposVisibles();
+          const idx = campos.indexOf(input);
+          if (ev.key === "ArrowLeft" && cursorEnInicio(input) && idx > 0) {
+            moverA(campos[idx - 1]);
+            ev.preventDefault();
+          } else if (ev.key === "ArrowRight" && cursorEnFinal(input) && idx > -1 && idx < campos.length - 1) {
+            moverA(campos[idx + 1]);
+            ev.preventDefault();
+          }
+        }
+      },
+      true
+    );
+  })();
+  // ==================== FIN NAVEGACIÓN CON TECLADO ====================
   </script>
 </body>
 </html>
