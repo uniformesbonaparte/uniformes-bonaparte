@@ -80,6 +80,15 @@ app.post("/test-imagen", upload.single("imagen"), async (req, res) => {
     return res.status(400).send("No se recibió ningún archivo");
   }
 
+  // MEJORA AGREGADA: misma validación de archivo vacío/dañado que en la
+  // subida real, para que esta ruta de prueba refleje el mismo
+  // comportamiento.
+  if (!file.buffer || file.buffer.length === 0) {
+    return res.status(400).send(
+      "La foto llegó vacía o dañada (probablemente por la conexión a internet). Intenta subirla de nuevo."
+    );
+  }
+
   try {
     // MEJORA AGREGADA: misma normalizacion a JPG que en la subida real
     let bufferFinal = file.buffer;
@@ -638,6 +647,20 @@ app.post(
 
     if (!req.file) {
       return res.status(400).json({ error: "No se recibió imagen" });
+    }
+
+    // MEJORA AGREGADA: rechazar fotos vacías o dañadas antes de guardarlas.
+    // Antes, si la subida se cortaba a la mitad (por ejemplo por mala
+    // conexión), el sistema guardaba de todos modos un archivo vacío (0
+    // bytes) sin avisar a nadie, y esa foto quedaba invisible para
+    // siempre. Ahora se detecta aquí mismo y se rechaza con un mensaje
+    // claro, para que la app avise de inmediato y la persona pueda
+    // intentar subirla otra vez.
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({
+        error:
+          "La foto llegó vacía o dañada (probablemente por la conexión a internet). Intenta subirla de nuevo.",
+      });
     }
 
     // MEJORA AGREGADA: normalizar siempre a JPG (arregla fotos HEIC de
