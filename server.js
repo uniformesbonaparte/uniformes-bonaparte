@@ -10,9 +10,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
-const sharp = require("sharp"); // MEJORA AGREGADA: normaliza cualquier formato de imagen (HEIC, WEBP, PNG, etc.) a JPG antes de guardarla
-const heicConvert = require("heic-convert"); // MEJORA AGREGADA: sharp no puede leer HEIC/HEIF (fotos de iPhone) por licencia, este paquete sí puede
 const bcrypt = require("bcryptjs"); // MEJORA AGREGADA: cifrado de contraseñas
+const { normalizarImagenAJpg } = require("./imagenUtils"); // MEJORA AGREGADA: normaliza cualquier formato de imagen (HEIC, WEBP, PNG, etc.) a JPG antes de guardarla
 const { supabase, STORAGE_BUCKET } = require("./supabaseClient");
 
 const app = express();
@@ -69,57 +68,6 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
-
-// ---------------------------
-//  MEJORA AGREGADA: normalizar cualquier formato de imagen a JPG
-//  Antes la imagen se subia "tal cual" (mismo formato y mismo mimetype
-//  que mandara el celular). El problema: las fotos de iPhone por default
-//  vienen en HEIC/HEIF, y la mayoria de navegadores (Chrome, Firefox,
-//  Android) no pueden mostrar ese formato en una etiqueta <img>, aunque
-//  la foto SI se haya subido correctamente a Supabase. Por eso "un
-//  formato se ve y otro no". Esta funcion convierte SIEMPRE a JPG antes
-//  de guardar, sin importar en que formato llegue la foto original.
-// ---------------------------
-async function normalizarImagenAJpg(buffer, mimetype, originalname) {
-  const nombre = (originalname || "").toLowerCase();
-  const esHeic =
-    /heic|heif/i.test(mimetype || "") || /\.(heic|heif)$/i.test(nombre);
-
-  let bufferTrabajo = buffer;
-
-  if (esHeic) {
-    try {
-      // sharp no puede decodificar HEIC/HEIF (limitacion de licencia de la
-      // libreria que usa por debajo), asi que primero se pasa por
-      // heic-convert, que si sabe leer ese formato.
-      bufferTrabajo = await heicConvert({
-        buffer,
-        format: "JPEG",
-        quality: 0.9,
-      });
-    } catch (errHeic) {
-      console.error(
-        "MEJORA AGREGADA (imagenes): fallo heic-convert, se intenta con sharp de todos modos:",
-        errHeic.message
-      );
-      // se deja bufferTrabajo como el original; el intento con sharp de
-      // abajo probablemente tambien falle, y ahi se activa el respaldo
-      // final (subir el archivo original sin convertir).
-    }
-  }
-
-  // Se normaliza con sharp: corrige orientacion (fotos de celular giradas),
-  // limita el ancho maximo para que no pesen varios MB innecesariamente,
-  // y garantiza que el resultado sea un JPG valido y visible en cualquier
-  // navegador.
-  const jpgBuffer = await sharp(bufferTrabajo)
-    .rotate()
-    .resize({ width: 1600, withoutEnlargement: true })
-    .jpeg({ quality: 85 })
-    .toBuffer();
-
-  return jpgBuffer;
-}
 
 // ---------------------------
 //  RUTA DE PRUEBA PARA SUBIR UNA IMAGEN
