@@ -831,6 +831,40 @@
                   </select>
                 </div>
               </div>
+              <!-- MEJORA AGREGADA: filtro por fecha de entrega -->
+              <div class="row" style="margin-bottom:4px;">
+                <div>
+                  <label for="filtroFechaEntrega">Fecha de entrega</label>
+                  <select id="filtroFechaEntrega" onchange="cambiarFiltroFechaEntrega()">
+                    <option value="">Todas</option>
+                    <option value="vencidos">Vencidos</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="3">Próximos 3 días</option>
+                    <option value="7">Próximos 7 días</option>
+                    <option value="15">Próximos 15 días</option>
+                    <option value="30">Próximos 30 días</option>
+                    <option value="rango">Rango personalizado</option>
+                    <option value="sinfecha">Sin fecha</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ordenPedidos">Ordenar por</label>
+                  <select id="ordenPedidos" onchange="renderPedidos()">
+                    <option value="recientes">Más recientes primero</option>
+                    <option value="entrega">Entrega más próxima primero</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row" id="filaRangoFechaEntrega" style="margin-bottom:4px; display:none;">
+                <div>
+                  <label for="filtroEntregaDesde">Desde</label>
+                  <input id="filtroEntregaDesde" type="date" onchange="renderPedidos()" />
+                </div>
+                <div>
+                  <label for="filtroEntregaHasta">Hasta</label>
+                  <input id="filtroEntregaHasta" type="date" onchange="renderPedidos()" />
+                </div>
+              </div>
               <div style="margin-bottom: 8px;">
                 <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; text-transform: none;">
                   <input type="checkbox" id="ocultarEntregados" onchange="renderPedidos()" style="width: auto; cursor: pointer;" />
@@ -1832,6 +1866,18 @@
     return null; // Sin alerta
   }
 
+  // MEJORA AGREGADA: mostrar/ocultar las casillas Desde/Hasta y, al elegir
+  // cualquier filtro de fecha, ordenar automáticamente por entrega más
+  // próxima (se puede cambiar de nuevo en "Ordenar por").
+  function cambiarFiltroFechaEntrega() {
+    const valor = document.getElementById("filtroFechaEntrega").value;
+    const filaRango = document.getElementById("filaRangoFechaEntrega");
+    if (filaRango) filaRango.style.display = valor === "rango" ? "" : "none";
+    const orden = document.getElementById("ordenPedidos");
+    if (orden && valor && valor !== "sinfecha") orden.value = "entrega";
+    renderPedidos();
+  }
+
   function verificarAlertas() {
     alertasActivas = [];
     
@@ -2543,9 +2589,50 @@
     const vistaFiltroSeleccionado = document.querySelector('input[name="vistaFiltro"]:checked');
     const vistaFiltro = vistaFiltroSeleccionado ? vistaFiltroSeleccionado.value : 'activos';
 
+    // MEJORA AGREGADA: filtro y orden por fecha de entrega
+    const filtroFechaEntrega = (document.getElementById("filtroFechaEntrega") || {}).value || "";
+    const entregaDesde = (document.getElementById("filtroEntregaDesde") || {}).value || "";
+    const entregaHasta = (document.getElementById("filtroEntregaHasta") || {}).value || "";
+    const ordenPedidos = (document.getElementById("ordenPedidos") || {}).value || "recientes";
+
     let lista = pedidos.slice().sort((a,b) => (b.id || 0) - (a.id || 0));
 
+    if (ordenPedidos === "entrega") {
+      // Los que tienen fecha van primero (la más próxima/vencida arriba);
+      // los que no tienen fecha se quedan al final.
+      lista.sort((a, b) => {
+        const fa = a.fechaEntrega || "";
+        const fb = b.fechaEntrega || "";
+        if (!fa && !fb) return (b.id || 0) - (a.id || 0);
+        if (!fa) return 1;
+        if (!fb) return -1;
+        return fa < fb ? -1 : fa > fb ? 1 : 0;
+      });
+    }
+
     lista = lista.filter(p => {
+      // MEJORA AGREGADA: filtro por fecha de entrega
+      if (filtroFechaEntrega) {
+        const dias = calcularDiasHastaEntrega(p.fechaEntrega);
+        if (filtroFechaEntrega === "sinfecha") {
+          if (p.fechaEntrega) return false;
+        } else if (filtroFechaEntrega === "rango") {
+          if (!p.fechaEntrega) return false;
+          if (entregaDesde && p.fechaEntrega < entregaDesde) return false;
+          if (entregaHasta && p.fechaEntrega > entregaHasta) return false;
+        } else {
+          if (dias === null) return false;
+          if (filtroFechaEntrega === "vencidos") {
+            if (dias >= 0) return false;
+          } else if (filtroFechaEntrega === "hoy") {
+            if (dias !== 0) return false;
+          } else {
+            const limite = Number(filtroFechaEntrega);
+            if (dias < 0 || dias > limite) return false;
+          }
+        }
+      }
+
       // FILTRO DE VISTA
       let okVista = true;
       if (vistaFiltro === 'activos') {
